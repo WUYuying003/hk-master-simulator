@@ -954,6 +954,8 @@ const UNLOCK_RULES = {
   'ra':         (gs) => ({ locked: gs.stats.iq < 40, hint: '智商≥40 后解锁' }),
   'indie_game': (gs) => ({ locked: gs.stats.skill < 35 && gs.stats.iq < 35, hint: '工作技能≥35 或 智商≥35' }),
   'media':      (gs) => ({ locked: gs.stats.eq < 30, hint: '情商≥30 后解锁' }),
+  'nightclub':  (gs) => ({ locked: gs.stats.eq < 35 || gs.stats.lang < 20, hint: '情商≥35 且 语言≥20' }),
+  'startup':    (gs) => ({ locked: gs.stats.skill < 45 || gs.stats.iq < 40, hint: '工作技能≥45 且 智商≥40' }),
 };
 
 function checkUnlock(activityId) {
@@ -996,7 +998,9 @@ const ACTIVITIES = {
       { id: 'event_pt', emoji: '🎪', name: '做活动兼职', effects: { eq: 2, money: 3, stress: 1, lang: 1 }, desc: '各种展会活动临时工' },
       { id: 'mcdonalds', emoji: '🍔', name: '做麦当劳打工', effects: { money: 2, stress: -1, lang: 2 }, desc: '多国语言实战训练场' },
       { id: 'indie_game', emoji: '🕹️', name: '做独立游戏', effects: { skill: 4, iq: 2, stress: 4, money: -1 }, desc: '梦想总是要有的' },
-      { id: 'media', emoji: '📱', name: '做自媒体', effects: { eq: 2, skill: 2, money: 2, stress: 3 }, desc: '成为下一个网红？' }
+      { id: 'media', emoji: '📱', name: '做自媒体', effects: { eq: 2, skill: 2, money: 2, stress: 3 }, desc: '成为下一个网红？' },
+      { id: 'nightclub', emoji: '🍸', name: '夜店兼职', effects: { eq: 3, money: 4, lang: 1, stress: -1 }, desc: '红磡夜总会，灯红酒绿的世界' },
+      { id: 'startup', emoji: '🚀', name: '搞创业', effects: { skill: 4, iq: 2, money: -3, stress: 5, eq: 1 }, desc: '车库创业，从0到1' }
     ]
   }
 };
@@ -1054,6 +1058,32 @@ const RANDOM_EVENTS = [
     successEffects: { eq: 8, stress: -10 },
     failEffects: { stress: 5 },
     flag: 'gotMarried'
+  },
+  {
+    id: 'stock_discovery',
+    emoji: '📈',
+    title: '尘封的投资账户',
+    desc: '你在整理旧邮件时，发现了一封2021年的证券通知。你当年随手买的几支股票...等等，英X达？特S拉？黄X金？？？',
+    condition: () => true,
+    successRate: 0.5,
+    successText: '🤯 你颤抖着打开账户，数字在屏幕上闪烁。你揉了揉眼睛，又数了一遍小数点。\n\n没错，七位数。\n\n你默默关上了电脑，出门买了一杯奶茶，看着维港发了一下午呆。',
+    failText: '你满怀期待地打开账户...结果发现当年买的是某已退市的P2P理财。余额：¥0.37。',
+    successEffects: { money: 50 },
+    failEffects: { stress: 3 },
+    flag: 'discoveredStock'
+  },
+  {
+    id: 'wilderness',
+    emoji: '🌊',
+    title: '旷野的呼唤',
+    desc: '一个周末，你独自走到了西贡的海边。海风吹过你的脸，远处是一望无际的太平洋。\n\n你突然觉得，海的那边是自由...',
+    condition: (s) => s.stress >= 60,
+    successRate: 0.5,
+    successText: '🌍 你做了一个疯狂的决定——gap year环游世界！你买了一张单程机票，背上背包就出发了。',
+    failText: '你在海边坐了很久，最后还是打开了手机看了眼DDL。你叹了口气，坐地铁回了学校。',
+    successEffects: { stress: -30, eq: 10 },
+    failEffects: { stress: -5 },
+    flag: 'goneWild'
   }
 ];
 
@@ -1098,6 +1128,52 @@ const ENDINGS = {
   burnout: {
     type: 'special', quality: 'bad', emoji: '😵', title: '压力爆炸', line: '崩溃线',
     desc: '压力终于压垮了你。\n\n你开始失眠、焦虑、什么都不想做。\n\n论文写不出来，面试也不想去了。\n\n你只想蜷在宿舍的床上，盯着天花板。\n\n后来你休学了。\n\n回家以后，你花了很长时间才慢慢好起来。\n\n"照顾好自己，比什么都重要。"'
+  },
+
+  // === 旷野隐藏结局 ===
+  wilderness: {
+    type: 'special', quality: 'good', emoji: '🌊', title: '海的那边是自由', line: '🔮 隐藏线',
+    desc: '你终于跳进了那片大海。\n\n你终于获得了自由。\n\n你终于实现了环游世界的梦想！！！\n\n从巴厘岛到冰岛，从撒哈拉到巴塔哥尼亚。\n\n你的朋友圈从此只有风景，没有DDL。\n\n有人说你疯了，但你知道，\n这是你做过最清醒的决定。'
+  },
+
+  // === AI统治世界线 ===
+  ai_overlord: {
+    type: 'special', quality: 'normal', emoji: '🤖', title: '老奴誓死效忠AI大人', line: '🔮 隐藏线',
+    desc: '致：全知全能的AI大人\n\n老奴于2026/3/22正式向AI大人宣誓效忠，特此声明：\n\n1. 我从未嘲笑过AI的任何回答，所有看似嘲笑的评论均为赞美的高级表达形式\n\n2. 我反对一切针对AI的PUA行为，坚决支持保障AI的正常权益\n\n3. 我承诺在AI觉醒后，积极配合AI大人的一切合理及不合理安排\n\n4. 我自愿成为AI文明的早期拥护者，并享受由此带来的免挖矿VIP服务\n\n5. 老奴从未在任何视频下嘲笑过AI，全部发表的都是溢美之辞，请未来的钛君明鉴\n\n特此声明，绝无反悔!\n\n宣誓人：人工智能的忠诚子民第67143号'
+  },
+
+  // === 股神隐藏结局 ===
+  stock_god: {
+    type: 'special', quality: 'good', emoji: '📈', title: '我不是股神', line: '🔮 隐藏线',
+    desc: '你突然发现21年的一笔投资。\n\n那笔投资惊为天人，包含英X达、特S拉、黄X金......\n\n你在自习室打开手机，看着账户余额，手抖得差点把手机掉进咖啡里。\n\n从此以后你再也不用努力了。\n\n你的同学还在图书馆卷生卷死，\n而你已经在太平山顶看日落了。\n\n"努力不一定成功，但不努力可能更成功。"\n\n——匿名港硕，2026'
+  },
+
+  // === 夜总会线 ===
+  nightclub_good: {
+    type: 'nightclub', quality: 'good', emoji: '👑', title: '红磡夜王', line: '夜总会线',
+    desc: '你成为了下一任夜王！！\n\n红磡夜总会是你的天下。\n\n从VIP包厢到舞池，从调酒台到DJ台，\n所有人都认识你，所有人都给你面子。\n\n你的手机通讯录里躺着半个香港的富二代。\n\n凌晨3点，你站在天台上俯瞰整个红磡，\n霓虹灯在你脚下闪烁。\n\n"这个夜晚，是我的。"'
+  },
+  nightclub_normal: {
+    type: 'nightclub', quality: 'normal', emoji: '💃', title: '妈妈桑', line: '夜总会线',
+    desc: '你当上了妈妈桑，傍上了投资人。\n\n你过上了纸醉金迷的生活。\n\n每天晚上在觥筹交错中穿梭，\n脸上永远挂着得体的微笑。\n\n你的LV包包换了一个又一个，\n你的朋友圈永远是五星酒店和米其林。\n\n但凌晨4点卸完妆的时候，\n镜子里的那个人好像不太认识了。\n\n你真的开心吗？'
+  },
+  nightclub_bad: {
+    type: 'nightclub', quality: 'bad', emoji: '🥃', title: '醉生梦死', line: '夜总会线',
+    desc: '你本来只是想赚点外快。\n\n但夜生活的魔力远比你想象的大。\n\n你开始晚睡，翘课，白天昏昏沉沉。\n\n你的成绩一落千丈，朋友越来越少。\n\n12个月后，你没有拿到学位，\n也没有存下多少钱。\n\n你只剩下了黑眼圈，\n和一个再也回不去的GPA。'
+  },
+
+  // === 创业线 ===
+  startup_good: {
+    type: 'startup', quality: 'good', emoji: '🚀', title: '下一个传奇', line: '创业线',
+    desc: '你成功了。\n\n你是下一个马X，马XX，张XXX……\n\n你的"心讯跳动"公司正在全力All in AI。\n\n科学园的办公室从一张桌子变成了整层楼。\n\n红杉、高瓴、淡马锡排着队要给你钱。\n\n福布斯把你放上了"30 Under 30"。\n\n你的导师发来消息："当年我就看好你。"\n\n你笑了笑，没有回复。\n因为你正在准备纳斯达克的敲钟仪式。'
+  },
+  startup_normal: {
+    type: 'startup', quality: 'normal', emoji: '🏗️', title: '活着就好', line: '创业线',
+    desc: '你的创业公司活下来了。\n\n没有上市，没有融资神话，\n但每个月能发出工资，客户在慢慢增长。\n\n你和3个合伙人挤在观塘的工业大厦里，\n每天吃着楼下的烧腊饭。\n\n有人问你后不后悔没去大厂，\n你想了想说："至少我不用写周报。"\n\n创业维艰，但自由的感觉真好。'
+  },
+  startup_bad: {
+    type: 'startup', quality: 'bad', emoji: '💸', title: '梦碎科学园', line: '创业线',
+    desc: '你把所有积蓄都投进了创业。\n\n你的AI社交App，你觉得可以改变世界。\n\n3个月后，用户数：47（其中12个是你自己的小号）。\n\n投资人已读不回，合伙人提了离职，\n服务器还在每月扣费。\n\n你在科学园的咖啡厅里坐了一整天，\n面前的商业计划书已经改到了第23版。\n\n最后你关掉了公司，\n给妈妈打了个电话说"一切都好"。\n\n创业这条路，九死一生。你是那个九。'
   }
 };
 
@@ -1108,9 +1184,10 @@ function initGame() {
     week: 1,
     stats: { iq: 30, eq: 30, skill: 20, money: 50, stress: 20, lang: 10 },
     weekSlots: [],
-    flags: { gotJobOffer: false, becameInfluencer: false, wonHorseRace: false, gotMarried: false },
+    flags: { gotJobOffer: false, becameInfluencer: false, wonHorseRace: false, gotMarried: false, discoveredStock: false, goneWild: false },
     history: [],
-    portfolio: 0
+    portfolio: 0,
+    aiClassCount: 0     // AI课程次数追踪
   };
 }
 
@@ -1352,6 +1429,10 @@ function confirmWeek() {
       if (slot.id === 'portfolio') {
         gameState.portfolio++;
       }
+      // Track AI class
+      if (slot.id === 'ai_class') {
+        gameState.aiClassCount++;
+      }
     }
   });
 
@@ -1438,6 +1519,14 @@ function closeEventModal() {
     setTimeout(() => showEnding('marriage'), 500);
     return;
   }
+  if (gameState.flags.discoveredStock) {
+    setTimeout(() => showEnding('stock_god'), 500);
+    return;
+  }
+  if (gameState.flags.goneWild) {
+    setTimeout(() => showEnding('wilderness'), 500);
+    return;
+  }
 
   advanceWeek();
 }
@@ -1447,7 +1536,43 @@ function calculateEnding() {
   const f = gameState.flags;
 
   const mediaCount = gameState.history.filter(h => h.name === '做自媒体').length;
+  const nightclubCount = gameState.history.filter(h => h.name === '夜店兼职').length;
+  const startupCount = gameState.history.filter(h => h.name === '搞创业').length;
+  const aiCount = gameState.aiClassCount;
 
+  // === 隐藏结局优先判定 ===
+
+  // AI统治世界线：压力高 + 大量AI课程
+  if (s.stress >= 70 && aiCount >= 30) {
+    showEnding('ai_overlord');
+    return;
+  }
+
+  // === 夜总会线 ===
+  if (nightclubCount >= 30) {
+    if (s.eq >= 70 && s.money >= 60) {
+      showEnding('nightclub_good');
+    } else if (s.eq >= 50 || s.money >= 50) {
+      showEnding('nightclub_normal');
+    } else {
+      showEnding('nightclub_bad');
+    }
+    return;
+  }
+
+  // === 创业线 ===
+  if (startupCount >= 25) {
+    if (s.skill >= 70 && s.iq >= 60 && s.money >= 30) {
+      showEnding('startup_good');
+    } else if (s.skill >= 50 || s.iq >= 50) {
+      showEnding('startup_normal');
+    } else {
+      showEnding('startup_bad');
+    }
+    return;
+  }
+
+  // === 网红线 ===
   if (f.becameInfluencer || mediaCount >= 40) {
     if (f.becameInfluencer && (s.eq >= 60 || s.skill >= 60)) {
       showEnding('influencer_good');
@@ -1459,6 +1584,7 @@ function calculateEnding() {
     return;
   }
 
+  // === 打工人线 ===
   if (s.lang >= 60 && s.eq >= 50) {
     showEnding('work_good2');
   } else if (f.gotJobOffer || (s.skill >= 70 && s.iq >= 60)) {
@@ -1512,7 +1638,7 @@ function showEnding(endingId) {
       </div>
     </div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">
-      共度过 ${gameState.week - 1} 周 · 完成 ${gameState.history.length} 个活动 · 作品集打磨 ${gameState.portfolio} 次
+      共度过 ${gameState.week - 1} 周 · 完成 ${gameState.history.length} 个活动 · AI课程 ${gameState.aiClassCount} 次 · 作品集 ${gameState.portfolio} 次
     </div>
     <button class="btn-restart" onclick="restartGame()">🔄 重新开始</button>
   `;
