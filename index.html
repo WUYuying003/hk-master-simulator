@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎓 港硕模拟器 — 你的香港留学生存指南</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  :root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #111827;
+    --bg-card: #1a2236;
+    --bg-hover: #243049;
+    --accent-gold: #f6c547;
+    --accent-blue: #60a5fa;
+    --accent-purple: #a78bfa;
+    --accent-pink: #f472b6;
+    --accent-green: #34d399;
+    --accent-red: #f87171;
+    --accent-orange: #fb923c;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-color: #1e293b;
+    --shadow-glow: 0 0 20px rgba(246,197,71,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* === Background Animation === */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(96,165,250,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(167,139,250,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(244,114,182,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  /* === Screen Transitions === */
+  .screen {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  /* === Title Screen === */
+  .title-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 90vh;
+    text-align: center;
+  }
+
+  .title-logo {
+    font-size: 72px;
+    margin-bottom: 10px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .title-main {
+    font-size: 48px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange), var(--accent-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    letter-spacing: 4px;
+  }
+
+  .title-sub {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    font-weight: 300;
+    letter-spacing: 2px;
+  }
+
+  .title-desc {
+    max-width: 500px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 50px;
+  }
+
+  .btn-start {
+    padding: 16px 60px;
+    font-size: 20px;
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
+    color: #000;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 30px rgba(246,197,71,0.3);
+  }
+  .btn-start:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 40px rgba(246,197,71,0.5);
+  }
+
+  /* === Top Bar === */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+  }
+
+  .time-info {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .time-info span {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .time-info .current-time {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent-gold);
+  }
+
+  .week-actions-left {
+    font-size: 13px;
+    color: var(--accent-blue);
+    font-weight: 500;
+  }
+
+  /* === Stats Grid === */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .stat-card.iq::before { background: var(--accent-blue); }
+  .stat-card.eq::before { background: var(--accent-pink); }
+  .stat-card.skill::before { background: var(--accent-purple); }
+  .stat-card.money::before { background: var(--accent-gold); }
+  .stat-card.stress::before { background: var(--accent-red); }
+  .stat-card.lang::before { background: var(--accent-green); }
+
+  .stat-icon { font-size: 24px; margin-bottom: 4px; }
+
+  .stat-name {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 900;
+  }
+
+  .stat-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .stat-card.iq .stat-bar-fill { background: var(--accent-blue); }
+  .stat-card.eq .stat-bar-fill { background: var(--accent-pink); }
+  .stat-card.skill .stat-bar-fill { background: var(--accent-purple); }
+  .stat-card.money .stat-bar-fill { background: var(--accent-gold); }
+  .stat-card.stress .stat-bar-fill { background: var(--accent-red); }
+  .stat-card.lang .stat-bar-fill { background: var(--accent-green); }
+
+  .stat-change {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    animation: fadeIn 0.3s ease;
+  }
+  .stat-change.up { color: var(--accent-green); }
+  .stat-change.down { color: var(--accent-red); }
+
+  /* === Activity Sections === */
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title .badge {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .category-fun .badge { background: rgba(52,211,153,0.15); color: var(--accent-green); }
+  .category-study .badge { background: rgba(96,165,250,0.15); color: var(--accent-blue); }
+  .category-work .badge { background: rgba(251,146,60,0.15); color: var(--accent-orange); }
+
+  .activities-container {
+    margin-bottom: 24px;
+  }
+
+  .activities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .activity-card {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .activity-card:hover {
+    background: var(--bg-hover);
+    transform: translateY(-2px);
+  }
+
+  .activity-card.selected {
+    border-color: var(--accent-gold);
+    background: rgba(246,197,71,0.08);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .activity-card.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .activity-emoji { font-size: 28px; margin-bottom: 6px; }
+
+  .activity-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .activity-effects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .effect-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  .effect-tag.positive { background: rgba(52,211,153,0.15); color: var(--accent-green); }
+  .effect-tag.negative { background: rgba(248,113,113,0.15); color: var(--accent-red); }
+  .effect-tag.neutral { background: rgba(148,163,184,0.15); color: var(--text-secondary); }
+
+  /* === Confirm Button === */
+  .action-bar {
+    position: sticky;
+    bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(10,14,26,0.9);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    margin-top: 20px;
+  }
+
+  .btn-confirm {
+    padding: 12px 40px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
+    color: #000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+  }
+  .btn-confirm:hover { box-shadow: 0 4px 30px rgba(246,197,71,0.4); transform: translateY(-2px); }
+  .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-secondary {
+    padding: 12px 30px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-secondary:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+  /* === Event Modal === */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal-content {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 520px;
+    width: 90%;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .modal-emoji { font-size: 64px; margin-bottom: 16px; }
+  .modal-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .modal-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 24px;
+  }
+  .modal-result {
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  .modal-result.success { background: rgba(52,211,153,0.1); color: var(--accent-green); border: 1px solid rgba(52,211,153,0.2); }
+  .modal-result.fail { background: rgba(248,113,113,0.1); color: var(--accent-red); border: 1px solid rgba(248,113,113,0.2); }
+
+  .btn-modal {
+    padding: 12px 40px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-modal:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(96,165,250,0.3); }
+
+  /* === Ending Screen === */
+  .ending-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 90vh;
+    text-align: center;
+  }
+
+  .ending-type {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+  .ending-type.good { color: var(--accent-gold); }
+  .ending-type.normal { color: var(--accent-blue); }
+  .ending-type.bad { color: var(--accent-red); }
+
+  .ending-emoji {
+    font-size: 80px;
+    margin-bottom: 16px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .ending-title {
+    font-size: 36px;
+    font-weight: 900;
+    margin-bottom: 20px;
+    line-height: 1.3;
+  }
+
+  .ending-desc {
+    max-width: 520px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 2;
+    margin-bottom: 40px;
+  }
+
+  .ending-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+    max-width: 400px;
+    width: 100%;
+  }
+
+  .ending-stat {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid var(--border-color);
+  }
+
+  .ending-stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .ending-stat-value { font-size: 20px; font-weight: 700; }
+
+  .btn-restart {
+    padding: 14px 50px;
+    font-size: 16px;
+    font-weight: 600;
+    border: 2px solid var(--accent-gold);
+    border-radius: 30px;
+    background: transparent;
+    color: var(--accent-gold);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+  }
+  .btn-restart:hover {
+    background: var(--accent-gold);
+    color: #000;
+  }
+
+  /* === Progress Bar === */
+  .progress-section {
+    margin-bottom: 20px;
+  }
+
+  .progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 80px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* === Week Summary Flyout === */
+  .week-summary {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    animation: slideIn 0.4s ease;
+  }
+
+  .week-summary h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--accent-gold);
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .summary-item:last-child { border-bottom: none; }
+
+  /* === Toast === */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+
+  .toast.info { background: rgba(96,165,250,0.15); color: var(--accent-blue); border: 1px solid rgba(96,165,250,0.3); }
+  .toast.success { background: rgba(52,211,153,0.15); color: var(--accent-green); border: 1px solid rgba(52,211,153,0.3); }
+  .toast.warning { background: rgba(251,146,60,0.15); color: var(--accent-orange); border: 1px solid rgba(251,146,60,0.3); }
+  .toast.danger { background: rgba(248,113,113,0.15); color: var(--accent-red); border: 1px solid rgba(248,113,113,0.3); }
+
+  /* === Responsive === */
+  @media (max-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .activities-grid { grid-template-columns: repeat(2, 1fr); }
+    .title-main { font-size: 32px; }
+    .ending-title { font-size: 24px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .activities-grid { grid-template-columns: 1fr; }
+    #app { padding: 12px; }
+  }
+
+  /* === Locked Activity === */
+  .activity-card.locked {
+    opacity: 0.35;
+    pointer-events: none;
+    position: relative;
+  }
+
+  .activity-card.locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
+  }
+
+  .lock-hint {
+    font-size: 10px;
+    color: var(--accent-orange);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .activity-card .select-count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* === Week Schedule Slots === */
+  .week-slots {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .week-slot {
+    flex: 1;
+    min-width: 100px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    font-size: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .week-slot.filled {
+    border-color: var(--accent-gold);
+    background: rgba(246,197,71,0.06);
+  }
+
+  .week-slot-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .week-slot-content {
+    font-size: 18px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .week-slot-name {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .week-slot .remove-btn {
+    font-size: 10px;
+    color: var(--accent-red);
+    cursor: pointer;
+    margin-top: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .week-slot .remove-btn:hover { opacity: 1; }
+
+  /* === Stress Warning === */
+  .stress-warning {
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--accent-red);
+    animation: pulse 2s ease infinite;
+  }
+
+  /* === Week Log === */
+  .week-log {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+  }
+
+  .week-log-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .log-entries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .log-entry {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+  }
+
+  /* Intro screen */
+  .intro-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 90vh;
+    text-align: center;
+  }
+
+  .intro-text {
+    max-width: 580px;
+    font-size: 16px;
+    line-height: 2.2;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+  }
+
+  .intro-text em {
+    color: var(--accent-gold);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .typewriter {
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid var(--accent-gold);
+    animation: typing 3s steps(40,end), blink 0.6s step-end infinite alternate;
+  }
+
+  @keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+  @keyframes blink {
+    50% { border-color: transparent; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Title Screen -->
+  <div id="screen-title" class="screen active">
+    <div class="title-screen">
+      <div class="title-logo">🎓</div>
+      <div class="title-main">港硕模拟器</div>
+      <div class="title-sub">HONG KONG MASTER SIMULATOR</div>
+      <div class="title-desc">
+        你即将踏上香港硕士留学之旅。<br>
+        12个月，48周，每一周你有7个时间格可以安排。<br>
+        学习、工作、还是放松？<br>
+        你的每个决定，都将影响你的结局。<br><br>
+        <em style="color:var(--accent-gold)">做好准备了吗？</em>
+      </div>
+      <button class="btn-start" onclick="startGame()">🚀 开始留学之旅</button>
+    </div>
+  </div>
+
+  <!-- Intro Screen -->
+  <div id="screen-intro" class="screen">
+    <div class="intro-screen">
+      <div class="title-logo">✈️</div>
+      <div class="intro-text">
+        你拖着28寸的行李箱，降落在香港国际机场。<br><br>
+        潮湿的空气扑面而来，你深吸一口气。<br><br>
+        接下来的 <em>12个月</em>，你将在这座城市<br>
+        学习、生活、工作、挣扎、成长。<br><br>
+        每周你有 <em>7个时间格</em>，可以自由安排活动。<br>
+        你的 <em>智商、情商、工作技能、金钱、语言能力</em> 都会被考验。<br>
+        但要注意 —— 别让 <em>压力</em> 压垮你。<br><br>
+        <span style="color:var(--text-muted);font-size:14px">
+          合理安排每一周，走向属于你的结局。
+        </span>
+      </div>
+      <button class="btn-start" onclick="showGameScreen()">📖 开始第一周</button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="screen-game" class="screen">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="time-info">
+        <span class="current-time" id="current-time">第1月 第1周</span>
+        <span id="total-progress">0/60周</span>
+      </div>
+      <span class="week-actions-left" id="week-actions">本周可选 <strong>1</strong> 个活动</span>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-bar-container">
+        <span class="progress-label">留学进度</span>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <span class="progress-text" id="progress-text">0%</span>
+      </div>
+    </div>
+
+    <!-- Stress Warning -->
+    <div class="stress-warning" id="stress-warning" style="display:none">
+      ⚠️ 压力值过高！请安排一些娱乐活动来放松一下！
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <!-- Week Schedule Slots -->
+    <div class="week-slots" id="week-slots"></div>
+
+    <!-- Week Log -->
+    <div class="week-log" id="week-log" style="display:none">
+      <div class="week-log-title">📋 上周活动记录</div>
+      <div class="log-entries" id="log-entries"></div>
+    </div>
+
+    <!-- Activities -->
+    <div id="activities-container"></div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button class="btn-confirm" id="btn-confirm" onclick="confirmWeek()" disabled>
+        ✅ 确认本周安排
+      </button>
+    </div>
+  </div>
+
+  <!-- Ending Screen -->
+  <div id="screen-ending" class="screen">
+    <div class="ending-screen" id="ending-content"></div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal-content" id="modal-content"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ===================== GAME DATA =====================
+const GAME_CONFIG = {
+  totalMonths: 12,
+  weeksPerMonth: 4,
+  totalWeeks: 48,
+  slotsPerWeek: 7,       // 每周7个时间格
+  randomEventChance: 0.18,
+  stressThreshold: 85,
+  maxStat: 100
+};
+
+// Player State
+let gameState = {
+  week: 1,
+  stats: { iq: 30, eq: 30, skill: 20, money: 50, stress: 20, lang: 10 },
+  weekSlots: [],           // 本周已选活动 [{id, emoji, name}, ...]
+  flags: { gotJobOffer: false, becameInfluencer: false, wonHorseRace: false, gotMarried: false },
+  history: [],             // 全部历史
+  portfolio: 0             // 作品集进度 (累计改作品集次数)
+};
+
+// ===================== UNLOCK SYSTEM =====================
+// 解锁条件: 返回 { locked: bool, hint: string }
+const UNLOCK_RULES = {
+  // 学习类
+  'thesis':     (gs) => ({ locked: gs.week < 20, hint: '第5个月后解锁' }),
+  // 工作类 - 需要先提升数值
+  'intern':     (gs) => ({ locked: gs.stats.skill < 40 || gs.portfolio < 3, hint: '工作技能≥40 且 改作品集≥3次' }),
+  'ra':         (gs) => ({ locked: gs.stats.iq < 40, hint: '智商≥40 后解锁' }),
+  'indie_game': (gs) => ({ locked: gs.stats.skill < 35 && gs.stats.iq < 35, hint: '工作技能≥35 或 智商≥35' }),
+  'media':      (gs) => ({ locked: gs.stats.eq < 30, hint: '情商≥30 后解锁' }),
+};
+
+function checkUnlock(activityId) {
+  const rule = UNLOCK_RULES[activityId];
+  if (!rule) return { locked: false, hint: '' };
+  return rule(gameState);
+}
+
+// ===================== ACTIVITIES =====================
+const ACTIVITIES = {
+  fun: {
+    title: '🎮 娱乐',
+    desc: '降低压力，花费金钱',
+    items: [
+      { id: 'swim', emoji: '🏊', name: '游泳', effects: { stress: -5, money: -2 }, desc: '去维港旁的泳池游个痛快' },
+      { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -4, money: -3, eq: 1 }, desc: '去攀岩馆挑战自我' },
+      { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -6, eq: 1 }, desc: '约三五好友吐槽生活' },
+      { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -4, money: -4, eq: 1 }, desc: '排队2小时，吃了15分钟' },
+      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -7, iq: 1 }, desc: '和队友一起开黑到凌晨' }
+    ]
+  },
+  study: {
+    title: '📚 学习',
+    desc: '增加能力，增加压力',
+    items: [
+      { id: 'trad_class', emoji: '📖', name: '上传统技能课', effects: { iq: 2, skill: 2, stress: 4 }, desc: '枯燥但有用的传统课程' },
+      { id: 'ai_class', emoji: '🤖', name: '上AI技能课', effects: { iq: 3, skill: 3, stress: 3 }, desc: '学习最前沿的AI技术' },
+      { id: 'lang_class', emoji: '🗣️', name: '上语言课', effects: { lang: 4, eq: 1, stress: 2 }, desc: '粤语/英语精进计划' },
+      { id: 'group_work', emoji: '👥', name: '做小组作业', effects: { eq: 2, skill: 1, stress: 5, iq: 1 }, desc: '和free rider斗智斗勇' },
+      { id: 'portfolio', emoji: '🎨', name: '改作品集', effects: { skill: 3, iq: 1, stress: 3 }, desc: '精心打磨你的作品集，为求职做准备' },
+      { id: 'thesis', emoji: '📝', name: '做毕业项目', effects: { iq: 3, skill: 2, stress: 6 }, desc: '论文地狱模式启动' }
+    ]
+  },
+  work: {
+    title: '💼 工作',
+    desc: '增加技能和金钱',
+    items: [
+      { id: 'intern', emoji: '👔', name: '实习', effects: { skill: 3, money: 5, stress: 4, eq: 1 }, desc: '大厂实习，从端茶倒水做起' },
+      { id: 'ra', emoji: '🔬', name: '做研究助理', effects: { iq: 3, skill: 2, money: 3, stress: 2 }, desc: '帮教授搬砖做数据' },
+      { id: 'event_pt', emoji: '🎪', name: '做活动兼职', effects: { eq: 2, money: 3, stress: 1, lang: 1 }, desc: '各种展会活动临时工' },
+      { id: 'mcdonalds', emoji: '🍔', name: '做麦当劳打工', effects: { money: 2, stress: -1, lang: 2 }, desc: '多国语言实战训练场' },
+      { id: 'indie_game', emoji: '🕹️', name: '做独立游戏', effects: { skill: 4, iq: 2, stress: 4, money: -1 }, desc: '梦想总是要有的' },
+      { id: 'media', emoji: '📱', name: '做自媒体', effects: { eq: 2, skill: 2, money: 2, stress: 3 }, desc: '成为下一个网红？' }
+    ]
+  }
+};
+
+// ===================== RANDOM EVENTS =====================
+const RANDOM_EVENTS = [
+  {
+    id: 'game_bar',
+    emoji: '🎲',
+    title: '神秘游戏酒吧聚会',
+    desc: '你在深水埗发现了一个隐藏的游戏酒吧，聚集了各路游戏行业大佬。一位制作人对你产生了兴趣...',
+    condition: (s) => s.skill >= 50,
+    successRate: 0.5,
+    successText: '🎉 恭喜！制作人向你抛出了橄榄枝，给了你一个正式的工作Offer！',
+    failText: '你和大佬们聊得很开心，交换了联系方式，但暂时没有进一步消息。',
+    successEffects: { eq: 5, skill: 5 },
+    failEffects: { eq: 3 },
+    flag: 'gotJobOffer'
+  },
+  {
+    id: 'film_fest',
+    emoji: '🎬',
+    title: '神秘电影节展览',
+    desc: '你无意间参加了一个独立电影展，你随手拍的vlog被策展人看中了！',
+    condition: () => true,
+    successRate: 0.5,
+    successText: '🌟 你的视频火了！一夜之间你的社交媒体涨了10万粉丝，你正式成为了网红！',
+    failText: '虽然没有爆火，但你认识了很多有趣的创作者，也算是一次有价值的体验。',
+    successEffects: { eq: 5, money: 15 },
+    failEffects: { eq: 3 },
+    flag: 'becameInfluencer'
+  },
+  {
+    id: 'horse_race',
+    emoji: '🏇',
+    title: '赛马会赌马比赛',
+    desc: '朋友拉你去了跑马地赛马场。"就买一注试试嘛！" 你犹豫了一下，选了一匹名叫"港硕之光"的马...',
+    condition: () => true,
+    successRate: 0.5,
+    successText: '🤑 天啊！！"港硕之光"以绝对优势冲线！你下注的彩金居然中了头奖，一夜暴富！百亿富翁就是你！',
+    failText: '"港硕之光"在最后一个弯道被超越，你输了赌注。果然，赌博害人。',
+    successEffects: { money: 50 },
+    failEffects: { money: -10, stress: 5 },
+    flag: 'wonHorseRace'
+  },
+  {
+    id: 'wong_tai_sin',
+    emoji: '🏮',
+    title: '黄大仙求姻缘',
+    desc: '室友硬拉你去黄大仙祠求姻缘。你半信半疑地摇了一支签...',
+    condition: () => true,
+    successRate: 0.5,
+    successText: '💕 上上签！没想到出庙门就撞到了一个人，你们眼神交汇的那一刻... 后来你们真的在一起了，TA还是本地人！',
+    failText: '下下签。解签的师傅说你"姻缘未到"。你叹了口气，果然玄学不靠谱。',
+    successEffects: { eq: 8, stress: -10 },
+    failEffects: { stress: 5 },
+    flag: 'gotMarried'
+  }
+];
+
+// ===================== ENDINGS =====================
+const ENDINGS = {
+  billionaire: {
+    type: 'special', quality: 'good', emoji: '💰', title: '百亿富翁', line: '特殊线',
+    desc: '你在赛马场一把赢了人生。\n\n从此你住在太平山顶的豪宅里，养了三只柯基，每天的日程就是决定今天去铜锣湾还是尖沙咀喝下午茶。\n\n你成为了香港传说中"一夜暴富的内地留学生"。\n\n但你偶尔还是会想起，那个在图书馆熬夜写论文的自己。'
+  },
+  marriage: {
+    type: 'special', quality: 'good', emoji: '💍', title: '港式婚绿', line: '特殊线',
+    desc: '你和TA在黄大仙认识，在维港边约会，在茶餐厅吃遍了每一道菜。\n\n12个月后，TA的父母问你要不要留下来。\n\n你留下来了。\n\n从此港漂变港人，你终于有了"家"的感觉。\n\n不过你的同学们都说你走了最强捷径。'
+  },
+  work_good: {
+    type: 'work', quality: 'good', emoji: '🏢', title: '南山必胜客', line: '打工人线',
+    desc: '你非常非常努力。\n\n经过15轮面试，打败了无数人，跪舔上司，实习一年成功转正进入大厂。\n\n你的血和汗都挥洒在这里。\n\n每天加班到凌晨，朋友圈里发的永远是"今天又是元气满满的一天"。\n\n你的年薪终于六位数了。\n\n...你真的开心吗？'
+  },
+  work_good2: {
+    type: 'work', quality: 'good', emoji: '🌇', title: '维港边的三语人', line: '打工人线',
+    desc: '你苦学粤语英语，成为三语拥有者。\n\n每天住在10平米但能看见维多利亚港的房子里，\n吃着双拼饭，挤着东铁线。\n\n薪水不算高，但刚好够生活。\n\n下班后你会坐在海边，看着对岸的灯光。\n\n这座城市很累，但你属于这里。'
+  },
+  work_normal: {
+    type: 'work', quality: 'normal', emoji: '😐', title: '外包人生', line: '打工人线',
+    desc: '你非常非常努力。\n\n经过20轮面试，被横向了很久，跪舔上司。\n\n最后拿到一个创业公司的外包Offer。\n\n工位在一个共享办公空间的角落，隔壁是个做区块链的团队。\n\n你也不知道你的岗位还能存在多久。\n\n但至少...你还在香港。'
+  },
+  work_bad: {
+    type: 'work', quality: 'bad', emoji: '🐭', title: '鼠鼠我啊', line: '打工人线',
+    desc: '鼠鼠我啊，\n碰了穷人不该碰的专业，\n做了穷人不该做的梦。\n\n12个月的房租花光了所有积蓄，\n简历投了300份只收到5个面试，\n全部挂了。\n\n你拖着行李箱回到了出发的机场。\n\n"下次一定。"\n你对自己说。'
+  },
+  influencer_good: {
+    type: 'influencer', quality: 'good', emoji: '🌟', title: '网红顶流', line: '网红线',
+    desc: '你成为了网红，前往了拉斯维加斯参加创作者大会。\n\n你看到了你励志成为设计师时候，在公司做的多媒体作品。\n\n但你现在已经赚的比当初的leader还多了。\n\n100万粉丝在等你更新，品牌合作排到了下个季度。\n\n你已经不需要简历了。'
+  },
+  influencer_normal: {
+    type: 'influencer', quality: 'normal', emoji: '📺', title: '千粉主播', line: '网红线',
+    desc: '你和朋友成为B某站上的游戏主播。\n\n你们因为幽默风趣的实况，1年内获得了1000多个粉丝。\n\n你们真是太棒了。\n\n但是变现难度非常大，自媒体竞争激烈，观众永远追新人。\n\n"再坚持一下，也许下一个视频就爆了。"\n\n...你已经说了100次这句话了。'
+  },
+  influencer_bad: {
+    type: 'influencer', quality: 'bad', emoji: '📵', title: '三天打鱼', line: '网红线',
+    desc: '你不仅没有运营起自己的账号，还三天打鱼两天晒网。\n\n与此同时你还沉迷于直播、短剧、游戏。\n\n时间就这么过去.........\n\n回过神来，12个月已经结束了。\n\n你什么都没有留下，\n除了一个只有23个粉丝的账号。\n\n其中15个是同学。'
+  },
+  burnout: {
+    type: 'special', quality: 'bad', emoji: '😵', title: '压力爆炸', line: '崩溃线',
+    desc: '压力终于压垮了你。\n\n你开始失眠、焦虑、什么都不想做。\n\n论文写不出来，面试也不想去了。\n\n你只想蜷在宿舍的床上，盯着天花板。\n\n后来你休学了。\n\n回家以后，你花了很长时间才慢慢好起来。\n\n"照顾好自己，比什么都重要。"'
+  }
+};
+
+// ===================== GAME LOGIC =====================
+
+function initGame() {
+  gameState = {
+    week: 1,
+    stats: { iq: 30, eq: 30, skill: 20, money: 50, stress: 20, lang: 10 },
+    weekSlots: [],
+    flags: { gotJobOffer: false, becameInfluencer: false, wonHorseRace: false, gotMarried: false },
+    history: [],
+    portfolio: 0
+  };
+}
+
+function startGame() {
+  initGame();
+  switchScreen('screen-intro');
+}
+
+function showGameScreen() {
+  switchScreen('screen-game');
+  renderAll();
+}
+
+function switchScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+function renderAll() {
+  renderTopBar();
+  renderStats();
+  renderProgress();
+  renderWeekSlots();
+  renderActivities();
+  renderWeekLog();
+  checkStressWarning();
+  updateConfirmButton();
+}
+
+function renderTopBar() {
+  const month = Math.ceil(gameState.week / 4);
+  const weekInMonth = ((gameState.week - 1) % 4) + 1;
+  document.getElementById('current-time').textContent = `第${month}月 第${weekInMonth}周`;
+  document.getElementById('total-progress').textContent = `${gameState.week - 1}/${GAME_CONFIG.totalWeeks}周`;
+  const remaining = GAME_CONFIG.slotsPerWeek - gameState.weekSlots.length;
+  document.getElementById('week-actions').innerHTML = `已安排 <strong>${gameState.weekSlots.length}</strong>/${GAME_CONFIG.slotsPerWeek} 个时间格`;
+}
+
+function renderProgress() {
+  const pct = Math.round(((gameState.week - 1) / GAME_CONFIG.totalWeeks) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = pct + '%';
+}
+
+function renderStats() {
+  const statsDef = [
+    { key: 'iq', name: '智商', icon: '🧠', cls: 'iq' },
+    { key: 'eq', name: '情商', icon: '💖', cls: 'eq' },
+    { key: 'skill', name: '工作技能', icon: '💼', cls: 'skill' },
+    { key: 'money', name: '金钱', icon: '💰', cls: 'money' },
+    { key: 'stress', name: '压力值', icon: '😰', cls: 'stress' },
+    { key: 'lang', name: '语言能力', icon: '🗣️', cls: 'lang' }
+  ];
+
+  const grid = document.getElementById('stats-grid');
+  grid.innerHTML = statsDef.map(s => {
+    const val = Math.max(0, Math.min(100, gameState.stats[s.key]));
+    return `
+      <div class="stat-card ${s.cls}">
+        <div class="stat-icon">${s.icon}</div>
+        <div class="stat-name">${s.name}</div>
+        <div class="stat-value" style="color:${s.key === 'stress' && val >= 80 ? 'var(--accent-red)' : 'var(--text-primary)'}">${val}</div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" style="width:${val}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 渲染本周7个时间格
+function renderWeekSlots() {
+  const container = document.getElementById('week-slots');
+  const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
+  container.innerHTML = dayNames.map((day, i) => {
+    const slot = gameState.weekSlots[i];
+    if (slot) {
+      return `
+        <div class="week-slot filled">
+          <div class="week-slot-label">${day}</div>
+          <div class="week-slot-content">${slot.emoji}</div>
+          <div class="week-slot-name">${slot.name}</div>
+          <div class="remove-btn" onclick="removeSlot(${i})">✕ 移除</div>
+        </div>
+      `;
+    }
+    return `
+      <div class="week-slot">
+        <div class="week-slot-label">${day}</div>
+        <div class="week-slot-content" style="color:var(--text-muted)">+</div>
+        <div class="week-slot-name" style="color:var(--text-muted)">空闲</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function removeSlot(index) {
+  gameState.weekSlots.splice(index, 1);
+  renderAll();
+}
+
+function renderActivities() {
+  const container = document.getElementById('activities-container');
+  container.innerHTML = '';
+
+  const categories = [
+    { key: 'fun', cls: 'category-fun' },
+    { key: 'study', cls: 'category-study' },
+    { key: 'work', cls: 'category-work' }
+  ];
+
+  const slotsFull = gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek;
+
+  categories.forEach(cat => {
+    const data = ACTIVITIES[cat.key];
+    const section = document.createElement('div');
+    section.className = `activities-container ${cat.cls}`;
+
+    section.innerHTML = `
+      <div class="section-title">
+        ${data.title}
+        <span class="badge">${data.desc}</span>
+      </div>
+      <div class="activities-grid">
+        ${data.items.map(item => {
+          const unlock = checkUnlock(item.id);
+          const isLocked = unlock.locked;
+          const countInSlots = gameState.weekSlots.filter(s => s.id === item.id).length;
+          const cantAfford = item.effects.money && item.effects.money < 0 &&
+            (gameState.stats.money + (item.effects.money * (countInSlots + 1)) < 0);
+
+          return `
+            <div class="activity-card ${isLocked ? 'locked' : ''} ${slotsFull && !isLocked ? 'disabled' : ''} ${cantAfford && !isLocked ? 'disabled' : ''}"
+                 onclick="${isLocked || slotsFull || cantAfford ? '' : `addToSlots('${item.id}')`}"
+                 title="${item.desc}">
+              ${countInSlots > 0 ? `<div class="select-count">${countInSlots}</div>` : ''}
+              <div class="activity-emoji">${item.emoji}</div>
+              <div class="activity-name">${item.name}</div>
+              <div class="activity-effects">
+                ${Object.entries(item.effects).map(([k, v]) => {
+                  const names = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+                  const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
+                  return `<span class="effect-tag ${cls}">${names[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+                }).join('')}
+              </div>
+              ${isLocked ? `<div class="lock-hint">🔒 ${unlock.hint}</div>` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    container.appendChild(section);
+  });
+}
+
+function addToSlots(activityId) {
+  if (gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek) return;
+
+  const activity = findActivity(activityId);
+  if (!activity) return;
+
+  gameState.weekSlots.push({ id: activity.id, emoji: activity.emoji, name: activity.name });
+
+  showToast(`${activity.emoji} ${activity.name} 已添加到本周安排`, 'info');
+  renderAll();
+}
+
+function renderWeekLog() {
+  const logDiv = document.getElementById('week-log');
+  const entriesDiv = document.getElementById('log-entries');
+
+  if (gameState.history.length === 0) {
+    logDiv.style.display = 'none';
+    return;
+  }
+
+  logDiv.style.display = 'block';
+  // Show last week's activities (up to 7)
+  const lastWeek = gameState.history.filter(h => h.week === gameState.week - 1);
+  if (lastWeek.length === 0) {
+    const recent = gameState.history.slice(-7);
+    entriesDiv.innerHTML = recent.map(h =>
+      `<span class="log-entry">${h.emoji} ${h.name}</span>`
+    ).join('');
+  } else {
+    entriesDiv.innerHTML = lastWeek.map(h =>
+      `<span class="log-entry">${h.emoji} ${h.name}</span>`
+    ).join('');
+  }
+}
+
+function checkStressWarning() {
+  const warning = document.getElementById('stress-warning');
+  warning.style.display = gameState.stats.stress >= GAME_CONFIG.stressThreshold ? 'flex' : 'none';
+}
+
+function updateConfirmButton() {
+  const btn = document.getElementById('btn-confirm');
+  const count = gameState.weekSlots.length;
+  btn.disabled = count === 0;
+  if (count === GAME_CONFIG.slotsPerWeek) {
+    btn.textContent = `✅ 确认本周安排 (${count}/${GAME_CONFIG.slotsPerWeek})`;
+  } else if (count > 0) {
+    btn.textContent = `⏩ 确认本周安排 (${count}/${GAME_CONFIG.slotsPerWeek})`;
+  } else {
+    btn.textContent = `请选择本周活动`;
+  }
+}
+
+function findActivity(id) {
+  for (const cat of Object.values(ACTIVITIES)) {
+    const found = cat.items.find(i => i.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+
+function applyEffects(effects) {
+  for (const [key, val] of Object.entries(effects)) {
+    gameState.stats[key] = Math.max(0, Math.min(100, gameState.stats[key] + val));
+  }
+}
+
+function confirmWeek() {
+  if (gameState.weekSlots.length === 0) return;
+
+  // Apply all slot effects
+  const weekActivities = [];
+  gameState.weekSlots.forEach(slot => {
+    const activity = findActivity(slot.id);
+    if (activity) {
+      applyEffects(activity.effects);
+      weekActivities.push(slot.name);
+      gameState.history.push({ emoji: slot.emoji, name: slot.name, week: gameState.week });
+
+      // Track portfolio
+      if (slot.id === 'portfolio') {
+        gameState.portfolio++;
+      }
+    }
+  });
+
+  // Summary toast
+  const uniqueNames = [...new Set(weekActivities)];
+  showToast(`✅ 本周完成：${uniqueNames.join('、')}`, 'success');
+
+  // Clear slots
+  gameState.weekSlots = [];
+
+  // Check stress burnout
+  if (gameState.stats.stress >= 100) {
+    setTimeout(() => showEnding('burnout'), 800);
+    return;
+  }
+
+  // Check random event (once per week)
+  if (Math.random() < GAME_CONFIG.randomEventChance) {
+    const eligible = RANDOM_EVENTS.filter(e => !gameState.flags[e.flag]);
+    if (eligible.length > 0) {
+      const event = eligible[Math.floor(Math.random() * eligible.length)];
+      setTimeout(() => triggerRandomEvent(event), 600);
+      return;
+    }
+  }
+
+  advanceWeek();
+}
+
+function advanceWeek() {
+  gameState.week++;
+
+  if (gameState.week > GAME_CONFIG.totalWeeks) {
+    setTimeout(() => calculateEnding(), 500);
+    return;
+  }
+
+  renderAll();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function triggerRandomEvent(event) {
+  const modal = document.getElementById('event-modal');
+  const content = document.getElementById('modal-content');
+
+  const meetsCondition = event.condition(gameState.stats);
+  const success = meetsCondition && Math.random() < event.successRate;
+
+  if (success && event.flag) {
+    gameState.flags[event.flag] = true;
+  }
+
+  const effects = success ? event.successEffects : event.failEffects;
+  if (effects) applyEffects(effects);
+
+  content.innerHTML = `
+    <div class="modal-emoji">${event.emoji}</div>
+    <div class="modal-title">⚡ 随机事件！</div>
+    <div class="modal-title" style="font-size:20px">${event.title}</div>
+    <div class="modal-desc">${event.desc}</div>
+    <div class="modal-result ${success ? 'success' : 'fail'}">
+      ${success ? event.successText : event.failText}
+    </div>
+    ${effects ? `<div style="margin-bottom:16px;font-size:13px;color:var(--text-muted)">
+      ${Object.entries(effects).map(([k,v]) => {
+        const names = {iq:'智商',eq:'情商',skill:'技能',money:'金钱',stress:'压力',lang:'语言'};
+        return `<span style="margin:0 4px;">${names[k]} ${v>0?'+':''}${v}</span>`;
+      }).join(' ')}
+    </div>` : ''}
+    <button class="btn-modal" onclick="closeEventModal()">继续</button>
+  `;
+
+  modal.classList.add('active');
+}
+
+function closeEventModal() {
+  document.getElementById('event-modal').classList.remove('active');
+
+  if (gameState.flags.wonHorseRace) {
+    setTimeout(() => showEnding('billionaire'), 500);
+    return;
+  }
+  if (gameState.flags.gotMarried) {
+    setTimeout(() => showEnding('marriage'), 500);
+    return;
+  }
+
+  advanceWeek();
+}
+
+function calculateEnding() {
+  const s = gameState.stats;
+  const f = gameState.flags;
+
+  const mediaCount = gameState.history.filter(h => h.name === '做自媒体').length;
+
+  if (f.becameInfluencer || mediaCount >= 40) {
+    if (f.becameInfluencer && (s.eq >= 60 || s.skill >= 60)) {
+      showEnding('influencer_good');
+    } else if (mediaCount >= 25 && s.skill >= 40) {
+      showEnding('influencer_normal');
+    } else {
+      showEnding('influencer_bad');
+    }
+    return;
+  }
+
+  if (s.lang >= 60 && s.eq >= 50) {
+    showEnding('work_good2');
+  } else if (f.gotJobOffer || (s.skill >= 70 && s.iq >= 60)) {
+    showEnding('work_good');
+  } else if (s.skill >= 45 || s.iq >= 45) {
+    showEnding('work_normal');
+  } else {
+    showEnding('work_bad');
+  }
+}
+
+function showEnding(endingId) {
+  const ending = ENDINGS[endingId];
+  if (!ending) return;
+
+  switchScreen('screen-ending');
+
+  const s = gameState.stats;
+  const qualityLabels = { good: '✨ GOOD ENDING', normal: '📌 NORMAL ENDING', bad: '💔 BAD ENDING' };
+  const qualityColors = { good: 'good', normal: 'normal', bad: 'bad' };
+
+  document.getElementById('ending-content').innerHTML = `
+    <div class="ending-type ${qualityColors[ending.quality]}">${ending.line} · ${qualityLabels[ending.quality]}</div>
+    <div class="ending-emoji">${ending.emoji}</div>
+    <div class="ending-title">${ending.title}</div>
+    <div class="ending-desc">${ending.desc.replace(/\n/g, '<br>')}</div>
+    <div class="ending-stats">
+      <div class="ending-stat">
+        <div class="ending-stat-label">智商</div>
+        <div class="ending-stat-value">${s.iq}</div>
+      </div>
+      <div class="ending-stat">
+        <div class="ending-stat-label">情商</div>
+        <div class="ending-stat-value">${s.eq}</div>
+      </div>
+      <div class="ending-stat">
+        <div class="ending-stat-label">技能</div>
+        <div class="ending-stat-value">${s.skill}</div>
+      </div>
+      <div class="ending-stat">
+        <div class="ending-stat-label">金钱</div>
+        <div class="ending-stat-value">${s.money}</div>
+      </div>
+      <div class="ending-stat">
+        <div class="ending-stat-label">语言</div>
+        <div class="ending-stat-value">${s.lang}</div>
+      </div>
+      <div class="ending-stat">
+        <div class="ending-stat-label">压力</div>
+        <div class="ending-stat-value">${s.stress}</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">
+      共度过 ${gameState.week - 1} 周 · 完成 ${gameState.history.length} 个活动 · 作品集打磨 ${gameState.portfolio} 次
+    </div>
+    <button class="btn-restart" onclick="restartGame()">🔄 重新开始</button>
+  `;
+}
+
+function restartGame() {
+  initGame();
+  switchScreen('screen-title');
+}
+
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  switchScreen('screen-title');
+});
+</script>
+</body>
+</html>
