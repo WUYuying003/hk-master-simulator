@@ -778,6 +778,79 @@
     color: var(--text-secondary);
   }
 
+  /* === Week Summary Modal === */
+  .summary-modal-content {
+    text-align: left;
+  }
+
+  .summary-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .summary-header-emoji { font-size: 48px; margin-bottom: 8px; }
+
+  .summary-header-title {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .summary-activities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .summary-activity-tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .summary-comment {
+    background: rgba(246,197,71,0.06);
+    border: 1px solid rgba(246,197,71,0.15);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  .summary-comment em {
+    color: var(--accent-gold);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .summary-stats-change {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .stat-change-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .stat-change-pill.up { background: rgba(52,211,153,0.12); color: var(--accent-green); }
+  .stat-change-pill.down { background: rgba(248,113,113,0.12); color: var(--accent-red); }
+
   /* Intro screen */
   .intro-screen {
     display: flex;
@@ -919,6 +992,11 @@
   <div class="modal-content" id="modal-content"></div>
 </div>
 
+<!-- Weekly Summary Modal -->
+<div class="modal-overlay" id="summary-modal">
+  <div class="modal-content" id="summary-content"></div>
+</div>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toast-container"></div>
 
@@ -974,7 +1052,9 @@ const ACTIVITIES = {
       { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -4, money: -3, eq: 1 }, desc: '去攀岩馆挑战自我' },
       { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -6, eq: 1 }, desc: '约三五好友吐槽生活' },
       { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -4, money: -4, eq: 1 }, desc: '排队2小时，吃了15分钟' },
-      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -7, iq: 1 }, desc: '和队友一起开黑到凌晨' }
+      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -7, iq: 1 }, desc: '和队友一起开黑到凌晨' },
+      { id: 'movie', emoji: '🎬', name: '看电影', effects: { stress: -5, money: -3, eq: 1 }, desc: '百老汇院线，爆米花是灵魂' },
+      { id: 'shopping', emoji: '🛍️', name: '逛街', effects: { stress: -4, money: -5, eq: 1 }, desc: '铜锣湾/旺角买买买减压大法' }
     ]
   },
   study: {
@@ -1416,29 +1496,44 @@ function applyEffects(effects) {
 function confirmWeek() {
   if (gameState.weekSlots.length === 0) return;
 
+  // Snapshot stats before
+  const before = { ...gameState.stats };
+
   // Apply all slot effects
   const weekActivities = [];
+  const slotIds = [];
   gameState.weekSlots.forEach(slot => {
     const activity = findActivity(slot.id);
     if (activity) {
       applyEffects(activity.effects);
-      weekActivities.push(slot.name);
+      weekActivities.push({ emoji: slot.emoji, name: slot.name });
+      slotIds.push(slot.id);
       gameState.history.push({ emoji: slot.emoji, name: slot.name, week: gameState.week });
 
-      // Track portfolio
-      if (slot.id === 'portfolio') {
-        gameState.portfolio++;
-      }
-      // Track AI class
-      if (slot.id === 'ai_class') {
-        gameState.aiClassCount++;
-      }
+      if (slot.id === 'portfolio') gameState.portfolio++;
+      if (slot.id === 'ai_class') gameState.aiClassCount++;
     }
   });
 
-  // Summary toast
-  const uniqueNames = [...new Set(weekActivities)];
-  showToast(`✅ 本周完成：${uniqueNames.join('、')}`, 'success');
+  // Calculate changes
+  const changes = {};
+  const statNames = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+  for (const key of Object.keys(before)) {
+    const diff = gameState.stats[key] - before[key];
+    if (diff !== 0) changes[key] = diff;
+  }
+
+  // Count categories this week
+  const funItems = new Set(ACTIVITIES.fun.items.map(i => i.id));
+  const studyItems = new Set(ACTIVITIES.study.items.map(i => i.id));
+  const workItems = new Set(ACTIVITIES.work.items.map(i => i.id));
+
+  const funCount = slotIds.filter(id => funItems.has(id)).length;
+  const studyCount = slotIds.filter(id => studyItems.has(id)).length;
+  const workCount = slotIds.filter(id => workItems.has(id)).length;
+
+  // Save for summary
+  const summaryData = { weekActivities, changes, funCount, studyCount, workCount, slotIds };
 
   // Clear slots
   gameState.weekSlots = [];
@@ -1449,12 +1544,179 @@ function confirmWeek() {
     return;
   }
 
-  // Check random event (once per week)
+  // Show weekly summary first, then check random event / advance
+  showWeeklySummary(summaryData);
+}
+
+// ===================== WEEKLY SUMMARY =====================
+
+function generateWeeklyComment(data) {
+  const { funCount, studyCount, workCount, slotIds } = data;
+  const total = 7;
+  const s = gameState.stats;
+  const week = gameState.week;
+  const month = Math.ceil(week / 4);
+
+  // === Special activity combos ===
+  const sushiCount = slotIds.filter(id => id === 'sushi').length;
+  const gamingCount = slotIds.filter(id => id === 'gaming').length;
+  const movieCount = slotIds.filter(id => id === 'movie').length;
+  const shoppingCount = slotIds.filter(id => id === 'shopping').length;
+  const chatCount = slotIds.filter(id => id === 'chat').length;
+  const swimCount = slotIds.filter(id => id === 'swim').length;
+  const climbCount = slotIds.filter(id => id === 'climb').length;
+  const aiCount = slotIds.filter(id => id === 'ai_class').length;
+  const thesisCount = slotIds.filter(id => id === 'thesis').length;
+  const groupCount = slotIds.filter(id => id === 'group_work').length;
+  const internCount = slotIds.filter(id => id === 'intern').length;
+  const mcdCount = slotIds.filter(id => id === 'mcdonalds').length;
+  const nightCount = slotIds.filter(id => id === 'nightclub').length;
+  const startupCount = slotIds.filter(id => id === 'startup').length;
+  const mediaCount = slotIds.filter(id => id === 'media').length;
+
+  // Priority: check special combos first
+  if (sushiCount >= 3) return { emoji: '🍣', text: '你这周吃了<em>' + sushiCount + '次</em>寿司郎...<br>排队的时间加起来比上课还长。<br>你的胃：开心。你的钱包：痛哭。' };
+  if (gamingCount >= 4) return { emoji: '🎮', text: '你这周<em>' + gamingCount + '天</em>都在打游戏。<br>你的段位上去了，你的GPA呢？<br>队友：这人怎么天天在线的？？' };
+  if (movieCount >= 3) return { emoji: '🎬', text: '百老汇院线的工作人员已经认识你了。<br>"老样子？大桶爆米花？"<br>你这周看了<em>' + movieCount + '部</em>电影，比影评人还敬业。' };
+  if (shoppingCount >= 3) return { emoji: '🛍️', text: '铜锣湾的店员看到你都笑了——<br>"这位靓女/靓仔又来啦！"<br>你的快递已经多到门卫开始投诉了。' };
+  if (chatCount >= 4) return { emoji: '💬', text: '你这周的社交量堪比外交官。<br>朋友们的八卦你全知道了，<br>但你的作业一个字没写。<br>不过没关系，<em>快乐就完事了</em>。' };
+  if (aiCount >= 4) return { emoji: '🤖', text: '你已经连续' + aiCount + '天学AI了...<br>你开始用ChatGPT写周报、做PPT、甚至点外卖。<br>"未来属于掌握AI的人！"你疯狂暗示自己。<br>你的黑眼圈表示不太赞同。' };
+  if (thesisCount >= 3) return { emoji: '📝', text: '论文战士就是你！<br>你已经和导师邮件往返了' + (thesisCount * 5) + '封。<br>导师的最新回复："再改改。"<br><em>再改改是什么意思？？？</em>' };
+  if (groupCount >= 3) return { emoji: '👥', text: '你这周疯狂做小组作业。<br>你已经成为了全组的爸爸/妈妈，<br>carry全场的感觉如何？<br>Free rider们纷纷表示：<em>"谢谢大佬带飞"</em>' };
+  if (internCount >= 4) return { emoji: '👔', text: '实习牛马就是你本人。<br>你已经连续加班到凌晨，<br>leader说"年轻人就是要多锻炼"。<br>你的眼神已经死了，但PPT做得很漂亮。' };
+  if (mcdCount >= 4) return { emoji: '🍔', text: '"欢迎光临麦当劳！"你已经可以用粤语、英语、普通话无缝切换点餐话术了。<br>你甚至学会了日语的"いらっしゃいませ"。<br><em>语言天才是这样炼成的。</em>' };
+  if (nightCount >= 3) return { emoji: '🍸', text: '你这周在夜总会出没了' + nightCount + '次。<br>你的黑眼圈和社交能力都在疯狂增长。<br>你的同学："你最近气色好好啊怎么做到的？"<br>你："早睡早起。"' };
+  if (startupCount >= 3) return { emoji: '🚀', text: '创业狂人！你这周开了' + startupCount + '次会，<br>写了3版商业计划书，<br>pitch了2个投资人（都被拒了）。<br>但你的眼里还有光，<em>这很重要</em>。' };
+  if (mediaCount >= 3) return { emoji: '📱', text: '你这周疯狂更新自媒体。<br>粉丝增长：+7<br>你："只要坚持就会成功！"<br>第8个粉丝是你妈。<em>但妈妈的赞也是赞。</em>' };
+  if (swimCount >= 3 && climbCount >= 2) return { emoji: '💪', text: '运动健将！你的身材在港硕中已经属于顶级了。<br>虽然论文还没写，<br>但至少你有<em>人鱼线</em>。' };
+
+  // === Category-based comments ===
+  if (funCount === 7) {
+    const pool = [
+      { emoji: '🎉', text: '这周你<em>一节课都没上</em>，整整玩了7天。<br>你的导师已经开始怀疑你是不是退学了。<br>但你的压力值确实降低了，所以...值？' },
+      { emoji: '🏖️', text: '恭喜你完成了<em>"完全摆烂周"</em>成就！<br>整整7天，你没有学习，没有工作，<br>只有快乐。<br>你的同学看你的眼神充满了羡慕和不解。' },
+      { emoji: '🤡', text: '你这周的时间表就像放假一样。<br>等等，你本来就在读书啊？？<br>你的学费在哭泣：<em>"我值多少钱你知道吗！"</em>' }
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  if (studyCount === 7) {
+    const pool = [
+      { emoji: '🤓', text: '你这周<em>每天都在学习</em>。你是机器人吗？？<br>你的压力已经快爆表了朋友。<br>建议下周去吃个寿司郎放松一下，<br>你值得拥有。' },
+      { emoji: '📚', text: '学霸模式启动！你已经连续7天泡在图书馆了。<br>保安开始以为你住在这里。<br>温馨提示：<em>人不是机器，休息也是学习的一部分。</em>' },
+      { emoji: '😵‍💫', text: '你真的需要出去走走了。<br>7天全学习，你的大脑在尖叫：<br><em>"给我放个假！！！"</em><br>下周建议：至少去看场电影？' }
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  if (workCount === 7) {
+    const pool = [
+      { emoji: '⚙️', text: '你这周<em>每天都在工作</em>。<br>你确定你是来读硕士的，不是来打工的？<br>虽然钱包鼓了，但你的灵魂需要充电。' },
+      { emoji: '💼', text: '打工人打工魂！7天全勤！<br>你的雇主们非常感动，<br>你的导师非常生气。<br><em>"论文呢？？？"</em>' }
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  if (funCount >= 5) {
+    const pool = [
+      { emoji: '🎈', text: '玩了<em>' + funCount + '天</em>，你的快乐值拉满了！<br>但你的同学已经在讨论实习面试了，<br>你还在纠结今晚吃什么。<br>没事，<em>快乐也是一种竞争力</em>（大概）。' },
+      { emoji: '😎', text: '这周你基本在度假。<br>你开始怀疑自己是不是来旅游的。<br>答案是：你确实是来旅游的。<br>但偶尔也要<em>假装</em>学习一下。' }
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  if (studyCount >= 5) {
+    const pool = [
+      { emoji: '📖', text: '学了<em>' + studyCount + '天</em>！卷王就是你！<br>你的努力老天都看得见。<br>不过下周记得给自己放个小假，<br><em>去看场电影或者逛逛街吧</em>。' },
+      { emoji: '🧠', text: '本周学习强度拉满！<br>你的大脑已经处于超频状态。<br>建议下周安排1-2天休息，<br><em>磨刀不误砍柴工嘛</em>。' }
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  if (workCount >= 5) {
+    return { emoji: '🔧', text: '这周你几乎都在工作。<br>钱包充实了，知识呢？<br>别忘了你是来<em>读书</em>的，<br>不是来当社畜的...虽然迟早也是。' };
+  }
+
+  // Balanced week
+  if (funCount >= 2 && studyCount >= 2 && workCount >= 1) {
+    const pool = [
+      { emoji: '⚖️', text: '完美的一周！<br>学习、工作、娱乐三不误。<br>你就是传说中的<em>"时间管理大师"</em>。<br>继续保持！' },
+      { emoji: '👏', text: '这周安排得很合理！<br>既有学习充电，又有放松时间。<br>你的港硕生活正在正确的轨道上。<br><em>这才是留学该有的样子。</em>' },
+      { emoji: '✨', text: '均衡发展的一周！<br>你的各项数值都在稳步提升。<br>继续这样下去，<em>好结局在向你招手</em>。' }
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  if (funCount >= 2 && studyCount >= 2) {
+    return { emoji: '🙂', text: '劳逸结合的一周。<br>学了也玩了，这就是<em>生活的智慧</em>。<br>不过别忘了，赚钱也很重要。<br>毕竟香港的物价可不便宜。' };
+  }
+
+  // Fallback generic
+  const month2 = Math.ceil(week / 4);
+  const generic = [
+    { emoji: '📅', text: '第' + month2 + '个月了！<br>时间过得好快啊。<br>回头看看你的数值，<br>想想你的目标，<em>继续加油</em>！' },
+    { emoji: '🌟', text: '又度过了一周。<br>不管做了什么选择，都是你的人生。<br><em>没有标准答案，只有你的答案。</em>' },
+    { emoji: '☕', text: '喝杯奶茶，回顾一下这周。<br>有收获吗？有遗憾吗？<br>没关系，<em>下周又是新的开始</em>。' }
+  ];
+  return generic[Math.floor(Math.random() * generic.length)];
+}
+
+function showWeeklySummary(data) {
+  const modal = document.getElementById('summary-modal');
+  const content = document.getElementById('summary-content');
+
+  const month = Math.ceil(gameState.week / 4);
+  const weekInMonth = ((gameState.week - 1) % 4) + 1;
+  const comment = generateWeeklyComment(data);
+  const statNames = { iq:'🧠智商', eq:'💖情商', skill:'💼技能', money:'💰金钱', stress:'😰压力', lang:'🗣️语言' };
+
+  // Unique activities with count
+  const actMap = {};
+  data.weekActivities.forEach(a => {
+    actMap[a.name] = actMap[a.name] || { emoji: a.emoji, count: 0 };
+    actMap[a.name].count++;
+  });
+
+  content.innerHTML = `
+    <div class="summary-modal-content">
+      <div class="summary-header">
+        <div class="summary-header-emoji">${comment.emoji}</div>
+        <div class="summary-header-title">第${month}月 第${weekInMonth}周 · 周报</div>
+      </div>
+
+      <div class="summary-activities">
+        ${Object.entries(actMap).map(([name, info]) =>
+          `<span class="summary-activity-tag">${info.emoji} ${name}${info.count > 1 ? ' ×' + info.count : ''}</span>`
+        ).join('')}
+      </div>
+
+      <div class="summary-comment">${comment.text}</div>
+
+      <div class="summary-stats-change">
+        ${Object.entries(data.changes).map(([k, v]) => {
+          const cls = v > 0 ? (k === 'stress' ? 'down' : 'up') : (k === 'stress' ? 'up' : 'down');
+          return `<span class="stat-change-pill ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+        }).join('')}
+      </div>
+
+      <div style="text-align:center">
+        <button class="btn-modal" onclick="closeSummaryModal()">👉 进入下一周</button>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+function closeSummaryModal() {
+  document.getElementById('summary-modal').classList.remove('active');
+
+  // Now check random event
   if (Math.random() < GAME_CONFIG.randomEventChance) {
     const eligible = RANDOM_EVENTS.filter(e => !gameState.flags[e.flag]);
     if (eligible.length > 0) {
       const event = eligible[Math.floor(Math.random() * eligible.length)];
-      setTimeout(() => triggerRandomEvent(event), 600);
+      setTimeout(() => triggerRandomEvent(event), 400);
       return;
     }
   }
