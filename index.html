@@ -2595,6 +2595,29 @@ function showAllEndings() {
   const collection = getCollection();
   const qualityLabels = { good: '好结局', normal: '普通结局', bad: '坏结局' };
 
+  // 每个结局的达成条件
+  const CONDITIONS = {
+    billionaire:      '🎲 随机事件「赛马会」成功（50%概率）',
+    marriage:         '🎲 随机事件「黄大仙求姻缘」成功（50%概率）',
+    stock_god:        '🎲 随机事件「尘封投资账户」成功（50%概率）',
+    wilderness:       '🎲 随机事件「旷野的呼唤」成功（压力≥60时触发，50%概率）',
+    ai_overlord:      '😰 压力≥70 且 🤖 AI课程累计≥30次',
+    burnout:          '😰 压力值达到100（任何时候触发）',
+    nightclub_good:   '🍸 夜店兼职≥30次 且 💖情商≥70 且 💰金钱≥60',
+    nightclub_normal: '🍸 夜店兼职≥30次 且（💖情商≥50 或 💰金钱≥50）',
+    nightclub_bad:    '🍸 夜店兼职≥30次 且 情商<50 且 金钱<50',
+    startup_good:     '🚀 搞创业≥25次 且 💼技能≥70 且 🧠智商≥60 且 💰金钱≥30',
+    startup_normal:   '🚀 搞创业≥25次 且（💼技能≥50 或 🧠智商≥50）',
+    startup_bad:      '🚀 搞创业≥25次 且 技能<50 且 智商<50',
+    influencer_good:  '🎲 随机事件「电影节」成功 且（💖情商≥60 或 💼技能≥60）',
+    influencer_normal:'📱 做自媒体≥25次 且 💼技能≥40',
+    influencer_bad:   '📱 做自媒体≥40次（或电影节成功）但其他条件不满足',
+    work_good2:       '🗣️ 语言≥60 且 💖情商≥50',
+    work_good:        '🎲 游戏酒吧获得Offer，或（💼技能≥70 且 🧠智商≥60）',
+    work_normal:      '💼 技能≥45 或 🧠智商≥45（且不满足好结局条件）',
+    work_bad:         '💼 技能<45 且 🧠智商<45（兜底结局）'
+  };
+
   // Group by line
   const groups = {};
   const lineOrder = [];
@@ -2604,14 +2627,14 @@ function showAllEndings() {
       groups[line] = [];
       lineOrder.push(line);
     }
-    groups[line].push({ id, ...e, collected: collection.includes(id) });
+    groups[line].push({ id, ...e, collected: collection.includes(id), condition: CONDITIONS[id] || '' });
   });
 
   let html = `
     <div class="collection-header">
       <div style="font-size:40px;margin-bottom:8px">📖</div>
       <div class="collection-header-title">结局一览</div>
-      <div class="collection-header-sub">全部 ${allEndings.length} 个结局 · 点击展开查看详情</div>
+      <div class="collection-header-sub">全部 ${allEndings.length} 个结局 · 点击展开查看详情和达成条件</div>
     </div>
     <div class="endings-gallery">
   `;
@@ -2639,6 +2662,10 @@ function showAllEndings() {
             <div class="ending-full-arrow">▶</div>
           </div>
           <div class="ending-full-body">
+            <div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.15);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;line-height:1.7">
+              <span style="color:var(--accent-blue);font-weight:600">📋 达成条件：</span><br>
+              <span style="color:var(--text-secondary)">${e.condition}</span>
+            </div>
             ${e.desc.replace(/\n/g, '<br>')}
           </div>
         </div>
