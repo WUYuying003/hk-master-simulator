@@ -189,7 +189,7 @@
   /* === Stats Grid === */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 10px;
     margin-bottom: 20px;
   }
@@ -219,6 +219,7 @@
   .stat-card.money::before { background: var(--accent-gold); }
   .stat-card.stress::before { background: var(--accent-red); }
   .stat-card.lang::before { background: var(--accent-green); }
+  .stat-card.friends::before { background: #818cf8; }
 
   .stat-icon { font-size: 24px; margin-bottom: 4px; }
 
@@ -255,6 +256,7 @@
   .stat-card.money .stat-bar-fill { background: var(--accent-gold); }
   .stat-card.stress .stat-bar-fill { background: var(--accent-red); }
   .stat-card.lang .stat-bar-fill { background: var(--accent-green); }
+  .stat-card.friends .stat-bar-fill { background: #818cf8; }
 
   .stat-change {
     position: absolute;
@@ -1339,6 +1341,12 @@ let gameState = {
 // ===================== UNLOCK SYSTEM =====================
 // 解锁条件: 返回 { locked: bool, hint: string }
 const UNLOCK_RULES = {
+  // 娱乐类 - 多人活动需要交朋友
+  'climb':      (gs) => ({ locked: gs.friends < 2, hint: '先去上课认识同学（朋友≥2）' }),
+  'chat':       (gs) => ({ locked: gs.friends < 3, hint: '多上课交朋友吧（朋友≥3）' }),
+  'gaming':     (gs) => ({ locked: gs.friends < 4, hint: '需要更多队友（朋友≥4）' }),
+  'hiking':     (gs) => ({ locked: gs.friends < 5, hint: '凑够驴友才能出发（朋友≥5）' }),
+  'sushi':      (gs) => ({ locked: gs.friends < 1, hint: '一个人吃寿司太惨了（朋友≥1）' }),
   // 学习类
   'thesis':     (gs) => ({ locked: gs.week < 20, hint: '第5个月后解锁' }),
   // 工作类 - 需要先提升数值
@@ -1363,12 +1371,13 @@ const ACTIVITIES = {
     desc: '降低压力，花费金钱',
     items: [
       { id: 'swim', emoji: '🏊', name: '游泳', effects: { stress: -5, money: -2 }, desc: '去维港旁的泳池游个痛快' },
-      { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -4, money: -3, eq: 1 }, desc: '去攀岩馆挑战自我' },
-      { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -6, eq: 1 }, desc: '约三五好友吐槽生活' },
-      { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -4, money: -4, eq: 1 }, desc: '排队2小时，吃了15分钟' },
-      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -7, iq: 1 }, desc: '和队友一起开黑到凌晨' },
       { id: 'movie', emoji: '🎬', name: '看电影', effects: { stress: -5, money: -3, eq: 1 }, desc: '百老汇院线，爆米花是灵魂' },
-      { id: 'shopping', emoji: '🛍️', name: '逛街', effects: { stress: -4, money: -5, eq: 1 }, desc: '铜锣湾/旺角买买买减压大法' }
+      { id: 'shopping', emoji: '🛍️', name: '逛街', effects: { stress: -4, money: -5, eq: 1 }, desc: '铜锣湾/旺角买买买减压大法' },
+      { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -4, money: -4, eq: 1 }, desc: '排队2小时，吃了15分钟' },
+      { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -4, money: -3, eq: 2 }, desc: '和朋友一起去攀岩馆挑战自我' },
+      { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -6, eq: 2 }, desc: '约三五好友吐槽生活' },
+      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -7, iq: 1 }, desc: '和队友一起开黑到凌晨' },
+      { id: 'hiking', emoji: '🥾', name: '徒步', effects: { stress: -5, money: -1, eq: 2 }, desc: '和朋友去龙脊/大东山暴走一天' }
     ]
   },
   study: {
@@ -1582,6 +1591,7 @@ function initGame() {
     history: [],
     portfolio: 0,
     aiClassCount: 0,      // AI课程次数追踪
+    friends: 0,           // 朋友数量
     unlockedIds: new Set() // 已通知解锁的活动ID
   };
 }
@@ -1645,6 +1655,10 @@ function renderStats() {
   ];
 
   const grid = document.getElementById('stats-grid');
+  // Friends is a special stat (not 0-100)
+  const friendsVal = gameState.friends;
+  const friendsPct = Math.min(100, Math.round(friendsVal / 20 * 100));
+
   grid.innerHTML = statsDef.map(s => {
     const val = Math.max(0, Math.min(100, gameState.stats[s.key]));
     return `
@@ -1657,7 +1671,16 @@ function renderStats() {
         </div>
       </div>
     `;
-  }).join('');
+  }).join('') + `
+    <div class="stat-card friends">
+      <div class="stat-icon">👫</div>
+      <div class="stat-name">朋友</div>
+      <div class="stat-value">${friendsVal}</div>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width:${friendsPct}%;background:#818cf8"></div>
+      </div>
+    </div>
+  `;
 }
 
 // 渲染本周7个时间格
@@ -1834,6 +1857,10 @@ function confirmWeek() {
 
       if (slot.id === 'portfolio') gameState.portfolio++;
       if (slot.id === 'ai_class') gameState.aiClassCount++;
+      // 交朋友：上课和小组作业能认识同学
+      if (['trad_class','ai_class','lang_class','group_work','event_pt'].includes(slot.id)) {
+        gameState.friends++;
+      }
     }
   });
 
@@ -2268,13 +2295,13 @@ const TUTORIAL_STEPS = [
   },
   {
     emoji: '📊',
-    title: '六大数值',
-    desc: '<em>🧠智商 💖情商 💼工作技能 💰金钱 🗣️语言 😰压力</em><br><br>不同活动会影响不同数值。<br>注意：<em>压力值满了会直接GAME OVER</em>！<br>记得安排娱乐活动来减压。'
+    title: '七大数值',
+    desc: '<em>🧠智商 💖情商 💼技能 💰金钱 🗣️语言 😰压力 👫朋友</em><br><br>不同活动会影响不同数值。<br>注意：<em>压力值满了会直接GAME OVER</em>！<br>记得安排娱乐活动来减压。'
   },
   {
-    emoji: '🔒',
-    title: '活动解锁系统',
-    desc: '有些高级活动一开始是<em>锁定</em>的。<br>比如实习需要先提升工作技能和改作品集。<br>解锁新活动时会有弹窗提醒你！'
+    emoji: '👫',
+    title: '交朋友 & 活动解锁',
+    desc: '刚来香港，你还没有朋友。<br><em>上课、做小组作业</em>可以认识同学交到朋友！<br><br>很多娱乐活动（攀岩、聊天、联机打游戏、徒步）<br>都需要先<em>交到足够的朋友</em>才能解锁。<br>工作类也有各自的解锁条件。<br><br>解锁新活动时会有弹窗提醒你！'
   },
   {
     emoji: '🎲',
@@ -2332,6 +2359,63 @@ function prevTutorial() {
 
 function closeTutorial() {
   document.getElementById('tutorial-modal').classList.remove('active');
+  // After tutorial, show introductions for all currently available activities
+  showInitialActivityIntros();
+}
+
+// ===================== INITIAL ACTIVITY INTROS =====================
+
+let introQueue = [];
+
+function showInitialActivityIntros() {
+  introQueue = [];
+  // Collect all currently unlocked activities
+  for (const cat of Object.values(ACTIVITIES)) {
+    for (const item of cat.items) {
+      const unlock = checkUnlock(item.id);
+      if (!unlock.locked) {
+        introQueue.push(item);
+      }
+    }
+  }
+  if (introQueue.length > 0) {
+    showNextIntro();
+  }
+}
+
+function showNextIntro() {
+  if (introQueue.length === 0) return;
+
+  const item = introQueue.shift();
+  const remaining = introQueue.length;
+  const statNames = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+
+  document.getElementById('unlock-content').innerHTML = `
+    <div style="text-align:center">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;letter-spacing:1px">📋 活动介绍${remaining > 0 ? ` · 还有${remaining}个` : ''}</div>
+      <div class="unlock-card">
+        <div class="unlock-card-emoji">${item.emoji}</div>
+        <div class="unlock-card-name">${item.name}</div>
+        <div class="unlock-card-desc">${item.desc}</div>
+        <div class="unlock-card-effects">
+          ${Object.entries(item.effects).map(([k, v]) => {
+            const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
+            return `<span class="effect-tag ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+          }).join('')}
+        </div>
+      </div>
+      <button class="btn-modal" onclick="closeIntroAndNext()">${remaining > 0 ? '下一个 →' : '开始安排第一周！'}</button>
+    </div>
+  `;
+
+  document.getElementById('unlock-modal').classList.add('active');
+}
+
+function closeIntroAndNext() {
+  document.getElementById('unlock-modal').classList.remove('active');
+  if (introQueue.length > 0) {
+    setTimeout(() => showNextIntro(), 200);
+  }
 }
 
 // ===================== UNLOCK NOTIFICATION =====================
