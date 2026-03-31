@@ -1049,6 +1049,96 @@
   .collection-card-quality.normal { color: var(--accent-blue); }
   .collection-card-quality.bad { color: var(--accent-red); }
 
+  /* === All Endings Gallery === */
+  .endings-gallery {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .endings-gallery::-webkit-scrollbar { width: 4px; }
+  .endings-gallery::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+  .ending-full-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .ending-full-card:hover {
+    border-color: rgba(246,197,71,0.3);
+  }
+
+  .ending-full-card.expanded {
+    border-color: var(--accent-gold);
+    background: rgba(246,197,71,0.03);
+  }
+
+  .ending-full-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ending-full-emoji { font-size: 32px; }
+
+  .ending-full-info { flex: 1; }
+
+  .ending-full-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .ending-full-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 11px;
+  }
+
+  .ending-full-line {
+    color: var(--text-muted);
+  }
+
+  .ending-full-quality {
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .ending-full-quality.good { background: rgba(246,197,71,0.12); color: var(--accent-gold); }
+  .ending-full-quality.normal { background: rgba(96,165,250,0.12); color: var(--accent-blue); }
+  .ending-full-quality.bad { background: rgba(248,113,113,0.12); color: var(--accent-red); }
+
+  .ending-full-arrow {
+    font-size: 14px;
+    color: var(--text-muted);
+    transition: transform 0.3s;
+  }
+
+  .ending-full-card.expanded .ending-full-arrow {
+    transform: rotate(90deg);
+  }
+
+  .ending-full-body {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--text-secondary);
+  }
+
+  .ending-full-card.expanded .ending-full-body {
+    display: block;
+  }
+
   /* Intro screen */
   .intro-screen {
     display: flex;
@@ -1208,6 +1298,11 @@
 <!-- Collection Modal -->
 <div class="modal-overlay" id="collection-modal">
   <div class="modal-content" id="collection-content" style="max-width:600px"></div>
+</div>
+
+<!-- All Endings Modal -->
+<div class="modal-overlay" id="all-endings-modal">
+  <div class="modal-content" id="all-endings-content" style="max-width:640px;padding:30px"></div>
 </div>
 
 <!-- Collection Button (always visible during game) -->
@@ -2138,6 +2233,7 @@ function showEnding(endingId) {
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
       <button class="btn-restart" onclick="restartGame()">🔄 重新开始</button>
       <button class="btn-restart" onclick="showCollection()" style="border-color:var(--accent-purple);color:var(--accent-purple)">🏆 结局收集</button>
+      <button class="btn-restart" onclick="showAllEndings()" style="border-color:var(--accent-blue);color:var(--accent-blue)">📖 结局一览</button>
     </div>
   `;
 }
@@ -2406,6 +2502,82 @@ function showCollection() {
 
 function closeCollection() {
   document.getElementById('collection-modal').classList.remove('active');
+}
+
+// ===================== ALL ENDINGS GALLERY =====================
+
+function showAllEndings() {
+  const allEndings = Object.entries(ENDINGS);
+  const collection = getCollection();
+  const qualityLabels = { good: '好结局', normal: '普通结局', bad: '坏结局' };
+
+  // Group by line
+  const groups = {};
+  const lineOrder = [];
+  allEndings.forEach(([id, e]) => {
+    const line = e.line || '其他';
+    if (!groups[line]) {
+      groups[line] = [];
+      lineOrder.push(line);
+    }
+    groups[line].push({ id, ...e, collected: collection.includes(id) });
+  });
+
+  let html = `
+    <div class="collection-header">
+      <div style="font-size:40px;margin-bottom:8px">📖</div>
+      <div class="collection-header-title">结局一览</div>
+      <div class="collection-header-sub">全部 ${allEndings.length} 个结局 · 点击展开查看详情</div>
+    </div>
+    <div class="endings-gallery">
+  `;
+
+  for (const line of lineOrder) {
+    const endings = groups[line];
+    html += `<div style="font-size:13px;font-weight:600;color:var(--text-muted);margin:16px 0 8px;padding-left:4px">${line}</div>`;
+
+    endings.forEach(e => {
+      const collectedTag = e.collected
+        ? '<span style="font-size:10px;background:rgba(52,211,153,0.12);color:var(--accent-green);padding:1px 6px;border-radius:8px;margin-left:6px">✓ 已收集</span>'
+        : '<span style="font-size:10px;background:rgba(255,255,255,0.06);color:var(--text-muted);padding:1px 6px;border-radius:8px;margin-left:6px">未收集</span>';
+
+      html += `
+        <div class="ending-full-card" onclick="toggleEndingCard(this)">
+          <div class="ending-full-header">
+            <div class="ending-full-emoji">${e.emoji}</div>
+            <div class="ending-full-info">
+              <div class="ending-full-title">${e.title}${collectedTag}</div>
+              <div class="ending-full-meta">
+                <span class="ending-full-line">${e.line}</span>
+                <span class="ending-full-quality ${e.quality}">${qualityLabels[e.quality]}</span>
+              </div>
+            </div>
+            <div class="ending-full-arrow">▶</div>
+          </div>
+          <div class="ending-full-body">
+            ${e.desc.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  html += `</div>
+    <div style="text-align:center;margin-top:20px">
+      <button class="btn-modal" onclick="closeAllEndings()">关闭</button>
+    </div>
+  `;
+
+  document.getElementById('all-endings-content').innerHTML = html;
+  document.getElementById('all-endings-modal').classList.add('active');
+}
+
+function toggleEndingCard(card) {
+  card.classList.toggle('expanded');
+}
+
+function closeAllEndings() {
+  document.getElementById('all-endings-modal').classList.remove('active');
 }
 
 // Initialize
