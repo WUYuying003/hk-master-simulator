@@ -1827,6 +1827,7 @@ function renderActivities() {
               ${countInSlots > 0 ? `<div class="select-count">${countInSlots}</div>` : ''}
               <div class="activity-emoji">${item.emoji}</div>
               <div class="activity-name">${item.name}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.4">${item.desc}</div>
               <div class="activity-effects">
                 ${Object.entries(item.effects).map(([k, v]) => {
                   const names = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
