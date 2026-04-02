@@ -189,7 +189,7 @@
   /* === Stats Grid === */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     margin-bottom: 20px;
   }
@@ -220,6 +220,7 @@
   .stat-card.stress::before { background: var(--accent-red); }
   .stat-card.lang::before { background: var(--accent-green); }
   .stat-card.friends::before { background: #818cf8; }
+  .stat-card.gpa::before { background: #fbbf24; }
 
   .stat-icon { font-size: 24px; margin-bottom: 4px; }
 
@@ -257,6 +258,7 @@
   .stat-card.stress .stat-bar-fill { background: var(--accent-red); }
   .stat-card.lang .stat-bar-fill { background: var(--accent-green); }
   .stat-card.friends .stat-bar-fill { background: #818cf8; }
+  .stat-card.gpa .stat-bar-fill { background: #fbbf24; }
 
   .stat-change {
     position: absolute;
@@ -1248,6 +1250,10 @@
       ⚠️ 压力值过高！请安排一些娱乐活动来放松一下！
     </div>
 
+    <!-- GPA Warning -->
+    <div class="stress-warning" id="gpa-warning" style="display:none;animation:none;background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fbbf24">
+    </div>
+
     <!-- Stats Grid -->
     <div class="stats-grid" id="stats-grid"></div>
 
@@ -1553,6 +1559,10 @@ const ENDINGS = {
     type: 'special', quality: 'bad', emoji: '😵', title: '压力爆炸', line: '崩溃线',
     desc: '压力终于压垮了你。\n\n你开始失眠、焦虑、什么都不想做。\n\n论文写不出来，面试也不想去了。\n\n你只想蜷在宿舍的床上，盯着天花板。\n\n后来你休学了。\n\n回家以后，你花了很长时间才慢慢好起来。\n\n"照顾好自己，比什么都重要。"'
   },
+  expelled: {
+    type: 'special', quality: 'bad', emoji: '📉', title: '学业劝退', line: '崩溃线',
+    desc: '教务处的邮件冰冷而简短：\n\n"Dear Student, 根据学校规定，你的GPA未达到最低要求......"\n\n你盯着屏幕，脑子一片空白。\n\n你把所有时间都花在了工作和玩乐上，忘记了自己是来读书的。\n\n同学们都在讨论下学期的课程，而你在收拾行李。\n\n"如果能重来的话，我一定会多上几节课。"\n\n你在机场给妈妈打了一个电话。\n电话那头沉默了很久。'
+  },
 
   // === 旷野隐藏结局 ===
   wilderness: {
@@ -1613,6 +1623,8 @@ function initGame() {
     portfolio: 0,
     aiClassCount: 0,      // AI课程次数追踪
     friends: 0,           // 朋友数量
+    gpa: 0,               // GPA点数（内部值，显示时÷100）
+    gpaCredits: 0,        // 已修学分（用于计算GPA）
     unlockedIds: new Set() // 已通知解锁的活动ID
   };
 }
@@ -1679,6 +1691,8 @@ function renderStats() {
   // Friends is a special stat (not 0-100)
   const friendsVal = gameState.friends;
   const friendsPct = Math.min(100, Math.round(friendsVal / 20 * 100));
+  const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits) : 0;
+  const gpaPct = Math.round(gpaDisplay / 4.0 * 100);
 
   grid.innerHTML = statsDef.map(s => {
     const val = Math.max(0, gameState.stats[s.key]);
@@ -1704,6 +1718,14 @@ function renderStats() {
       <div class="stat-value">${friendsVal}</div>
       <div class="stat-bar">
         <div class="stat-bar-fill" style="width:${friendsPct}%;background:#818cf8"></div>
+      </div>
+    </div>
+    <div class="stat-card gpa" style="${gpaDisplay < 2.0 && gameState.gpaCredits > 0 ? 'animation:pulse 1.5s ease infinite' : ''}">
+      <div class="stat-icon">📊</div>
+      <div class="stat-name">GPA</div>
+      <div class="stat-value" style="color:${gpaDisplay < 2.0 && gameState.gpaCredits > 0 ? 'var(--accent-red)' : gpaDisplay >= 3.5 ? 'var(--accent-gold)' : 'var(--text-primary)'}">${gpaDisplay.toFixed(1)}</div>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width:${gpaPct}%;background:#fbbf24"></div>
       </div>
     </div>
   `;
@@ -1835,6 +1857,30 @@ function renderWeekLog() {
 function checkStressWarning() {
   const warning = document.getElementById('stress-warning');
   warning.style.display = gameState.stats.stress >= GAME_CONFIG.stressThreshold ? 'flex' : 'none';
+
+  // GPA warning
+  const gpaWarning = document.getElementById('gpa-warning');
+  const checkpoints = [
+    { week: 7, minGpa: 1.5, minCredits: 5 },
+    { week: 14, minGpa: 2.0, minCredits: 12 },
+    { week: 20, minGpa: 2.0, minCredits: 18 }
+  ];
+  const nextCP = checkpoints.find(c => c.week >= gameState.week);
+  if (nextCP) {
+    const weeksLeft = nextCP.week - gameState.week;
+    const currentGpa = gameState.gpaCredits > 0 ? (gameState.gpa / gameState.gpaCredits).toFixed(1) : '0.0';
+    const gpaOk = parseFloat(currentGpa) >= nextCP.minGpa;
+    const creditsOk = gameState.gpaCredits >= nextCP.minCredits;
+    if (weeksLeft <= 3 && (!gpaOk || !creditsOk)) {
+      gpaWarning.style.display = 'flex';
+      gpaWarning.style.animation = weeksLeft <= 1 ? 'pulse 1.5s ease infinite' : 'none';
+      gpaWarning.innerHTML = `📊 GPA考核倒计时：还有 <strong>${weeksLeft}</strong> 周！需要 GPA≥${nextCP.minGpa} 且 学分≥${nextCP.minCredits}（当前：GPA ${currentGpa}，学分 ${gameState.gpaCredits}）${!gpaOk || !creditsOk ? ' <strong>⚠️ 未达标！</strong>' : ' ✅'}`;
+    } else {
+      gpaWarning.style.display = 'none';
+    }
+  } else {
+    gpaWarning.style.display = 'none';
+  }
 }
 
 function updateConfirmButton() {
@@ -1887,6 +1933,20 @@ function confirmWeek() {
       // 交朋友：上课和小组作业能认识同学
       if (['trad_class','ai_class','lang_class','group_work','event_pt'].includes(slot.id)) {
         gameState.friends++;
+      }
+      // GPA追踪：不同课程GPA贡献不同
+      // 传统课: GPA加得多(3.5)，AI课中等(3.0)，语言课(2.8)，小组作业(3.2)，毕业项目(3.3)，改作品集(2.5)
+      const GPA_MAP = {
+        'trad_class': 3.5,
+        'ai_class': 3.0,
+        'lang_class': 2.8,
+        'group_work': 3.2,
+        'thesis': 3.3,
+        'portfolio': 2.5
+      };
+      if (GPA_MAP[slot.id] !== undefined) {
+        gameState.gpa += GPA_MAP[slot.id];
+        gameState.gpaCredits += 1;
       }
     }
   });
@@ -2110,6 +2170,26 @@ function closeSummaryModal() {
 function advanceWeek() {
   gameState.week++;
 
+  // GPA阶段考核检查点
+  const GPA_CHECKPOINTS = [
+    { week: 7, name: '第一阶段（期中考核）', minGpa: 1.5, minCredits: 5 },
+    { week: 14, name: '第二阶段（期末考核）', minGpa: 2.0, minCredits: 12 },
+    { week: 20, name: '第三阶段（毕业考核）', minGpa: 2.0, minCredits: 18 }
+  ];
+
+  const checkpoint = GPA_CHECKPOINTS.find(c => c.week === gameState.week);
+  if (checkpoint) {
+    const currentGpa = gameState.gpaCredits > 0 ? gameState.gpa / gameState.gpaCredits : 0;
+    if (currentGpa < checkpoint.minGpa || gameState.gpaCredits < checkpoint.minCredits) {
+      // GPA不达标
+      setTimeout(() => showGpaWarning(checkpoint, currentGpa), 500);
+      return;
+    } else {
+      // 通过考核
+      showToast(`✅ ${checkpoint.name}通过！GPA: ${currentGpa.toFixed(1)} 🎉`, 'success');
+    }
+  }
+
   if (gameState.week > GAME_CONFIG.totalWeeks) {
     setTimeout(() => calculateEnding(), 500);
     return;
@@ -2117,6 +2197,38 @@ function advanceWeek() {
 
   renderAll();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showGpaWarning(checkpoint, currentGpa) {
+  const modal = document.getElementById('event-modal');
+  const content = document.getElementById('modal-content');
+  const creditsNeeded = checkpoint.minCredits;
+  const hasEnoughCredits = gameState.gpaCredits >= creditsNeeded;
+
+  let failReason = '';
+  if (!hasEnoughCredits) {
+    failReason = `你只修了 ${gameState.gpaCredits} 门课（需要至少 ${creditsNeeded} 门）。\n你上课太少了！`;
+  } else {
+    failReason = `你的GPA只有 ${currentGpa.toFixed(2)}（需要 ${checkpoint.minGpa.toFixed(1)}）。\n成绩不够好！`;
+  }
+
+  content.innerHTML = `
+    <div class="modal-emoji">📉</div>
+    <div class="modal-title">⚠️ ${checkpoint.name}</div>
+    <div class="modal-title" style="font-size:18px;color:var(--accent-red)">GPA未达标！</div>
+    <div class="modal-desc" style="line-height:1.8">
+      ${failReason.replace(/\n/g, '<br>')}<br><br>
+      <span style="color:var(--text-muted)">
+        当前GPA: <strong style="color:var(--accent-red)">${currentGpa.toFixed(2)}</strong> / 需要: <strong>${checkpoint.minGpa.toFixed(1)}</strong><br>
+        已修学分: <strong style="${!hasEnoughCredits ? 'color:var(--accent-red)' : ''}">${gameState.gpaCredits}</strong> / 需要: <strong>${creditsNeeded}</strong>
+      </span>
+    </div>
+    <button class="btn-modal" onclick="document.getElementById('event-modal').classList.remove('active');showEnding('expelled')" style="background:linear-gradient(135deg,var(--accent-red),var(--accent-orange))">
+      😢 接受现实
+    </button>
+  `;
+
+  modal.classList.add('active');
 }
 
 function triggerRandomEvent(event) {
@@ -2423,8 +2535,8 @@ const TUTORIAL_STEPS = [
   },
   {
     emoji: '📊',
-    title: '七大数值',
-    desc: '<em>🧠智商 💖情商 💼技能 💰金钱 🗣️语言 😰压力 👫朋友</em><br><br>不同活动会影响不同数值。<br>注意：<em>压力值满了会直接GAME OVER</em>！<br>记得安排娱乐活动来减压。'
+    title: '数值 & GPA系统',
+    desc: '<em>🧠智商 💖情商 💼技能 💰金钱 🗣️语言 😰压力 👫朋友 📊GPA</em><br><br>注意：<em>压力值满了会直接GAME OVER</em>！<br><br>⚠️ <em>GPA非常重要</em>！港硕分3个阶段考核：<br>第7周、第14周、第20周都要检查GPA。<br><em>不及格就会被劝退</em>！所以一定要上课！<br>传统技能课GPA加得最多哦。'
   },
   {
     emoji: '👫',
@@ -2731,6 +2843,7 @@ function showAllEndings() {
     wilderness:       '🎲 随机事件「旷野的呼唤」成功（压力≥60时触发，50%概率）',
     ai_overlord:      '😰 压力≥70 且 🤖 AI课程累计≥12次',
     burnout:          '😰 压力值达到100（任何时候触发）',
+    expelled:         '📉 GPA考核未达标：第7周(GPA≥1.5且≥5学分)、第14周(GPA≥2.0且≥12学分)、第20周(GPA≥2.0且≥18学分)',
     nightclub_good:   '🍸 夜店兼职≥12次 且 💖情商≥70 且 💰金钱≥60',
     nightclub_normal: '🍸 夜店兼职≥12次 且（💖情商≥50 或 💰金钱≥50）',
     nightclub_bad:    '🍸 夜店兼职≥12次 且 情商<50 且 金钱<50',
