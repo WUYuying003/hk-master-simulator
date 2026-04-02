@@ -1414,79 +1414,73 @@ const RANDOM_EVENTS = [
     id: 'game_bar',
     emoji: '🎲',
     title: '神秘游戏酒吧聚会',
-    desc: '你在深水埗发现了一个隐藏的游戏酒吧，聚集了各路游戏行业大佬。一位制作人对你产生了兴趣...',
+    desc: '你在深水埗发现了一个隐藏的游戏酒吧，聚集了各路游戏行业大佬。一位制作人朝你举了举杯...',
     condition: (s) => s.skill >= 50,
-    successRate: 0.5,
-    successText: '🎉 恭喜！制作人向你抛出了橄榄枝，给了你一个正式的工作Offer！',
-    failText: '你和大佬们聊得很开心，交换了联系方式，但暂时没有进一步消息。',
-    successEffects: { eq: 5, skill: 5 },
-    failEffects: { eq: 3 },
-    flag: 'gotJobOffer'
+    choices: [
+      { label: '🔥 主动搭讪制作人', desc: '大胆上前自我介绍', effects: { eq: 8, skill: 8, stress: 5 }, flagChance: 0.05, flag: 'gotJobOffer', flagText: '🎉 制作人非常欣赏你，当场给了你一个正式的工作Offer！' },
+      { label: '🍺 默默喝酒观察', desc: '先融入气氛再说', effects: { eq: 3, skill: 3 }, flagChance: 0, flagText: '' },
+      { label: '🚪 转身离开', desc: '社恐发作了...', effects: { stress: -3 }, flagChance: 0, flagText: '' }
+    ]
   },
   {
     id: 'film_fest',
     emoji: '🎬',
     title: '神秘电影节展览',
-    desc: '你无意间参加了一个独立电影展，你随手拍的vlog被策展人看中了！',
+    desc: '你收到一封匿名邀请，参加一个地下独立电影展。据说有很多业内大佬在场...',
     condition: () => true,
-    successRate: 0.5,
-    successText: '🌟 你的视频火了！一夜之间你的社交媒体涨了10万粉丝，你正式成为了网红！',
-    failText: '虽然没有爆火，但你认识了很多有趣的创作者，也算是一次有价值的体验。',
-    successEffects: { eq: 5, money: 15 },
-    failEffects: { eq: 3 },
-    flag: 'becameInfluencer'
+    choices: [
+      { label: '📹 带上相机全程vlog', desc: '记录一切，搏一搏', effects: { eq: 8, skill: 5, money: 5, stress: 5 }, flagChance: 0.05, flag: 'becameInfluencer', flagText: '🌟 你的vlog火了！一夜之间涨了10万粉丝，你成为了网红！' },
+      { label: '👀 低调参加长见识', desc: '只看不拍', effects: { eq: 5, iq: 3 }, flagChance: 0, flagText: '' },
+      { label: '😴 太累了不想去', desc: '回宿舍躺平', effects: { stress: -5 }, flagChance: 0, flagText: '' }
+    ]
   },
   {
     id: 'horse_race',
     emoji: '🏇',
     title: '赛马会赌马比赛',
-    desc: '朋友拉你去了跑马地赛马场。"就买一注试试嘛！" 你犹豫了一下，选了一匹名叫"港硕之光"的马...',
+    desc: '朋友拉你去跑马地赛马场。"就买一注试试嘛！"你看到一匹名叫"港硕之光"的马...',
     condition: () => true,
-    successRate: 0.5,
-    successText: '🤑 天啊！！"港硕之光"以绝对优势冲线！你下注的彩金居然中了头奖，一夜暴富！百亿富翁就是你！',
-    failText: '"港硕之光"在最后一个弯道被超越，你输了赌注。果然，赌博害人。',
-    successEffects: { money: 50 },
-    failEffects: { money: -10, stress: 5 },
-    flag: 'wonHorseRace'
+    choices: [
+      { label: '💰 梭哈港硕之光！', desc: '搏一搏，单车变摩托', effects: { money: -8, stress: 8 }, flagChance: 0.05, flag: 'wonHorseRace', flagText: '🤑 天啊！！"港硕之光"以绝对优势冲线！你中了头奖，一夜暴富！！！' },
+      { label: '🎫 小赌怡情买一注', desc: '花点小钱图个乐', effects: { money: -3, eq: 3, stress: -2 }, flagChance: 0, flagText: '' },
+      { label: '🙅 赌博害人不去了', desc: '理性战胜冲动', effects: { iq: 3 }, flagChance: 0, flagText: '' }
+    ]
   },
   {
     id: 'wong_tai_sin',
     emoji: '🏮',
     title: '黄大仙求姻缘',
-    desc: '室友硬拉你去黄大仙祠求姻缘。你半信半疑地摇了一支签...',
+    desc: '室友硬拉你去黄大仙祠求姻缘。到了庙门口，你犹豫了...',
     condition: () => true,
-    successRate: 0.5,
-    successText: '💕 上上签！没想到出庙门就撞到了一个人，你们眼神交汇的那一刻... 后来你们真的在一起了，TA还是本地人！',
-    failText: '下下签。解签的师傅说你"姻缘未到"。你叹了口气，果然玄学不靠谱。',
-    successEffects: { eq: 8, stress: -10 },
-    failEffects: { stress: 5 },
-    flag: 'gotMarried'
+    choices: [
+      { label: '🙏 虔诚跪拜求签', desc: '信则灵！', effects: { eq: 5, stress: -3 }, flagChance: 0.05, flag: 'gotMarried', flagText: '💕 出庙门撞到了一个人，你们眼神交汇...后来你们真的在一起了，TA还是本地人！' },
+      { label: '📸 当观光客拍拍照', desc: '到此一游', effects: { eq: 2, stress: -5 }, flagChance: 0, flagText: '' },
+      { label: '🏃 找借口溜了', desc: '封建迷信我不信', effects: { stress: -2 }, flagChance: 0, flagText: '' }
+    ]
   },
   {
     id: 'stock_discovery',
     emoji: '📈',
     title: '尘封的投资账户',
-    desc: '你在整理旧邮件时，发现了一封2021年的证券通知。你当年随手买的几支股票...等等，英X达？特S拉？黄X金？？？',
+    desc: '整理旧邮件时发现了一封2021年的证券通知。你依稀记得当年随手买了几支股票...',
     condition: () => true,
-    successRate: 0.5,
-    successText: '🤯 你颤抖着打开账户，数字在屏幕上闪烁。你揉了揉眼睛，又数了一遍小数点。\n\n没错，七位数。\n\n你默默关上了电脑，出门买了一杯奶茶，看着维港发了一下午呆。',
-    failText: '你满怀期待地打开账户...结果发现当年买的是某已退市的P2P理财。余额：¥0.37。',
-    successEffects: { money: 50 },
-    failEffects: { stress: 3 },
-    flag: 'discoveredStock'
+    choices: [
+      { label: '😱 颤抖着打开账户', desc: '怀着激动的心打开', effects: { stress: 8 }, flagChance: 0.05, flag: 'discoveredStock', flagText: '🤯 英X达、特S拉、黄X金......七位数！！！你这辈子不用再努力了！' },
+      { label: '🤔 冷静查看一下', desc: '先看看再说', effects: { iq: 3, money: 5 }, flagChance: 0, flagText: '' },
+      { label: '🗑️ 当垃圾邮件删了', desc: '肯定是诈骗', effects: {}, flagChance: 0, flagText: '' }
+    ]
   },
   {
     id: 'wilderness',
     emoji: '🌊',
     title: '旷野的呼唤',
-    desc: '一个周末，你独自走到了西贡的海边。海风吹过你的脸，远处是一望无际的太平洋。\n\n你突然觉得，海的那边是自由...',
+    desc: '一个周末你走到了西贡的海边。海风吹过你的脸，远处是一望无际的太平洋...',
     condition: (s) => s.stress >= 60,
-    successRate: 0.5,
-    successText: '🌍 你做了一个疯狂的决定——gap year环游世界！你买了一张单程机票，背上背包就出发了。',
-    failText: '你在海边坐了很久，最后还是打开了手机看了眼DDL。你叹了口气，坐地铁回了学校。',
-    successEffects: { stress: -30, eq: 10 },
-    failEffects: { stress: -5 },
-    flag: 'goneWild'
+    choices: [
+      { label: '✈️ 买张单程机票走！', desc: '说走就走！环游世界！', effects: { stress: -20, eq: 10, money: -15 }, flagChance: 0.05, flag: 'goneWild', flagText: '🌍 你真的买了机票！从此开始了环游世界的旅程！' },
+      { label: '🌅 坐一会儿看日落', desc: '静静感受大海', effects: { stress: -12, eq: 5 }, flagChance: 0, flagText: '' },
+      { label: '📱 拍张照发朋友圈', desc: '到此一游，该干嘛干嘛', effects: { stress: -3, eq: 1 }, flagChance: 0, flagText: '' }
+    ]
   }
 ];
 
@@ -2063,7 +2057,14 @@ function closeSummaryModal() {
 
   // Now check random event
   if (Math.random() < GAME_CONFIG.randomEventChance) {
-    const eligible = RANDOM_EVENTS.filter(e => !gameState.flags[e.flag]);
+    const eligible = RANDOM_EVENTS.filter(e => {
+      // Check condition
+      if (!e.condition(gameState.stats)) return false;
+      // Check if all flags in this event's choices are already triggered
+      const eventFlags = e.choices.filter(c => c.flag).map(c => c.flag);
+      if (eventFlags.length > 0 && eventFlags.every(f => gameState.flags[f])) return false;
+      return true;
+    });
     if (eligible.length > 0) {
       const event = eligible[Math.floor(Math.random() * eligible.length)];
       setTimeout(() => triggerRandomEvent(event), 400);
@@ -2090,34 +2091,89 @@ function triggerRandomEvent(event) {
   const modal = document.getElementById('event-modal');
   const content = document.getElementById('modal-content');
 
-  const meetsCondition = event.condition(gameState.stats);
-  const success = meetsCondition && Math.random() < event.successRate;
+  // Store current event for choice handler
+  gameState._currentEvent = event;
 
-  if (success && event.flag) {
-    gameState.flags[event.flag] = true;
-  }
-
-  const effects = success ? event.successEffects : event.failEffects;
-  if (effects) applyEffects(effects);
+  const statNames = {iq:'智商',eq:'情商',skill:'技能',money:'金钱',stress:'压力',lang:'语言'};
 
   content.innerHTML = `
     <div class="modal-emoji">${event.emoji}</div>
     <div class="modal-title">⚡ 随机事件！</div>
     <div class="modal-title" style="font-size:20px">${event.title}</div>
     <div class="modal-desc">${event.desc}</div>
-    <div class="modal-result ${success ? 'success' : 'fail'}">
-      ${success ? event.successText : event.failText}
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      ${event.choices.map((c, i) => {
+        const effectsHtml = Object.entries(c.effects).length > 0
+          ? Object.entries(c.effects).map(([k,v]) => {
+              const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
+              return `<span class="effect-tag ${cls}" style="font-size:10px">${statNames[k]||k} ${v>0?'+':''}${v}</span>`;
+            }).join(' ')
+          : '<span style="font-size:10px;color:var(--text-muted)">无变化</span>';
+        return `
+          <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;text-align:left"
+               onmouseover="this.style.borderColor='var(--accent-gold)';this.style.background='rgba(246,197,71,0.05)'"
+               onmouseout="this.style.borderColor='var(--border-color)';this.style.background='var(--bg-card)'"
+               onclick="chooseEventOption(${i})">
+            <div style="font-size:14px;font-weight:600;margin-bottom:4px">${c.label}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">${c.desc}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">${effectsHtml}</div>
+            ${c.flagChance > 0 ? '<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">✨ 有概率触发特殊结局</div>' : ''}
+          </div>
+        `;
+      }).join('')}
     </div>
-    ${effects ? `<div style="margin-bottom:16px;font-size:13px;color:var(--text-muted)">
-      ${Object.entries(effects).map(([k,v]) => {
-        const names = {iq:'智商',eq:'情商',skill:'技能',money:'金钱',stress:'压力',lang:'语言'};
-        return `<span style="margin:0 4px;">${names[k]} ${v>0?'+':''}${v}</span>`;
-      }).join(' ')}
-    </div>` : ''}
-    <button class="btn-modal" onclick="closeEventModal()">继续</button>
   `;
 
   modal.classList.add('active');
+}
+
+function chooseEventOption(choiceIndex) {
+  const event = gameState._currentEvent;
+  if (!event) return;
+
+  const choice = event.choices[choiceIndex];
+  const modal = document.getElementById('event-modal');
+  const content = document.getElementById('modal-content');
+  const statNames = {iq:'智商',eq:'情商',skill:'技能',money:'金钱',stress:'压力',lang:'语言'};
+
+  // Apply effects
+  if (choice.effects && Object.keys(choice.effects).length > 0) {
+    applyEffects(choice.effects);
+  }
+
+  // Check for flag trigger (5% chance)
+  let flagTriggered = false;
+  if (choice.flagChance > 0 && choice.flag && Math.random() < choice.flagChance) {
+    gameState.flags[choice.flag] = true;
+    flagTriggered = true;
+  }
+
+  // Show result
+  const effectsHtml = Object.entries(choice.effects || {}).length > 0
+    ? Object.entries(choice.effects).map(([k,v]) => {
+        return `<span style="margin:0 4px;">${statNames[k]||k} ${v>0?'+':''}${v}</span>`;
+      }).join(' ')
+    : '';
+
+  content.innerHTML = `
+    <div class="modal-emoji">${event.emoji}</div>
+    <div class="modal-title" style="font-size:18px">${event.title}</div>
+    <div style="margin:12px 0;font-size:14px;color:var(--text-secondary)">你选择了：<strong>${choice.label}</strong></div>
+    ${flagTriggered ? `
+      <div class="modal-result success" style="font-size:15px;line-height:1.7">
+        ${choice.flagText}
+      </div>
+    ` : `
+      <div class="modal-result ${Object.values(choice.effects || {}).some(v => v > 0) ? 'success' : Object.values(choice.effects || {}).some(v => v < 0) ? 'fail' : 'success'}">
+        ${choice.desc}
+      </div>
+    `}
+    ${effectsHtml ? `<div style="margin-bottom:16px;font-size:13px;color:var(--text-muted)">${effectsHtml}</div>` : ''}
+    <button class="btn-modal" onclick="closeEventModal()">继续</button>
+  `;
+
+  // Clean up
+  gameState._currentEvent = null;
 }
 
 function closeEventModal() {
