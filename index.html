@@ -1192,7 +1192,7 @@
       <div class="title-sub">HONG KONG MASTER SIMULATOR</div>
       <div class="title-desc">
         你即将踏上香港硕士留学之旅。<br>
-        12个月，48周，每一周你有7个时间格可以安排。<br>
+        5个月，20周，每一周你有7个时间格可以安排。<br>
         学习、工作、还是放松？<br>
         你的每个决定，都将影响你的结局。<br><br>
         <em style="color:var(--accent-gold)">做好准备了吗？</em>
@@ -1208,7 +1208,7 @@
       <div class="intro-text">
         你拖着28寸的行李箱，降落在香港国际机场。<br><br>
         潮湿的空气扑面而来，你深吸一口气。<br><br>
-        接下来的 <em>12个月</em>，你将在这座城市<br>
+        接下来的 <em>5个月</em>，你将在这座城市<br>
         学习、生活、工作、挣扎、成长。<br><br>
         每周你有 <em>7个时间格</em>，可以自由安排活动。<br>
         你的 <em>智商、情商、工作技能、金钱、语言能力</em> 都会被考验。<br>
@@ -1319,9 +1319,9 @@
 <script>
 // ===================== GAME DATA =====================
 const GAME_CONFIG = {
-  totalMonths: 12,
+  totalMonths: 5,
   weeksPerMonth: 4,
-  totalWeeks: 48,
+  totalWeeks: 20,
   slotsPerWeek: 7,       // 每周7个时间格
   randomEventChance: 0.18,
   stressThreshold: 85,
@@ -1348,7 +1348,7 @@ const UNLOCK_RULES = {
   'hiking':     (gs) => ({ locked: gs.friends < 5, hint: '凑够驴友才能出发（朋友≥5）' }),
   'sushi':      (gs) => ({ locked: gs.friends < 1, hint: '一个人吃寿司太惨了（朋友≥1）' }),
   // 学习类
-  'thesis':     (gs) => ({ locked: gs.week < 20, hint: '第5个月后解锁' }),
+  'thesis':     (gs) => ({ locked: gs.week < 9, hint: '第3个月后解锁' }),
   // 工作类 - 需要先提升数值
   'intern':     (gs) => ({ locked: gs.stats.skill < 40 || gs.portfolio < 3, hint: '工作技能≥40 且 改作品集≥3次' }),
   'ra':         (gs) => ({ locked: gs.stats.iq < 40, hint: '智商≥40 后解锁' }),
@@ -1370,40 +1370,40 @@ const ACTIVITIES = {
     title: '🎮 娱乐',
     desc: '降低压力，花费金钱',
     items: [
-      { id: 'swim', emoji: '🏊', name: '游泳', effects: { stress: -5, money: -2 }, desc: '去维港旁的泳池游个痛快' },
-      { id: 'movie', emoji: '🎬', name: '看电影', effects: { stress: -5, money: -3, eq: 1 }, desc: '百老汇院线，爆米花是灵魂' },
-      { id: 'shopping', emoji: '🛍️', name: '逛街', effects: { stress: -4, money: -5, eq: 1 }, desc: '铜锣湾/旺角买买买减压大法' },
-      { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -4, money: -4, eq: 1 }, desc: '排队2小时，吃了15分钟' },
-      { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -4, money: -3, eq: 2 }, desc: '和朋友一起去攀岩馆挑战自我' },
-      { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -6, eq: 2 }, desc: '约三五好友吐槽生活' },
-      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -7, iq: 1 }, desc: '和队友一起开黑到凌晨' },
-      { id: 'hiking', emoji: '🥾', name: '徒步', effects: { stress: -5, money: -1, eq: 2 }, desc: '和朋友去龙脊/大东山暴走一天' }
+      { id: 'swim', emoji: '🏊', name: '游泳', effects: { stress: -8, money: -2 }, desc: '去维港旁的泳池游个痛快' },
+      { id: 'movie', emoji: '🎬', name: '看电影', effects: { stress: -8, money: -3, eq: 2 }, desc: '百老汇院线，爆米花是灵魂' },
+      { id: 'shopping', emoji: '🛍️', name: '逛街', effects: { stress: -7, money: -5, eq: 2 }, desc: '铜锣湾/旺角买买买减压大法' },
+      { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -7, money: -4, eq: 2 }, desc: '排队2小时，吃了15分钟' },
+      { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -7, money: -3, eq: 3 }, desc: '和朋友一起去攀岩馆挑战自我' },
+      { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -10, eq: 3 }, desc: '约三五好友吐槽生活' },
+      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -12, iq: 2 }, desc: '和队友一起开黑到凌晨' },
+      { id: 'hiking', emoji: '🥾', name: '徒步', effects: { stress: -9, money: -1, eq: 3 }, desc: '和朋友去龙脊/大东山暴走一天' }
     ]
   },
   study: {
     title: '📚 学习',
     desc: '增加能力，增加压力',
     items: [
-      { id: 'trad_class', emoji: '📖', name: '上传统技能课', effects: { iq: 2, skill: 2, stress: 4 }, desc: '枯燥但有用的传统课程' },
-      { id: 'ai_class', emoji: '🤖', name: '上AI技能课', effects: { iq: 3, skill: 3, stress: 3 }, desc: '学习最前沿的AI技术' },
-      { id: 'lang_class', emoji: '🗣️', name: '上语言课', effects: { lang: 4, eq: 1, stress: 2 }, desc: '粤语/英语精进计划' },
-      { id: 'group_work', emoji: '👥', name: '做小组作业', effects: { eq: 2, skill: 1, stress: 5, iq: 1 }, desc: '和free rider斗智斗勇' },
-      { id: 'portfolio', emoji: '🎨', name: '改作品集', effects: { skill: 3, iq: 1, stress: 3 }, desc: '精心打磨你的作品集，为求职做准备' },
-      { id: 'thesis', emoji: '📝', name: '做毕业项目', effects: { iq: 3, skill: 2, stress: 6 }, desc: '论文地狱模式启动' }
+      { id: 'trad_class', emoji: '📖', name: '上传统技能课', effects: { iq: 4, skill: 3, stress: 5 }, desc: '枯燥但有用的传统课程' },
+      { id: 'ai_class', emoji: '🤖', name: '上AI技能课', effects: { iq: 5, skill: 5, stress: 4 }, desc: '学习最前沿的AI技术' },
+      { id: 'lang_class', emoji: '🗣️', name: '上语言课', effects: { lang: 7, eq: 2, stress: 3 }, desc: '粤语/英语精进计划' },
+      { id: 'group_work', emoji: '👥', name: '做小组作业', effects: { eq: 4, skill: 2, stress: 7, iq: 2 }, desc: '和free rider斗智斗勇' },
+      { id: 'portfolio', emoji: '🎨', name: '改作品集', effects: { skill: 5, iq: 2, stress: 4 }, desc: '精心打磨你的作品集，为求职做准备' },
+      { id: 'thesis', emoji: '📝', name: '做毕业项目', effects: { iq: 5, skill: 4, stress: 8 }, desc: '论文地狱模式启动' }
     ]
   },
   work: {
     title: '💼 工作',
     desc: '增加技能和金钱',
     items: [
-      { id: 'intern', emoji: '👔', name: '实习', effects: { skill: 3, money: 5, stress: 4, eq: 1 }, desc: '大厂实习，从端茶倒水做起' },
-      { id: 'ra', emoji: '🔬', name: '做研究助理', effects: { iq: 3, skill: 2, money: 3, stress: 2 }, desc: '帮教授搬砖做数据' },
-      { id: 'event_pt', emoji: '🎪', name: '做活动兼职', effects: { eq: 2, money: 3, stress: 1, lang: 1 }, desc: '各种展会活动临时工' },
-      { id: 'mcdonalds', emoji: '🍔', name: '做麦当劳打工', effects: { money: 2, stress: -1, lang: 2 }, desc: '多国语言实战训练场' },
-      { id: 'indie_game', emoji: '🕹️', name: '做独立游戏', effects: { skill: 4, iq: 2, stress: 4, money: -1 }, desc: '梦想总是要有的' },
-      { id: 'media', emoji: '📱', name: '做自媒体', effects: { eq: 2, skill: 2, money: 2, stress: 3 }, desc: '成为下一个网红？' },
-      { id: 'nightclub', emoji: '🍸', name: '夜店兼职', effects: { eq: 3, money: 4, lang: 1, stress: -1 }, desc: '红磡夜总会，灯红酒绿的世界' },
-      { id: 'startup', emoji: '🚀', name: '搞创业', effects: { skill: 4, iq: 2, money: -3, stress: 5, eq: 1 }, desc: '车库创业，从0到1' }
+      { id: 'intern', emoji: '👔', name: '实习', effects: { skill: 6, money: 8, stress: 5, eq: 2 }, desc: '大厂实习，从端茶倒水做起' },
+      { id: 'ra', emoji: '🔬', name: '做研究助理', effects: { iq: 5, skill: 4, money: 5, stress: 3 }, desc: '帮教授搬砖做数据' },
+      { id: 'event_pt', emoji: '🎪', name: '做活动兼职', effects: { eq: 4, money: 5, stress: 2, lang: 2 }, desc: '各种展会活动临时工' },
+      { id: 'mcdonalds', emoji: '🍔', name: '做麦当劳打工', effects: { money: 4, stress: -2, lang: 4 }, desc: '多国语言实战训练场' },
+      { id: 'indie_game', emoji: '🕹️', name: '做独立游戏', effects: { skill: 7, iq: 4, stress: 5, money: -2 }, desc: '梦想总是要有的' },
+      { id: 'media', emoji: '📱', name: '做自媒体', effects: { eq: 4, skill: 4, money: 3, stress: 4 }, desc: '成为下一个网红？' },
+      { id: 'nightclub', emoji: '🍸', name: '夜店兼职', effects: { eq: 5, money: 6, lang: 2, stress: -2 }, desc: '红磡夜总会，灯红酒绿的世界' },
+      { id: 'startup', emoji: '🚀', name: '搞创业', effects: { skill: 7, iq: 4, money: -3, stress: 6, eq: 2 }, desc: '车库创业，从0到1' }
     ]
   }
 };
@@ -1498,7 +1498,7 @@ const ENDINGS = {
   },
   marriage: {
     type: 'special', quality: 'good', emoji: '💍', title: '港式婚绿', line: '特殊线',
-    desc: '你和TA在黄大仙认识，在维港边约会，在茶餐厅吃遍了每一道菜。\n\n12个月后，TA的父母问你要不要留下来。\n\n你留下来了。\n\n从此港漂变港人，你终于有了"家"的感觉。\n\n不过你的同学们都说你走了最强捷径。'
+    desc: '你和TA在黄大仙认识，在维港边约会，在茶餐厅吃遍了每一道菜。\n\n5个月后，TA的父母问你要不要留下来。\n\n你留下来了。\n\n从此港漂变港人，你终于有了"家"的感觉。\n\n不过你的同学们都说你走了最强捷径。'
   },
   work_good: {
     type: 'work', quality: 'good', emoji: '🏢', title: '南山必胜客', line: '打工人线',
@@ -1514,7 +1514,7 @@ const ENDINGS = {
   },
   work_bad: {
     type: 'work', quality: 'bad', emoji: '🐭', title: '鼠鼠我啊', line: '打工人线',
-    desc: '鼠鼠我啊，\n碰了穷人不该碰的专业，\n做了穷人不该做的梦。\n\n12个月的房租花光了所有积蓄，\n简历投了300份只收到5个面试，\n全部挂了。\n\n你拖着行李箱回到了出发的机场。\n\n"下次一定。"\n你对自己说。'
+    desc: '鼠鼠我啊，\n碰了穷人不该碰的专业，\n做了穷人不该做的梦。\n\n5个月的房租花光了所有积蓄，\n简历投了300份只收到5个面试，\n全部挂了。\n\n你拖着行李箱回到了出发的机场。\n\n"下次一定。"\n你对自己说。'
   },
   influencer_good: {
     type: 'influencer', quality: 'good', emoji: '🌟', title: '网红顶流', line: '网红线',
@@ -1526,7 +1526,7 @@ const ENDINGS = {
   },
   influencer_bad: {
     type: 'influencer', quality: 'bad', emoji: '📵', title: '三天打鱼', line: '网红线',
-    desc: '你不仅没有运营起自己的账号，还三天打鱼两天晒网。\n\n与此同时你还沉迷于直播、短剧、游戏。\n\n时间就这么过去.........\n\n回过神来，12个月已经结束了。\n\n你什么都没有留下，\n除了一个只有23个粉丝的账号。\n\n其中15个是同学。'
+    desc: '你不仅没有运营起自己的账号，还三天打鱼两天晒网。\n\n与此同时你还沉迷于直播、短剧、游戏。\n\n时间就这么过去.........\n\n回过神来，5个月已经结束了。\n\n你什么都没有留下，\n除了一个只有23个粉丝的账号。\n\n其中15个是同学。'
   },
   burnout: {
     type: 'special', quality: 'bad', emoji: '😵', title: '压力爆炸', line: '崩溃线',
@@ -1562,7 +1562,7 @@ const ENDINGS = {
   },
   nightclub_bad: {
     type: 'nightclub', quality: 'bad', emoji: '🥃', title: '醉生梦死', line: '夜总会线',
-    desc: '你本来只是想赚点外快。\n\n但夜生活的魔力远比你想象的大。\n\n你开始晚睡，翘课，白天昏昏沉沉。\n\n你的成绩一落千丈，朋友越来越少。\n\n12个月后，你没有拿到学位，\n也没有存下多少钱。\n\n你只剩下了黑眼圈，\n和一个再也回不去的GPA。'
+    desc: '你本来只是想赚点外快。\n\n但夜生活的魔力远比你想象的大。\n\n你开始晚睡，翘课，白天昏昏沉沉。\n\n你的成绩一落千丈，朋友越来越少。\n\n5个月后，你没有拿到学位，\n也没有存下多少钱。\n\n你只剩下了黑眼圈，\n和一个再也回不去的GPA。'
   },
 
   // === 创业线 ===
@@ -2154,13 +2154,13 @@ function calculateEnding() {
   // === 隐藏结局优先判定 ===
 
   // AI统治世界线：压力高 + 大量AI课程
-  if (s.stress >= 70 && aiCount >= 30) {
+  if (s.stress >= 70 && aiCount >= 12) {
     showEnding('ai_overlord');
     return;
   }
 
   // === 夜总会线 ===
-  if (nightclubCount >= 30) {
+  if (nightclubCount >= 12) {
     if (s.eq >= 70 && s.money >= 60) {
       showEnding('nightclub_good');
     } else if (s.eq >= 50 || s.money >= 50) {
@@ -2172,7 +2172,7 @@ function calculateEnding() {
   }
 
   // === 创业线 ===
-  if (startupCount >= 25) {
+  if (startupCount >= 10) {
     if (s.skill >= 70 && s.iq >= 60 && s.money >= 30) {
       showEnding('startup_good');
     } else if (s.skill >= 50 || s.iq >= 50) {
@@ -2184,10 +2184,10 @@ function calculateEnding() {
   }
 
   // === 网红线 ===
-  if (f.becameInfluencer || mediaCount >= 40) {
+  if (f.becameInfluencer || mediaCount >= 16) {
     if (f.becameInfluencer && (s.eq >= 60 || s.skill >= 60)) {
       showEnding('influencer_good');
-    } else if (mediaCount >= 25 && s.skill >= 40) {
+    } else if (mediaCount >= 10 && s.skill >= 40) {
       showEnding('influencer_normal');
     } else {
       showEnding('influencer_bad');
@@ -2286,7 +2286,7 @@ const TUTORIAL_STEPS = [
   {
     emoji: '👋',
     title: '欢迎来到香港！',
-    desc: '你即将开始为期<em>12个月</em>的硕士生活。<br>每个月有4周，总共<em>48周</em>。<br>每一周的选择都会影响你的结局！'
+    desc: '你即将开始为期<em>5个月</em>的硕士生活。<br>每个月有4周，总共<em>20周</em>。<br>每一周的选择都会影响你的结局！'
   },
   {
     emoji: '📅',
@@ -2601,17 +2601,17 @@ function showAllEndings() {
     marriage:         '🎲 随机事件「黄大仙求姻缘」成功（50%概率）',
     stock_god:        '🎲 随机事件「尘封投资账户」成功（50%概率）',
     wilderness:       '🎲 随机事件「旷野的呼唤」成功（压力≥60时触发，50%概率）',
-    ai_overlord:      '😰 压力≥70 且 🤖 AI课程累计≥30次',
+    ai_overlord:      '😰 压力≥70 且 🤖 AI课程累计≥12次',
     burnout:          '😰 压力值达到100（任何时候触发）',
-    nightclub_good:   '🍸 夜店兼职≥30次 且 💖情商≥70 且 💰金钱≥60',
-    nightclub_normal: '🍸 夜店兼职≥30次 且（💖情商≥50 或 💰金钱≥50）',
-    nightclub_bad:    '🍸 夜店兼职≥30次 且 情商<50 且 金钱<50',
-    startup_good:     '🚀 搞创业≥25次 且 💼技能≥70 且 🧠智商≥60 且 💰金钱≥30',
-    startup_normal:   '🚀 搞创业≥25次 且（💼技能≥50 或 🧠智商≥50）',
-    startup_bad:      '🚀 搞创业≥25次 且 技能<50 且 智商<50',
+    nightclub_good:   '🍸 夜店兼职≥12次 且 💖情商≥70 且 💰金钱≥60',
+    nightclub_normal: '🍸 夜店兼职≥12次 且（💖情商≥50 或 💰金钱≥50）',
+    nightclub_bad:    '🍸 夜店兼职≥12次 且 情商<50 且 金钱<50',
+    startup_good:     '🚀 搞创业≥10次 且 💼技能≥70 且 🧠智商≥60 且 💰金钱≥30',
+    startup_normal:   '🚀 搞创业≥10次 且（💼技能≥50 或 🧠智商≥50）',
+    startup_bad:      '🚀 搞创业≥10次 且 技能<50 且 智商<50',
     influencer_good:  '🎲 随机事件「电影节」成功 且（💖情商≥60 或 💼技能≥60）',
-    influencer_normal:'📱 做自媒体≥25次 且 💼技能≥40',
-    influencer_bad:   '📱 做自媒体≥40次（或电影节成功）但其他条件不满足',
+    influencer_normal:'📱 做自媒体≥10次 且 💼技能≥40',
+    influencer_bad:   '📱 做自媒体≥16次（或电影节成功）但其他条件不满足',
     work_good2:       '🗣️ 语言≥60 且 💖情商≥50',
     work_good:        '🎲 游戏酒吧获得Offer，或（💼技能≥70 且 🧠智商≥60）',
     work_normal:      '💼 技能≥45 或 🧠智商≥45（且不满足好结局条件）',
