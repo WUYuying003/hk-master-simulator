@@ -1341,21 +1341,48 @@ let gameState = {
 // ===================== UNLOCK SYSTEM =====================
 // 解锁条件: 返回 { locked: bool, hint: string }
 const UNLOCK_RULES = {
-  // 娱乐类 - 多人活动需要交朋友
-  'climb':      (gs) => ({ locked: gs.friends < 2, hint: '先去上课认识同学（朋友≥2）' }),
-  'chat':       (gs) => ({ locked: gs.friends < 3, hint: '多上课交朋友吧（朋友≥3）' }),
-  'gaming':     (gs) => ({ locked: gs.friends < 4, hint: '需要更多队友（朋友≥4）' }),
-  'hiking':     (gs) => ({ locked: gs.friends < 5, hint: '凑够驴友才能出发（朋友≥5）' }),
-  'sushi':      (gs) => ({ locked: gs.friends < 1, hint: '一个人吃寿司太惨了（朋友≥1）' }),
-  // 学习类
-  'thesis':     (gs) => ({ locked: gs.week < 9, hint: '第3个月后解锁' }),
-  // 工作类 - 需要先提升数值
-  'intern':     (gs) => ({ locked: gs.stats.skill < 40 || gs.portfolio < 3, hint: '工作技能≥40 且 改作品集≥3次' }),
-  'ra':         (gs) => ({ locked: gs.stats.iq < 40, hint: '智商≥40 后解锁' }),
-  'indie_game': (gs) => ({ locked: gs.stats.skill < 35 && gs.stats.iq < 35, hint: '工作技能≥35 或 智商≥35' }),
-  'media':      (gs) => ({ locked: gs.stats.eq < 30, hint: '情商≥30 后解锁' }),
-  'nightclub':  (gs) => ({ locked: gs.stats.eq < 35 || gs.stats.lang < 20, hint: '情商≥35 且 语言≥20' }),
-  'startup':    (gs) => ({ locked: gs.stats.skill < 45 || gs.stats.iq < 40, hint: '工作技能≥45 且 智商≥40' }),
+  // ======= 前期解锁（第1-6周）=======
+  // 初始可用：游泳、看电影、上传统技能课、上语言课、做麦当劳打工
+  // 以下在前期通过少量条件解锁：
+
+  // 娱乐 - 需要交朋友
+  'shopping':   (gs) => ({ locked: gs.friends < 2, hint: '交到朋友一起逛（朋友≥2）' }),
+  'sushi':      (gs) => ({ locked: gs.friends < 4, hint: '约朋友吃饭（朋友≥4）' }),
+
+  // 学习 - 需要上过几次课
+  'group_work': (gs) => ({ locked: gs.week < 3, hint: '第3周后解锁（先上几周课）' }),
+  'ai_class':   (gs) => ({ locked: gs.stats.iq < 35, hint: '智商≥35 后解锁' }),
+
+  // ======= 中期解锁（第7-13周）=======
+  // 需要一定数值积累
+
+  // 娱乐 - 更多朋友
+  'climb':      (gs) => ({ locked: gs.friends < 8 || gs.week < 5, hint: '朋友≥8 且 第5周后' }),
+  'chat':       (gs) => ({ locked: gs.friends < 10, hint: '交到更多朋友（朋友≥10）' }),
+  'gaming':     (gs) => ({ locked: gs.friends < 14 || gs.stats.eq < 40, hint: '朋友≥14 且 情商≥40' }),
+
+  // 学习
+  'portfolio':  (gs) => ({ locked: gs.week < 6 || gs.stats.skill < 35, hint: '第6周后 且 工作技能≥35' }),
+
+  // 工作 - 中期才开始找工
+  'event_pt':   (gs) => ({ locked: gs.week < 4 || gs.stats.eq < 35, hint: '第4周后 且 情商≥35' }),
+  'ra':         (gs) => ({ locked: gs.week < 7 || gs.stats.iq < 50, hint: '第7周后 且 智商≥50' }),
+  'media':      (gs) => ({ locked: gs.week < 6 || gs.stats.eq < 45, hint: '第6周后 且 情商≥45' }),
+
+  // ======= 后期解锁（第14-20周）=======
+  // 高门槛，需要长期积累
+
+  // 娱乐
+  'hiking':     (gs) => ({ locked: gs.friends < 18 || gs.week < 10, hint: '朋友≥18 且 第10周后' }),
+
+  // 学习
+  'thesis':     (gs) => ({ locked: gs.week < 14, hint: '第14周后解锁（最后冲刺）' }),
+
+  // 工作 - 高级岗位
+  'intern':     (gs) => ({ locked: gs.week < 10 || gs.stats.skill < 60 || gs.portfolio < 3, hint: '第10周后 且 技能≥60 且 改作品集≥3次' }),
+  'indie_game': (gs) => ({ locked: gs.week < 8 || (gs.stats.skill < 50 && gs.stats.iq < 50), hint: '第8周后 且（技能≥50 或 智商≥50）' }),
+  'nightclub':  (gs) => ({ locked: gs.week < 8 || gs.stats.eq < 50 || gs.stats.lang < 30, hint: '第8周后 且 情商≥50 且 语言≥30' }),
+  'startup':    (gs) => ({ locked: gs.week < 12 || gs.stats.skill < 70 || gs.stats.iq < 55, hint: '第12周后 且 技能≥70 且 智商≥55' }),
 };
 
 function checkUnlock(activityId) {
