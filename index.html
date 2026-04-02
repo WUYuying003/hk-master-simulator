@@ -1655,12 +1655,16 @@ function renderStats() {
 
   grid.innerHTML = statsDef.map(s => {
     const val = Math.max(0, gameState.stats[s.key]);
-    const barPct = Math.min(100, Math.round(val / 2)); // 进度条200满格
+    // 压力条100满格（100会爆），其他数值200满格
+    const maxForBar = s.key === 'stress' ? 100 : 200;
+    const barPct = Math.min(100, Math.round(val / maxForBar * 100));
+    const isStressDanger = s.key === 'stress' && val >= 80;
+    const isStressCritical = s.key === 'stress' && val >= 90;
     return `
       <div class="stat-card ${s.cls}">
         <div class="stat-icon">${s.icon}</div>
         <div class="stat-name">${s.name}</div>
-        <div class="stat-value" style="color:${s.key === 'stress' && val >= 80 ? 'var(--accent-red)' : 'var(--text-primary)'}">${val}</div>
+        <div class="stat-value" style="color:${isStressDanger ? 'var(--accent-red)' : 'var(--text-primary)'};${isStressCritical ? 'animation:pulse 1s ease infinite' : ''}">${val}${s.key === 'stress' ? '/100' : ''}</div>
         <div class="stat-bar">
           <div class="stat-bar-fill" style="width:${barPct}%"></div>
         </div>
@@ -1829,7 +1833,8 @@ function findActivity(id) {
 
 function applyEffects(effects) {
   for (const [key, val] of Object.entries(effects)) {
-    gameState.stats[key] = Math.max(0, Math.min(999, gameState.stats[key] + val));
+    const cap = key === 'stress' ? 100 : 999;
+    gameState.stats[key] = Math.max(0, Math.min(cap, gameState.stats[key] + val));
   }
 }
 
