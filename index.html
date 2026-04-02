@@ -1625,6 +1625,7 @@ function initGame() {
     friends: 0,           // 朋友数量
     gpa: 0,               // GPA点数（内部值，显示时÷100）
     gpaCredits: 0,        // 已修学分（用于计算GPA）
+    interning: false,     // 是否已接受实习offer
     unlockedIds: new Set() // 已通知解锁的活动ID
   };
 }
@@ -1651,6 +1652,10 @@ function switchScreen(screenId) {
 }
 
 function renderAll() {
+  // 如果正在实习且本周还没填满4天实习，自动补满
+  if (gameState.interning) {
+    fillInternSlots();
+  }
   renderTopBar();
   renderStats();
   renderProgress();
@@ -1667,8 +1672,9 @@ function renderTopBar() {
   const weekInMonth = ((gameState.week - 1) % 4) + 1;
   document.getElementById('current-time').textContent = `第${month}月 第${weekInMonth}周`;
   document.getElementById('total-progress').textContent = `${gameState.week - 1}/${GAME_CONFIG.totalWeeks}周`;
-  const remaining = GAME_CONFIG.slotsPerWeek - gameState.weekSlots.length;
-  document.getElementById('week-actions').innerHTML = `已安排 <strong>${gameState.weekSlots.length}</strong>/${GAME_CONFIG.slotsPerWeek} 个时间格`;
+  const internTag = gameState.interning ? ' · <span style="color:var(--accent-orange)">👔 实习中</span>' : '';
+  const freeSlots = GAME_CONFIG.slotsPerWeek - gameState.weekSlots.length;
+  document.getElementById('week-actions').innerHTML = `已安排 <strong>${gameState.weekSlots.length}</strong>/${GAME_CONFIG.slotsPerWeek}${internTag}`;
 }
 
 function renderProgress() {
@@ -1739,12 +1745,16 @@ function renderWeekSlots() {
   container.innerHTML = dayNames.map((day, i) => {
     const slot = gameState.weekSlots[i];
     if (slot) {
+      const isLockedIntern = slot.locked && slot.id === 'intern';
       return `
-        <div class="week-slot filled">
+        <div class="week-slot filled" style="${isLockedIntern ? 'border-color:var(--accent-orange);background:rgba(251,146,60,0.06)' : ''}">
           <div class="week-slot-label">${day}</div>
           <div class="week-slot-content">${slot.emoji}</div>
-          <div class="week-slot-name">${slot.name}</div>
-          <div class="remove-btn" onclick="removeSlot(${i})">✕ 移除</div>
+          <div class="week-slot-name">${slot.name}${isLockedIntern ? ' 📌' : ''}</div>
+          ${isLockedIntern
+            ? '<div style="font-size:9px;color:var(--accent-orange);margin-top:2px">必须出勤</div>'
+            : `<div class="remove-btn" onclick="removeSlot(${i})">✕ 移除</div>`
+          }
         </div>
       `;
     }
@@ -1759,6 +1769,23 @@ function renderWeekSlots() {
 }
 
 function removeSlot(index) {
+  const slot = gameState.weekSlots[index];
+
+  // 不能移除锁定的实习slot
+  if (slot && slot.locked) {
+    showToast('📌 实习日不能移除！每周至少4天实习', 'warning');
+    return;
+  }
+
+  // 如果是额外的实习slot，检查移除后是否还有4天实习
+  if (slot && slot.id === 'intern' && gameState.interning) {
+    const internCount = gameState.weekSlots.filter(s => s.id === 'intern').length;
+    if (internCount <= 4) {
+      showToast('📌 实习不能少于4天！', 'warning');
+      return;
+    }
+  }
+
   gameState.weekSlots.splice(index, 1);
   renderAll();
 }
@@ -1821,13 +1848,83 @@ function renderActivities() {
 function addToSlots(activityId) {
   if (gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek) return;
 
+  // 如果是第一次点实习且还没接受offer，弹出确认
+  if (activityId === 'intern' && !gameState.interning) {
+    showInternOffer();
+    return;
+  }
+
   const activity = findActivity(activityId);
   if (!activity) return;
 
-  gameState.weekSlots.push({ id: activity.id, emoji: activity.emoji, name: activity.name });
+  gameState.weekSlots.push({ id: activity.id, emoji: activity.emoji, name: activity.name, locked: false });
 
   showToast(`${activity.emoji} ${activity.name} 已添加到本周安排`, 'info');
   renderAll();
+}
+
+// ===================== INTERN OFFER SYSTEM =====================
+
+function showInternOffer() {
+  const modal = document.getElementById('event-modal');
+  const content = document.getElementById('modal-content');
+
+  content.innerHTML = `
+    <div class="modal-emoji">👔</div>
+    <div class="modal-title">💼 实习Offer！</div>
+    <div class="modal-desc" style="line-height:2">
+      恭喜！你收到了一份实习Offer！<br><br>
+      但是请注意：<br>
+      <em style="color:var(--accent-gold)">接受实习后，每周至少4天必须用来实习</em><br>
+      你只剩下 <strong>3天</strong> 可以自由安排。<br><br>
+      <span style="color:var(--text-muted);font-size:12px">
+        实习一旦接受就不能反悔！<br>
+        你可以选择一周实习超过4天，但不能少于4天。<br>
+        实习会大幅提升工作技能和金钱，但自由时间变少。
+      </span>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-modal" onclick="acceptInternOffer()" style="background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange))">
+        ✅ 接受Offer！
+      </button>
+      <button class="btn-modal" onclick="declineInternOffer()" style="background:linear-gradient(135deg,#4b5563,#6b7280)">
+        🙅 暂时不了
+      </button>
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+function acceptInternOffer() {
+  document.getElementById('event-modal').classList.remove('active');
+  gameState.interning = true;
+
+  // 自动填入4天实习到本周
+  fillInternSlots();
+
+  showToast('👔 恭喜！你正式成为了实习生！每周至少4天实习', 'success');
+  renderAll();
+}
+
+function declineInternOffer() {
+  document.getElementById('event-modal').classList.remove('active');
+  showToast('你拒绝了这次实习机会', 'info');
+}
+
+function fillInternSlots() {
+  const intern = findActivity('intern');
+  if (!intern) return;
+
+  // 计算当前已有的实习slot数量
+  const currentInternCount = gameState.weekSlots.filter(s => s.id === 'intern').length;
+  const needed = 4 - currentInternCount;
+
+  for (let i = 0; i < needed; i++) {
+    if (gameState.weekSlots.length < GAME_CONFIG.slotsPerWeek) {
+      gameState.weekSlots.push({ id: intern.id, emoji: intern.emoji, name: intern.name, locked: true });
+    }
+  }
 }
 
 function renderWeekLog() {
