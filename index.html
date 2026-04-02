@@ -2677,6 +2677,7 @@ function renderTutorialStep() {
           ${isLast ? '🚀 开始游戏！' : '下一步 →'}
         </button>
       </div>
+      ${!isLast ? '<div style="margin-top:12px"><span style="font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline" onclick="skipTutorial()">跳过教程 »</span></div>' : ''}
     </div>
   `;
 }
@@ -2693,6 +2694,11 @@ function prevTutorial() {
     tutorialStep--;
     renderTutorialStep();
   }
+}
+
+function skipTutorial() {
+  document.getElementById('tutorial-modal').classList.remove('active');
+  // 跳过教程也跳过活动介绍
 }
 
 function closeTutorial() {
