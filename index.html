@@ -2336,8 +2336,6 @@ function triggerRandomEvent(event) {
   // Store current event for choice handler
   gameState._currentEvent = event;
 
-  const statNames = {iq:'智商',eq:'情商',skill:'技能',money:'金钱',stress:'压力',lang:'语言'};
-
   content.innerHTML = `
     <div class="modal-emoji">${event.emoji}</div>
     <div class="modal-title">⚡ 随机事件！</div>
@@ -2345,21 +2343,14 @@ function triggerRandomEvent(event) {
     <div class="modal-desc">${event.desc}</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
       ${event.choices.map((c, i) => {
-        const effectsHtml = Object.entries(c.effects).length > 0
-          ? Object.entries(c.effects).map(([k,v]) => {
-              const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
-              return `<span class="effect-tag ${cls}" style="font-size:10px">${statNames[k]||k} ${v>0?'+':''}${v}</span>`;
-            }).join(' ')
-          : '<span style="font-size:10px;color:var(--text-muted)">无变化</span>';
         return `
           <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;text-align:left"
                onmouseover="this.style.borderColor='var(--accent-gold)';this.style.background='rgba(246,197,71,0.05)'"
                onmouseout="this.style.borderColor='var(--border-color)';this.style.background='var(--bg-card)'"
                onclick="chooseEventOption(${i})">
             <div style="font-size:14px;font-weight:600;margin-bottom:4px">${c.label}</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">${c.desc}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px">${effectsHtml}</div>
-            ${c.flagChance > 0 ? '<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">✨ 有概率触发特殊结局</div>' : ''}
+            <div style="font-size:12px;color:var(--text-muted)">${c.desc}</div>
+            ${c.flagChance > 0 ? '<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">✨ 可能有意想不到的事发生...</div>' : ''}
           </div>
         `;
       }).join('')}
