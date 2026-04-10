@@ -186,90 +186,55 @@
     font-weight: 500;
   }
 
-  /* === Stats Grid === */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .stat-card {
-    background: var(--bg-card);
+  /* === Stats HUD (compact bar style) === */
+  .stats-hud {
+    background: var(--bg-secondary);
     border-radius: 14px;
-    padding: 14px 10px;
-    text-align: center;
     border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 16px;
   }
 
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    border-radius: 14px 14px 0 0;
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
   }
 
-  .stat-card.iq::before { background: var(--accent-blue); }
-  .stat-card.eq::before { background: var(--accent-pink); }
-  .stat-card.skill::before { background: var(--accent-purple); }
-  .stat-card.money::before { background: var(--accent-gold); }
-  .stat-card.stress::before { background: var(--accent-red); }
-  .stat-card.lang::before { background: var(--accent-green); }
-  .stat-card.friends::before { background: #818cf8; }
-  .stat-card.gpa::before { background: #fbbf24; }
+  .stat-row-icon { font-size: 13px; width: 18px; text-align: center; }
 
-  .stat-icon { font-size: 24px; margin-bottom: 4px; }
-
-  .stat-name {
-    font-size: 11px;
+  .stat-row-name {
+    font-size: 10px;
     color: var(--text-muted);
-    margin-bottom: 6px;
-    font-weight: 500;
+    width: 32px;
+    flex-shrink: 0;
   }
 
-  .stat-value {
-    font-size: 22px;
-    font-weight: 900;
-  }
-
-  .stat-bar {
-    width: 100%;
-    height: 4px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 4px;
-    margin-top: 8px;
+  .stat-row-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
     overflow: hidden;
+    min-width: 40px;
   }
 
-  .stat-bar-fill {
+  .stat-row-bar-fill {
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
   }
 
-  .stat-card.iq .stat-bar-fill { background: var(--accent-blue); }
-  .stat-card.eq .stat-bar-fill { background: var(--accent-pink); }
-  .stat-card.skill .stat-bar-fill { background: var(--accent-purple); }
-  .stat-card.money .stat-bar-fill { background: var(--accent-gold); }
-  .stat-card.stress .stat-bar-fill { background: var(--accent-red); }
-  .stat-card.lang .stat-bar-fill { background: var(--accent-green); }
-  .stat-card.friends .stat-bar-fill { background: #818cf8; }
-  .stat-card.gpa .stat-bar-fill { background: #fbbf24; }
-
-  .stat-change {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+  .stat-row-val {
     font-size: 11px;
     font-weight: 700;
-    animation: fadeIn 0.3s ease;
+    min-width: 28px;
+    text-align: right;
   }
-  .stat-change.up { color: var(--accent-green); }
-  .stat-change.down { color: var(--accent-red); }
 
   /* === Activity Sections === */
   .section-title {
@@ -629,16 +594,20 @@
 
   /* === Responsive === */
   @media (max-width: 768px) {
-    .stats-grid { grid-template-columns: repeat(3, 1fr); }
-    .activities-grid { grid-template-columns: repeat(2, 1fr); }
+    .stats-hud { grid-template-columns: 1fr 1fr; }
+    .week-slots { grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .picker-grid { grid-template-columns: repeat(2, 1fr); }
     .title-main { font-size: 32px; }
     .ending-title { font-size: 24px; }
   }
 
   @media (max-width: 480px) {
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .activities-grid { grid-template-columns: 1fr; }
-    #app { padding: 12px; }
+    .stats-hud { grid-template-columns: 1fr; }
+    .week-slots { grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .week-slot { padding: 6px 2px; min-height: 60px; }
+    .week-slot-content { font-size: 16px; }
+    .picker-grid { grid-template-columns: 1fr 1fr; }
+    #app { padding: 10px; }
   }
 
   /* === Locked Activity === */
@@ -681,61 +650,169 @@
 
   /* === Week Schedule Slots === */
   .week-slots {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
   }
 
   .week-slot {
-    flex: 1;
-    min-width: 100px;
     background: var(--bg-card);
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 10px;
+    padding: 8px 4px;
     text-align: center;
-    border: 1px solid var(--border-color);
+    border: 2px dashed var(--border-color);
     font-size: 12px;
     transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .week-slot:hover {
+    border-color: var(--accent-gold);
+    background: rgba(246,197,71,0.04);
   }
 
   .week-slot.filled {
+    border-style: solid;
     border-color: var(--accent-gold);
     background: rgba(246,197,71,0.06);
+    cursor: default;
+  }
+
+  .week-slot.filled.intern-locked {
+    border-color: var(--accent-orange);
+    background: rgba(251,146,60,0.06);
+  }
+
+  .week-slot.active-pick {
+    border-color: var(--accent-blue);
+    background: rgba(96,165,250,0.08);
+    box-shadow: 0 0 12px rgba(96,165,250,0.2);
   }
 
   .week-slot-label {
     font-size: 10px;
     color: var(--text-muted);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
-  .week-slot-content {
-    font-size: 18px;
-    min-height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  .week-slot-content { font-size: 20px; min-height: 24px; }
 
   .week-slot-name {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--text-secondary);
-    margin-top: 2px;
+    margin-top: 1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .week-slot .remove-btn {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--accent-red);
     cursor: pointer;
-    margin-top: 4px;
+    margin-top: 2px;
     opacity: 0.6;
     transition: opacity 0.2s;
   }
   .week-slot .remove-btn:hover { opacity: 1; }
+
+  /* === Activity Picker Panel === */
+  .activity-picker {
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    margin-bottom: 12px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .picker-header-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-blue);
+  }
+
+  .picker-close {
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .picker-close:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
+
+  .picker-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  .picker-tab {
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .picker-tab:hover { background: rgba(255,255,255,0.08); }
+  .picker-tab.active { background: rgba(246,197,71,0.1); color: var(--accent-gold); border-color: rgba(246,197,71,0.3); }
+
+  .picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .picker-grid::-webkit-scrollbar { width: 3px; }
+  .picker-grid::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+  .picker-item {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+  }
+
+  .picker-item:hover {
+    border-color: var(--accent-gold);
+    background: rgba(246,197,71,0.05);
+    transform: translateY(-1px);
+  }
+
+  .picker-item.locked {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .picker-item-emoji { font-size: 20px; margin-bottom: 2px; }
+  .picker-item-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .picker-item-desc { font-size: 9px; color: var(--text-muted); line-height: 1.3; margin-bottom: 4px; }
+  .picker-item-effects { display: flex; flex-wrap: wrap; gap: 2px; }
+
+  .picker-item .lock-hint { font-size: 9px; color: var(--accent-orange); }
 
   /* === Stress Warning === */
   .stress-warning {
@@ -1229,36 +1306,20 @@
     <div class="top-bar">
       <div class="time-info">
         <span class="current-time" id="current-time">第1月 第1周</span>
-        <span id="total-progress">0/60周</span>
+        <span id="total-progress">0/20周</span>
       </div>
-      <span class="week-actions-left" id="week-actions">本周可选 <strong>1</strong> 个活动</span>
+      <span class="week-actions-left" id="week-actions"></span>
     </div>
 
-    <!-- Progress -->
-    <div class="progress-section">
-      <div class="progress-bar-container">
-        <span class="progress-label">留学进度</span>
-        <div class="progress-track">
-          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-        </div>
-        <span class="progress-text" id="progress-text">0%</span>
-      </div>
-    </div>
+    <!-- Compact Stats HUD -->
+    <div id="stats-hud"></div>
 
-    <!-- Stress Warning -->
+    <!-- Warnings -->
     <div class="stress-warning" id="stress-warning" style="display:none">
       ⚠️ 压力值过高！请安排一些娱乐活动来放松一下！
     </div>
-
-    <!-- GPA Warning -->
     <div class="stress-warning" id="gpa-warning" style="display:none;animation:none;background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fbbf24">
     </div>
-
-    <!-- Stats Grid -->
-    <div class="stats-grid" id="stats-grid"></div>
-
-    <!-- Week Schedule Slots -->
-    <div class="week-slots" id="week-slots"></div>
 
     <!-- Week Log -->
     <div class="week-log" id="week-log" style="display:none">
@@ -1266,8 +1327,11 @@
       <div class="log-entries" id="log-entries"></div>
     </div>
 
-    <!-- Activities -->
-    <div id="activities-container"></div>
+    <!-- Week Schedule Grid (click to add) -->
+    <div class="week-slots" id="week-slots"></div>
+
+    <!-- Activity Picker (hidden by default, shown on slot click) -->
+    <div id="activity-picker" style="display:none"></div>
 
     <!-- Action Bar -->
     <div class="action-bar">
@@ -1626,6 +1690,7 @@ function initGame() {
     gpa: 0,               // GPA点数（内部值，显示时÷100）
     gpaCredits: 0,        // 已修学分（用于计算GPA）
     interning: false,     // 是否已接受实习offer
+    _activeSlot: null,    // 当前正在选择的slot索引
     unlockedIds: new Set() // 已通知解锁的活动ID
   };
 }
@@ -1652,15 +1717,10 @@ function switchScreen(screenId) {
 }
 
 function renderAll() {
-  // 如果正在实习且本周还没填满4天实习，自动补满
-  if (gameState.interning) {
-    fillInternSlots();
-  }
+  if (gameState.interning) fillInternSlots();
   renderTopBar();
-  renderStats();
-  renderProgress();
+  renderStatsHUD();
   renderWeekSlots();
-  renderActivities();
   renderWeekLog();
   checkStressWarning();
   updateConfirmButton();
@@ -1677,67 +1737,42 @@ function renderTopBar() {
   document.getElementById('week-actions').innerHTML = `已安排 <strong>${gameState.weekSlots.length}</strong>/${GAME_CONFIG.slotsPerWeek}${internTag}`;
 }
 
-function renderProgress() {
-  const pct = Math.round(((gameState.week - 1) / GAME_CONFIG.totalWeeks) * 100);
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-text').textContent = pct + '%';
-}
+function renderStatsHUD() {
+  const hud = document.getElementById('stats-hud');
+  const friendsVal = gameState.friends;
+  const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits) : 0;
 
-function renderStats() {
-  const statsDef = [
-    { key: 'iq', name: '智商', icon: '🧠', cls: 'iq' },
-    { key: 'eq', name: '情商', icon: '💖', cls: 'eq' },
-    { key: 'skill', name: '工作技能', icon: '💼', cls: 'skill' },
-    { key: 'money', name: '金钱', icon: '💰', cls: 'money' },
-    { key: 'stress', name: '压力值', icon: '😰', cls: 'stress' },
-    { key: 'lang', name: '语言能力', icon: '🗣️', cls: 'lang' }
+  const stats = [
+    { icon:'🧠', name:'智商', val: gameState.stats.iq, max:200, color:'var(--accent-blue)' },
+    { icon:'💖', name:'情商', val: gameState.stats.eq, max:200, color:'var(--accent-pink)' },
+    { icon:'💼', name:'技能', val: gameState.stats.skill, max:200, color:'var(--accent-purple)' },
+    { icon:'💰', name:'金钱', val: gameState.stats.money, max:200, color:'var(--accent-gold)' },
+    { icon:'😰', name:'压力', val: gameState.stats.stress, max:100, color:'var(--accent-red)', suffix:'/100' },
+    { icon:'🗣️', name:'语言', val: gameState.stats.lang, max:200, color:'var(--accent-green)' },
+    { icon:'👫', name:'朋友', val: friendsVal, max:20, color:'#818cf8' },
+    { icon:'📊', name:'GPA', val: gpaDisplay, max:4.0, color:'#fbbf24', isGpa:true }
   ];
 
-  const grid = document.getElementById('stats-grid');
-  // Friends is a special stat (not 0-100)
-  const friendsVal = gameState.friends;
-  const friendsPct = Math.min(100, Math.round(friendsVal / 20 * 100));
-  const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits) : 0;
-  const gpaPct = Math.round(gpaDisplay / 4.0 * 100);
-
-  grid.innerHTML = statsDef.map(s => {
-    const val = Math.max(0, gameState.stats[s.key]);
-    // 压力条100满格（100会爆），其他数值200满格
-    const maxForBar = s.key === 'stress' ? 100 : 200;
-    const barPct = Math.min(100, Math.round(val / maxForBar * 100));
-    const isStressDanger = s.key === 'stress' && val >= 80;
-    const isStressCritical = s.key === 'stress' && val >= 90;
+  hud.className = 'stats-hud';
+  hud.innerHTML = stats.map(s => {
+    const pct = Math.min(100, Math.round((s.val / s.max) * 100));
+    const displayVal = s.isGpa ? s.val.toFixed(1) : s.val;
+    const dangerStyle = (s.name === '压力' && s.val >= 80) ? 'color:var(--accent-red);font-weight:900' :
+                        (s.name === 'GPA' && gpaDisplay < 2.0 && gameState.gpaCredits > 0) ? 'color:var(--accent-red)' : '';
     return `
-      <div class="stat-card ${s.cls}">
-        <div class="stat-icon">${s.icon}</div>
-        <div class="stat-name">${s.name}</div>
-        <div class="stat-value" style="color:${isStressDanger ? 'var(--accent-red)' : 'var(--text-primary)'};${isStressCritical ? 'animation:pulse 1s ease infinite' : ''}">${val}${s.key === 'stress' ? '/100' : ''}</div>
-        <div class="stat-bar">
-          <div class="stat-bar-fill" style="width:${barPct}%"></div>
+      <div class="stat-row">
+        <span class="stat-row-icon">${s.icon}</span>
+        <span class="stat-row-name">${s.name}</span>
+        <div class="stat-row-bar">
+          <div class="stat-row-bar-fill" style="width:${pct}%;background:${s.color}"></div>
         </div>
+        <span class="stat-row-val" style="${dangerStyle}">${displayVal}${s.suffix||''}</span>
       </div>
     `;
-  }).join('') + `
-    <div class="stat-card friends">
-      <div class="stat-icon">👫</div>
-      <div class="stat-name">朋友</div>
-      <div class="stat-value">${friendsVal}</div>
-      <div class="stat-bar">
-        <div class="stat-bar-fill" style="width:${friendsPct}%;background:#818cf8"></div>
-      </div>
-    </div>
-    <div class="stat-card gpa" style="${gpaDisplay < 2.0 && gameState.gpaCredits > 0 ? 'animation:pulse 1.5s ease infinite' : ''}">
-      <div class="stat-icon">📊</div>
-      <div class="stat-name">GPA</div>
-      <div class="stat-value" style="color:${gpaDisplay < 2.0 && gameState.gpaCredits > 0 ? 'var(--accent-red)' : gpaDisplay >= 3.5 ? 'var(--accent-gold)' : 'var(--text-primary)'}">${gpaDisplay.toFixed(1)}</div>
-      <div class="stat-bar">
-        <div class="stat-bar-fill" style="width:${gpaPct}%;background:#fbbf24"></div>
-      </div>
-    </div>
-  `;
+  }).join('');
 }
 
-// 渲染本周7个时间格
+// 渲染本周7个时间格（点击空slot打开活动选择器）
 function renderWeekSlots() {
   const container = document.getElementById('week-slots');
   const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
@@ -1747,22 +1782,23 @@ function renderWeekSlots() {
     if (slot) {
       const isLockedIntern = slot.locked && slot.id === 'intern';
       return `
-        <div class="week-slot filled" style="${isLockedIntern ? 'border-color:var(--accent-orange);background:rgba(251,146,60,0.06)' : ''}">
+        <div class="week-slot filled ${isLockedIntern ? 'intern-locked' : ''}" ${!isLockedIntern ? `onclick="removeSlot(${i})"` : ''}>
           <div class="week-slot-label">${day}</div>
           <div class="week-slot-content">${slot.emoji}</div>
-          <div class="week-slot-name">${slot.name}${isLockedIntern ? ' 📌' : ''}</div>
+          <div class="week-slot-name">${slot.name}</div>
           ${isLockedIntern
-            ? '<div style="font-size:9px;color:var(--accent-orange);margin-top:2px">必须出勤</div>'
-            : `<div class="remove-btn" onclick="removeSlot(${i})">✕ 移除</div>`
+            ? '<div style="font-size:8px;color:var(--accent-orange)">📌</div>'
+            : '<div class="remove-btn">✕</div>'
           }
         </div>
       `;
     }
+    const isActive = gameState._activeSlot === i;
     return `
-      <div class="week-slot">
+      <div class="week-slot ${isActive ? 'active-pick' : ''}" onclick="openPicker(${i})">
         <div class="week-slot-label">${day}</div>
-        <div class="week-slot-content" style="color:var(--text-muted)">+</div>
-        <div class="week-slot-name" style="color:var(--text-muted)">空闲</div>
+        <div class="week-slot-content" style="color:var(--text-muted);font-size:16px">+</div>
+        <div class="week-slot-name" style="color:var(--text-muted)">点击安排</div>
       </div>
     `;
   }).join('');
@@ -1770,14 +1806,10 @@ function renderWeekSlots() {
 
 function removeSlot(index) {
   const slot = gameState.weekSlots[index];
-
-  // 不能移除锁定的实习slot
   if (slot && slot.locked) {
-    showToast('📌 实习日不能移除！每周至少4天实习', 'warning');
+    showToast('📌 实习日不能移除！', 'warning');
     return;
   }
-
-  // 如果是额外的实习slot，检查移除后是否还有4天实习
   if (slot && slot.id === 'intern' && gameState.interning) {
     const internCount = gameState.weekSlots.filter(s => s.id === 'intern').length;
     if (internCount <= 4) {
@@ -1785,72 +1817,83 @@ function removeSlot(index) {
       return;
     }
   }
-
   gameState.weekSlots.splice(index, 1);
+  gameState._activeSlot = null;
+  closePicker();
   renderAll();
 }
 
-function renderActivities() {
-  const container = document.getElementById('activities-container');
-  container.innerHTML = '';
+// ===================== ACTIVITY PICKER =====================
 
-  const categories = [
-    { key: 'fun', cls: 'category-fun' },
-    { key: 'study', cls: 'category-study' },
-    { key: 'work', cls: 'category-work' }
-  ];
+let pickerTab = 'fun'; // current tab
 
-  const slotsFull = gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek;
-
-  categories.forEach(cat => {
-    const data = ACTIVITIES[cat.key];
-    const section = document.createElement('div');
-    section.className = `activities-container ${cat.cls}`;
-
-    section.innerHTML = `
-      <div class="section-title">
-        ${data.title}
-        <span class="badge">${data.desc}</span>
-      </div>
-      <div class="activities-grid">
-        ${data.items.map(item => {
-          const unlock = checkUnlock(item.id);
-          const isLocked = unlock.locked;
-          const countInSlots = gameState.weekSlots.filter(s => s.id === item.id).length;
-          const cantAfford = item.effects.money && item.effects.money < 0 &&
-            (gameState.stats.money + (item.effects.money * (countInSlots + 1)) < 0);
-
-          return `
-            <div class="activity-card ${isLocked ? 'locked' : ''} ${slotsFull && !isLocked ? 'disabled' : ''} ${cantAfford && !isLocked ? 'disabled' : ''}"
-                 onclick="${isLocked || slotsFull || cantAfford ? '' : `addToSlots('${item.id}')`}"
-                 title="${item.desc}">
-              ${countInSlots > 0 ? `<div class="select-count">${countInSlots}</div>` : ''}
-              <div class="activity-emoji">${item.emoji}</div>
-              <div class="activity-name">${item.name}</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.4">${item.desc}</div>
-              <div class="activity-effects">
-                ${Object.entries(item.effects).map(([k, v]) => {
-                  const names = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
-                  const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
-                  return `<span class="effect-tag ${cls}">${names[k]} ${v > 0 ? '+' : ''}${v}</span>`;
-                }).join('')}
-              </div>
-              ${isLocked ? `<div class="lock-hint">🔒 ${unlock.hint}</div>` : ''}
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-
-    container.appendChild(section);
-  });
+function openPicker(slotIndex) {
+  if (gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek) return;
+  gameState._activeSlot = slotIndex;
+  renderWeekSlots();
+  renderPicker();
 }
 
-function addToSlots(activityId) {
-  if (gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek) return;
+function closePicker() {
+  gameState._activeSlot = null;
+  document.getElementById('activity-picker').style.display = 'none';
+  renderWeekSlots();
+}
 
-  // 如果是第一次点实习且还没接受offer，弹出确认
+function renderPicker() {
+  const picker = document.getElementById('activity-picker');
+  const statNames = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+
+  const tabs = [
+    { key:'fun', label:'🎮 娱乐' },
+    { key:'study', label:'📚 学习' },
+    { key:'work', label:'💼 工作' }
+  ];
+
+  const items = ACTIVITIES[pickerTab].items;
+
+  picker.style.display = 'block';
+  picker.className = 'activity-picker';
+  picker.innerHTML = `
+    <div class="picker-header">
+      <span class="picker-header-title">选择活动</span>
+      <span class="picker-close" onclick="closePicker()">✕ 关闭</span>
+    </div>
+    <div class="picker-tabs">
+      ${tabs.map(t => `<div class="picker-tab ${pickerTab === t.key ? 'active' : ''}" onclick="switchPickerTab('${t.key}')">${t.label}</div>`).join('')}
+    </div>
+    <div class="picker-grid">
+      ${items.map(item => {
+        const unlock = checkUnlock(item.id);
+        const isLocked = unlock.locked;
+        return `
+          <div class="picker-item ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `pickActivity('${item.id}')`}">
+            <div class="picker-item-emoji">${item.emoji}</div>
+            <div class="picker-item-name">${item.name}</div>
+            <div class="picker-item-desc">${item.desc}</div>
+            <div class="picker-item-effects">
+              ${Object.entries(item.effects).map(([k, v]) => {
+                const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
+                return `<span class="effect-tag ${cls}" style="font-size:9px;padding:1px 4px">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+              }).join('')}
+            </div>
+            ${isLocked ? `<div class="lock-hint">🔒 ${unlock.hint}</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function switchPickerTab(tab) {
+  pickerTab = tab;
+  renderPicker();
+}
+
+function pickActivity(activityId) {
+  // Intercept intern first-time
   if (activityId === 'intern' && !gameState.interning) {
+    closePicker();
     showInternOffer();
     return;
   }
@@ -1859,8 +1902,10 @@ function addToSlots(activityId) {
   if (!activity) return;
 
   gameState.weekSlots.push({ id: activity.id, emoji: activity.emoji, name: activity.name, locked: false });
+  gameState._activeSlot = null;
 
-  showToast(`${activity.emoji} ${activity.name} 已添加到本周安排`, 'info');
+  showToast(`${activity.emoji} ${activity.name}`, 'info');
+  closePicker();
   renderAll();
 }
 
