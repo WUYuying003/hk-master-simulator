@@ -1648,6 +1648,20 @@ const ENDINGS = {
   startup_bad: {
     type: 'startup', quality: 'bad', emoji: '💸', title: '梦碎科学园', line: '创业线',
     desc: '你把所有积蓄都投进了创业。\n\n你的AI社交App，你觉得可以改变世界。\n\n3个月后，用户数：47（其中12个是你自己的小号）。\n\n投资人已读不回，合伙人提了离职，\n服务器还在每月扣费。\n\n你在科学园的咖啡厅里坐了一整天，\n面前的商业计划书已经改到了第23版。\n\n最后你关掉了公司，\n给妈妈打了个电话说"一切都好"。\n\n创业这条路，九死一生。你是那个九。'
+  },
+
+  // === 麦当劳线 ===
+  mcd_good: {
+    type: 'mcd', quality: 'good', emoji: '🍗', title: '肯德汀创始人', line: '麦当劳线',
+    desc: '你在麦当劳打了太久的工，你已经完全掌握了快餐业的所有秘密。\n\n你决定自己开一家——"肯德汀"。\n\n菜单？麦辣鸡腿堡改名叫"辣腿堡"，\n巨无霸改名叫"大无霸"，\n薯条改名叫"黄金脆条"。\n\n靠着"借鉴"起家，你的肯德汀居然火了！！\n\n开业第一天排队排到了隔壁街，\n投资人追着你跑。\n\n麦当劳总部发来律师函，\n你微微一笑："告啊，免费宣传。"\n\n你成功了。商业鬼才就是你。'
+  },
+  mcd_normal: {
+    type: 'mcd', quality: 'normal', emoji: '🍔', title: '麦当劳储备店长', line: '麦当劳线',
+    desc: '你成为了麦当劳储备店长。\n\n每天凌晨4点半起床，5点到店准备开餐。\n\n一天工作10个小时，站到腿发麻。\n\n你熟悉每一台机器的脾气，\n知道哪个炸炉的油该换了，\n能听声音判断薯条炸了几秒。\n\n月薪不算低，但你的作息已经和这个城市的大部分人完全相反。\n\n你的朋友约你周末出来玩，\n你说："周末？那是我最忙的时候。"\n\n凌晨2点下班，你拖着疲惫的身体走在红磡的街道上。\n\n至少...你在香港活下来了。'
+  },
+  mcd_bad: {
+    type: 'mcd', quality: 'bad', emoji: '🥔', title: '薯饼大师', line: '麦当劳线',
+    desc: '你一直在麦当劳打工。\n\n一直。\n\n从兼职变全职，从全职变老员工。\n\n你炸薯饼的技术已经炉火纯青。\n\n金黄酥脆，外焦里嫩，\n放油的时间精确到秒，\n翻面的角度恰到好处。\n\n新来的小朋友都叫你"薯饼哥/薯饼姐"。\n\n你的硕士学位证书，\n压在出租屋的箱子底下，\n上面落了一层灰。\n\n"今天的薯饼特别好。"\n你对自己说。\n\n每天都这么说。'
   }
 };
 
@@ -2466,6 +2480,7 @@ function calculateEnding() {
   const mediaCount = gameState.history.filter(h => h.name === '做自媒体').length;
   const nightclubCount = gameState.history.filter(h => h.name === '夜店兼职').length;
   const startupCount = gameState.history.filter(h => h.name === '搞创业').length;
+  const mcdCount = gameState.history.filter(h => h.name === '做麦当劳打工').length;
   const aiCount = gameState.aiClassCount;
 
   // === 隐藏结局优先判定 ===
@@ -2496,6 +2511,18 @@ function calculateEnding() {
       showEnding('startup_normal');
     } else {
       showEnding('startup_bad');
+    }
+    return;
+  }
+
+  // === 麦当劳线 ===
+  if (mcdCount >= 15) {
+    if (s.skill >= 60 && s.iq >= 50 && s.money >= 40) {
+      showEnding('mcd_good');
+    } else if (s.skill >= 40 || s.lang >= 50) {
+      showEnding('mcd_normal');
+    } else {
+      showEnding('mcd_bad');
     }
     return;
   }
@@ -2933,6 +2960,9 @@ function showAllEndings() {
     startup_good:     '🚀 搞创业≥10次 且 💼技能≥70 且 🧠智商≥60 且 💰金钱≥30',
     startup_normal:   '🚀 搞创业≥10次 且（💼技能≥50 或 🧠智商≥50）',
     startup_bad:      '🚀 搞创业≥10次 且 技能<50 且 智商<50',
+    mcd_good:         '🍔 麦当劳打工≥15次 且 💼技能≥60 且 🧠智商≥50 且 💰金钱≥40',
+    mcd_normal:       '🍔 麦当劳打工≥15次 且（💼技能≥40 或 🗣️语言≥50）',
+    mcd_bad:          '🍔 麦当劳打工≥15次 且 技能<40 且 语言<50',
     influencer_good:  '🎲 随机事件「电影节」成功 且（💖情商≥60 或 💼技能≥60）',
     influencer_normal:'📱 做自媒体≥10次 且 💼技能≥40',
     influencer_bad:   '📱 做自媒体≥16次（或电影节成功）但其他条件不满足',
