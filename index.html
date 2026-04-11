@@ -2,7 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="港硕模拟器">
+<meta name="theme-color" content="#0a0e1a">
 <title>🎓 港硕模拟器 — 你的香港留学生存指南</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
@@ -34,6 +38,10 @@
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* === Background Animation === */
@@ -576,21 +584,102 @@
   .toast.danger { background: rgba(248,113,113,0.15); color: var(--accent-red); border: 1px solid rgba(248,113,113,0.3); }
 
   /* === Responsive === */
-  @media (max-width: 768px) {
-    .stats-hud { grid-template-columns: 1fr 1fr; }
-    .week-slots { grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .picker-grid { grid-template-columns: repeat(2, 1fr); }
-    .title-main { font-size: 32px; }
-    .ending-title { font-size: 24px; }
+
+  /* 手机上hover不生效，数值默认展开 */
+  @media (hover: none) {
+    .act-item-tooltip { display: flex !important; }
   }
 
-  @media (max-width: 480px) {
-    .stats-hud { grid-template-columns: 1fr; }
-    .week-slots { grid-template-columns: repeat(7, 1fr); gap: 3px; }
-    .week-slot { padding: 6px 2px; min-height: 60px; }
-    .week-slot-content { font-size: 16px; }
-    .picker-grid { grid-template-columns: 1fr 1fr; }
-    #app { padding: 10px; }
+  @media (max-width: 768px) {
+    #app { padding: 8px; max-width: 100%; }
+    .title-main { font-size: 28px; letter-spacing: 2px; }
+    .title-sub { font-size: 14px; }
+    .title-desc { font-size: 13px; }
+    .btn-start { padding: 14px 40px; font-size: 16px; }
+    .ending-title { font-size: 22px; }
+    .ending-desc { font-size: 14px; }
+
+    /* Top bar compact */
+    .game-topbar { padding: 6px 10px; flex-wrap: wrap; gap: 4px; }
+    .topbar-time { font-size: 13px; }
+    .topbar-badges { gap: 4px; }
+    .topbar-badge { font-size: 10px; padding: 2px 6px; }
+
+    /* Game body: stack vertically */
+    .game-body {
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Side stats: horizontal row on mobile */
+    .side-stats {
+      width: 100%;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      padding: 8px;
+    }
+    .side-stat {
+      flex: 1;
+      min-width: 70px;
+    }
+    .side-stat-header { gap: 2px; }
+    .side-stat-label { font-size: 8px; }
+    .side-stat-label span { font-size: 9px; }
+    .side-stat-val { font-size: 9px; }
+    .side-stat-bar { height: 3px; }
+
+    /* Activities: still 3 columns but tighter */
+    .center-activities { gap: 4px; }
+    .act-col-header { padding: 4px 6px; font-size: 10px; }
+    .act-col-body { padding: 3px; max-height: 220px; }
+    .act-item { padding: 4px 5px; gap: 4px; }
+    .act-item-emoji { font-size: 14px; }
+    .act-item-name { font-size: 9px; }
+    .act-item-desc { font-size: 7px; }
+    .act-item-lock { font-size: 6px; }
+    .act-item-tooltip .effect-tag { font-size: 7px; padding: 0px 3px; }
+
+    /* Week slots */
+    .week-slots { gap: 3px; }
+    .week-slot { min-height: 44px; padding: 3px 1px; }
+    .week-slot-label { font-size: 7px; }
+    .week-slot-content { font-size: 14px; }
+    .week-slot-name { font-size: 6px; }
+
+    /* Bottom */
+    .bottom-section { padding: 6px; }
+    .btn-confirm { padding: 8px; font-size: 12px; }
+
+    /* Warnings */
+    .stress-warning { font-size: 11px; padding: 6px 10px; }
+
+    /* Week log */
+    .week-log { padding: 8px; }
+    .week-log-title { font-size: 11px; }
+    .log-entry { font-size: 10px; }
+
+    /* Modals */
+    .modal-content { padding: 24px 16px; }
+    .modal-emoji { font-size: 48px; }
+    .modal-title { font-size: 18px; }
+    .modal-desc { font-size: 13px; }
+
+    /* Ending */
+    .ending-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .ending-stat { padding: 8px; }
+    .ending-stat-value { font-size: 16px; }
+
+    /* Collection button */
+    .btn-collection { width: 40px; height: 40px; font-size: 18px; bottom: 12px; left: 12px; }
+  }
+
+  @media (max-width: 400px) {
+    /* Very small phones */
+    .center-activities { grid-template-columns: 1fr 1fr 1fr; }
+    .act-item-desc { display: none; }
+    .act-item-tooltip .effect-tag { font-size: 6px; }
+    .side-stat { min-width: 60px; }
   }
 
   /* === Locked Activity === */
