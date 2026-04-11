@@ -253,33 +253,14 @@
   .act-item-desc { font-size: 8px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .act-item-lock { font-size: 7px; color: var(--accent-orange); }
 
-  /* Hover tooltip for effects */
-  .act-item { position: relative; }
+  /* Hover tooltip for effects - inline below name */
   .act-item-tooltip {
     display: none;
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 6px;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 6px 10px;
-    white-space: nowrap;
-    z-index: 20;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    pointer-events: none;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 3px;
   }
-  .act-item:hover .act-item-tooltip { display: flex; gap: 4px; flex-wrap: wrap; }
-
-  /* If tooltip goes off right edge, show on left */
-  .act-column:last-child .act-item-tooltip {
-    left: auto;
-    right: 100%;
-    margin-left: 0;
-    margin-right: 6px;
-  }
+  .act-item:hover .act-item-tooltip { display: flex; }
 
   /* === Bottom Section === */
   .bottom-section {
@@ -1826,13 +1807,13 @@ function renderCenterActivities() {
                 <div class="act-item-info">
                   <div class="act-item-name">${item.name}</div>
                   <div class="act-item-desc">${item.desc}</div>
+                  <div class="act-item-tooltip">
+                    ${Object.entries(item.effects).map(([k, v]) => {
+                      const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
+                      return `<span class="effect-tag ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+                    }).join('')}
+                  </div>
                   ${isLocked ? `<div class="act-item-lock">🔒 ${unlock.hint}</div>` : ''}
-                </div>
-                <div class="act-item-tooltip">
-                  ${Object.entries(item.effects).map(([k, v]) => {
-                    const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
-                    return `<span class="effect-tag ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
-                  }).join('')}
                 </div>
               </div>
             `;
