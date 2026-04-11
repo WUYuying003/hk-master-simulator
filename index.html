@@ -253,6 +253,34 @@
   .act-item-desc { font-size: 8px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .act-item-lock { font-size: 7px; color: var(--accent-orange); }
 
+  /* Hover tooltip for effects */
+  .act-item { position: relative; }
+  .act-item-tooltip {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 6px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 10px;
+    white-space: nowrap;
+    z-index: 20;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+  .act-item:hover .act-item-tooltip { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  /* If tooltip goes off right edge, show on left */
+  .act-column:last-child .act-item-tooltip {
+    left: auto;
+    right: 100%;
+    margin-left: 0;
+    margin-right: 6px;
+  }
+
   /* === Bottom Section === */
   .bottom-section {
     background: var(--bg-secondary);
@@ -1791,15 +1819,20 @@ function renderCenterActivities() {
             const isLocked = unlock.locked;
             const count = gameState.weekSlots.filter(s => s.id === item.id).length;
             return `
-              <div class="act-item ${isLocked ? 'locked' : ''} ${slotsFull && !isLocked ? '' : ''}"
+              <div class="act-item ${isLocked ? 'locked' : ''}"
                    onclick="${isLocked || slotsFull ? '' : `pickActivity('${item.id}')`}"
-                   title="${item.desc}"
                    style="${slotsFull && !isLocked ? 'opacity:0.4;cursor:not-allowed' : ''}">
                 <div class="act-item-emoji">${item.emoji}${count > 0 ? '<span style="font-size:9px;position:relative;top:-4px;color:var(--accent-gold)">'+count+'</span>' : ''}</div>
                 <div class="act-item-info">
                   <div class="act-item-name">${item.name}</div>
                   <div class="act-item-desc">${item.desc}</div>
                   ${isLocked ? `<div class="act-item-lock">🔒 ${unlock.hint}</div>` : ''}
+                </div>
+                <div class="act-item-tooltip">
+                  ${Object.entries(item.effects).map(([k, v]) => {
+                    const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
+                    return `<span class="effect-tag ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+                  }).join('')}
                 </div>
               </div>
             `;
@@ -1958,7 +1991,7 @@ function checkStressWarning() {
   const warning = document.getElementById('stress-warning');
   warning.style.display = gameState.stats.stress >= GAME_CONFIG.stressThreshold ? 'flex' : 'none';
 
-  // GPA warning
+  // GPA warning - 持续显示，不只是考核前
   const gpaWarning = document.getElementById('gpa-warning');
   const checkpoints = [
     { week: 7, minGpa: 1.5, minCredits: 5 },
@@ -1971,11 +2004,23 @@ function checkStressWarning() {
     const currentGpa = gameState.gpaCredits > 0 ? (gameState.gpa / gameState.gpaCredits).toFixed(1) : '0.0';
     const gpaOk = parseFloat(currentGpa) >= nextCP.minGpa;
     const creditsOk = gameState.gpaCredits >= nextCP.minCredits;
-    if (weeksLeft <= 3 && (!gpaOk || !creditsOk)) {
+    const creditsNeeded = nextCP.minCredits - gameState.gpaCredits;
+
+    if (!gpaOk || !creditsOk) {
+      // 不达标就一直显示，越近越紧急
       gpaWarning.style.display = 'flex';
-      gpaWarning.style.animation = weeksLeft <= 1 ? 'pulse 1.5s ease infinite' : 'none';
-      gpaWarning.innerHTML = `📊 GPA考核倒计时：还有 <strong>${weeksLeft}</strong> 周！需要 GPA≥${nextCP.minGpa} 且 学分≥${nextCP.minCredits}（当前：GPA ${currentGpa}，学分 ${gameState.gpaCredits}）${!gpaOk || !creditsOk ? ' <strong>⚠️ 未达标！</strong>' : ' ✅'}`;
+      gpaWarning.style.animation = weeksLeft <= 2 ? 'pulse 1.5s ease infinite' : 'none';
+      gpaWarning.style.borderColor = weeksLeft <= 2 ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)';
+      gpaWarning.style.color = weeksLeft <= 2 ? 'var(--accent-red)' : '#fbbf24';
+      gpaWarning.style.background = weeksLeft <= 2 ? 'rgba(248,113,113,0.1)' : 'rgba(251,191,36,0.1)';
+
+      let msg = `📊 GPA考核：还有 <strong>${weeksLeft}</strong> 周！`;
+      if (!creditsOk) msg += ` 还需上 <strong>${creditsNeeded}</strong> 门课！`;
+      if (!gpaOk) msg += ` GPA需≥${nextCP.minGpa}（当前 ${currentGpa}）`;
+      msg += ' — <strong>记得安排上课！</strong>';
+      gpaWarning.innerHTML = msg;
     } else {
+      // 达标了就不显示
       gpaWarning.style.display = 'none';
     }
   } else {
