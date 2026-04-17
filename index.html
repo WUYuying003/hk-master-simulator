@@ -1372,39 +1372,12 @@
 <div id="app">
   <!-- Title Screen -->
   <div id="screen-title" class="screen active">
-    <div class="title-screen">
-      <div class="title-logo">🎓</div>
-      <div class="title-main">港硕模拟器</div>
-      <div class="title-sub">HONG KONG MASTER SIMULATOR</div>
-      <div class="title-desc">
-        你即将踏上香港硕士留学之旅。<br>
-        5个月，20周，每一周你有7个时间格可以安排。<br>
-        学习、工作、还是放松？<br>
-        你的每个决定，都将影响你的结局。<br><br>
-        <em style="color:var(--accent-gold)">做好准备了吗？</em>
-      </div>
-      <button class="btn-start" onclick="startGame()">🚀 开始留学之旅</button>
-    </div>
+    <div class="title-screen" id="title-content"></div>
   </div>
 
   <!-- Intro Screen -->
   <div id="screen-intro" class="screen">
-    <div class="intro-screen">
-      <div class="title-logo">✈️</div>
-      <div class="intro-text">
-        你拖着28寸的行李箱，降落在香港国际机场。<br><br>
-        潮湿的空气扑面而来，你深吸一口气。<br><br>
-        接下来的 <em>5个月</em>，你将在这座城市<br>
-        学习、生活、工作、挣扎、成长。<br><br>
-        每周你有 <em>7个时间格</em>，可以自由安排活动。<br>
-        你的 <em>智商、情商、工作技能、金钱、语言能力</em> 都会被考验。<br>
-        但要注意 —— 别让 <em>压力</em> 压垮你。<br><br>
-        <span style="color:var(--text-muted);font-size:14px">
-          合理安排每一周，走向属于你的结局。
-        </span>
-      </div>
-      <button class="btn-start" onclick="showGameScreen()">📖 开始第一周</button>
-    </div>
+    <div class="intro-screen" id="intro-content"></div>
   </div>
 
   <!-- Game Screen -->
@@ -1559,9 +1532,42 @@ const I18N = {
   '五': { en: 'Fr' },
   '六': { en: 'Sa' },
   '日': { en: 'Su' },
+  // Week days
+  '一': { en: 'Mo' },
+  '二': { en: 'Tu' },
+  '三': { en: 'We' },
+  '四': { en: 'Th' },
+  '五': { en: 'Fr' },
+  '六': { en: 'Sa' },
+  '日': { en: 'Su' },
+  // Activity descriptions
+  '去维港旁的泳池游个痛快': { en: 'Swim by Victoria Harbour' },
+  '百老汇院线，爆米花是灵魂': { en: 'Broadway cinema, popcorn is a must' },
+  '铜锣湾/旺角买买买减压大法': { en: 'Shopping therapy in CWB/MK' },
+  '排队2小时，吃了15分钟': { en: 'Queue 2hrs, eat 15min' },
+  '和朋友一起去攀岩馆挑战自我': { en: 'Rock climbing with friends' },
+  '约三五好友吐槽生活': { en: 'Vent about life with friends' },
+  '和队友一起开黑到凌晨': { en: 'Gaming all night with squad' },
+  '和朋友去龙脊/大东山暴走一天': { en: 'Hiking Dragon\'s Back/Tai Tong' },
+  '枯燥但有用的传统课程': { en: 'Boring but useful classes' },
+  '学习最前沿的AI技术': { en: 'Learn cutting-edge AI tech' },
+  '粤语/英语精进计划': { en: 'Cantonese/English improvement' },
+  '和free rider斗智斗勇': { en: 'Fight free riders in group work' },
+  '精心打磨你的作品集，为求职做准备': { en: 'Polish your portfolio for jobs' },
+  '论文地狱模式启动': { en: 'Thesis hell mode activated' },
+  '大厂实习，从端茶倒水做起': { en: 'Big corp intern, start from bottom' },
+  '帮教授搬砖做数据': { en: 'Help professor crunch data' },
+  '各种展会活动临时工': { en: 'Event temp jobs' },
+  '多国语言实战训练场': { en: 'Multilingual training ground' },
+  '梦想总是要有的': { en: 'Gotta have a dream' },
+  '成为下一个网红？': { en: 'Become the next influencer?' },
+  '红磡夜总会，灯红酒绿的世界': { en: 'Hung Hom nightclub world' },
+  '车库创业，从0到1': { en: 'Garage startup, 0 to 1' },
   // Misc
-  '上周': { en: 'Last Week' },
+  '上周': { en: 'Last week' },
+  '上周活动记录': { en: 'Last week activities' },
   '做好准备了吗？': { en: 'Are you ready?' },
+  '确认本周安排': { en: 'Confirm Schedule' },
 };
 
 function T(text) {
@@ -1570,21 +1576,59 @@ function T(text) {
   return entry && entry[currentLang] ? entry[currentLang] : text;
 }
 
+function getSN() {
+  return currentLang === 'en'
+    ? { iq:'IQ', eq:'EQ', skill:'Skill', money:'$', stress:'Stress', lang:'Lang' }
+    : { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+}
+
 function switchLang(lang) {
   currentLang = lang;
   localStorage.setItem('hk_sim_lang', lang);
-  // Re-render current screen
+  updateLangButtons();
+  // Re-render all screens
+  renderTitleScreen();
+  renderIntroScreen();
   const gameScreen = document.getElementById('screen-game');
   if (gameScreen.classList.contains('active')) {
     renderAll();
   }
-  updateLangButtons();
 }
 
 function updateLangButtons() {
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === currentLang);
   });
+}
+
+function renderTitleScreen() {
+  const isEn = currentLang === 'en';
+  document.getElementById('title-content').innerHTML = `
+    <div class="title-logo">🎓</div>
+    <div class="title-main">${isEn ? 'HK Master Sim' : '港硕模拟器'}</div>
+    <div class="title-sub">HONG KONG MASTER SIMULATOR</div>
+    <div class="title-desc">
+      ${isEn
+        ? 'You are about to embark on a Hong Kong master\'s journey.<br>5 months, 20 weeks, 7 time slots per week to arrange.<br>Study, work, or relax?<br>Every decision shapes your ending.<br><br><em style="color:var(--accent-gold)">Are you ready?</em>'
+        : '你即将踏上香港硕士留学之旅。<br>5个月，20周，每一周你有7个时间格可以安排。<br>学习、工作、还是放松？<br>你的每个决定，都将影响你的结局。<br><br><em style="color:var(--accent-gold)">做好准备了吗？</em>'
+      }
+    </div>
+    <button class="btn-start" onclick="startGame()">🚀 ${isEn ? 'Start Journey' : '开始留学之旅'}</button>
+  `;
+}
+
+function renderIntroScreen() {
+  const isEn = currentLang === 'en';
+  document.getElementById('intro-content').innerHTML = `
+    <div class="title-logo">✈️</div>
+    <div class="intro-text">
+      ${isEn
+        ? 'You drag your 28-inch suitcase, landing at Hong Kong International Airport.<br><br>The humid air hits your face. You take a deep breath.<br><br>For the next <em>5 months</em>, you will<br>study, live, work, struggle, and grow in this city.<br><br>Each week you have <em>7 time slots</em> to arrange freely.<br>Your <em>IQ, EQ, skills, money, language</em> will all be tested.<br>But beware — don\'t let <em>stress</em> break you.<br><br><span style="color:var(--text-muted);font-size:14px">Plan each week wisely, and find your ending.</span>'
+        : '你拖着28寸的行李箱，降落在香港国际机场。<br><br>潮湿的空气扑面而来，你深吸一口气。<br><br>接下来的 <em>5个月</em>，你将在这座城市<br>学习、生活、工作、挣扎、成长。<br><br>每周你有 <em>7个时间格</em>，可以自由安排活动。<br>你的 <em>智商、情商、工作技能、金钱、语言能力</em> 都会被考验。<br>但要注意 —— 别让 <em>压力</em> 压垮你。<br><br><span style="color:var(--text-muted);font-size:14px">合理安排每一周，走向属于你的结局。</span>'
+      }
+    </div>
+    <button class="btn-start" onclick="showGameScreen()">📖 ${isEn ? 'Start Week 1' : '开始第一周'}</button>
+  `;
 }
 
 // ===================== GAME DATA =====================
@@ -1994,7 +2038,7 @@ function renderSideStats() {
 
 function renderCenterActivities() {
   const container = document.getElementById('center-activities');
-  const statNames = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+  const statNames = getSN();
   const slotsFull = gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek;
 
   const cols = [
@@ -2020,7 +2064,7 @@ function renderCenterActivities() {
                 <div class="act-item-emoji">${item.emoji}${count > 0 ? '<span style="font-size:9px;position:relative;top:-4px;color:var(--accent-gold)">'+count+'</span>' : ''}</div>
                 <div class="act-item-info">
                   <div class="act-item-name">${T(item.name)}</div>
-                  <div class="act-item-desc">${item.desc}</div>
+                  <div class="act-item-desc">${T(item.desc)}</div>
                   <div class="act-item-tooltip">
                     ${Object.entries(item.effects).map(([k, v]) => {
                       const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
@@ -2184,7 +2228,12 @@ function renderWeekLog() {
 
 function checkStressWarning() {
   const warning = document.getElementById('stress-warning');
-  warning.style.display = gameState.stats.stress >= GAME_CONFIG.stressThreshold ? 'flex' : 'none';
+  if (gameState.stats.stress >= GAME_CONFIG.stressThreshold) {
+    warning.style.display = 'flex';
+    warning.textContent = currentLang === 'en' ? '⚠️ Stress too high! Arrange some fun activities!' : '⚠️ 压力值过高！请安排一些娱乐活动来放松一下！';
+  } else {
+    warning.style.display = 'none';
+  }
 
   // GPA warning - 持续显示，不只是考核前
   const gpaWarning = document.getElementById('gpa-warning');
@@ -2209,10 +2258,18 @@ function checkStressWarning() {
       gpaWarning.style.color = weeksLeft <= 2 ? 'var(--accent-red)' : '#fbbf24';
       gpaWarning.style.background = weeksLeft <= 2 ? 'rgba(248,113,113,0.1)' : 'rgba(251,191,36,0.1)';
 
-      let msg = `📊 GPA考核：还有 <strong>${weeksLeft}</strong> 周！`;
-      if (!creditsOk) msg += ` 还需上 <strong>${creditsNeeded}</strong> 门课！`;
-      if (!gpaOk) msg += ` GPA需≥${nextCP.minGpa}（当前 ${currentGpa}）`;
-      msg += ' — <strong>记得安排上课！</strong>';
+      let msg;
+      if (currentLang === 'en') {
+        msg = `📊 GPA Check: <strong>${weeksLeft}</strong> weeks left!`;
+        if (!creditsOk) msg += ` Need <strong>${creditsNeeded}</strong> more classes!`;
+        if (!gpaOk) msg += ` GPA needs ≥${nextCP.minGpa} (now ${currentGpa})`;
+        msg += ' — <strong>Take classes!</strong>';
+      } else {
+        msg = `📊 GPA考核：还有 <strong>${weeksLeft}</strong> 周！`;
+        if (!creditsOk) msg += ` 还需上 <strong>${creditsNeeded}</strong> 门课！`;
+        if (!gpaOk) msg += ` GPA需≥${nextCP.minGpa}（当前 ${currentGpa}）`;
+        msg += ' — <strong>记得安排上课！</strong>';
+      }
       gpaWarning.innerHTML = msg;
     } else {
       // 达标了就不显示
@@ -3287,6 +3344,8 @@ function closeAllEndings() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  renderTitleScreen();
+  renderIntroScreen();
   switchScreen('screen-title');
   updateCollectionBadge();
   updateLangButtons();
