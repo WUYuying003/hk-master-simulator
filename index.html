@@ -1816,6 +1816,16 @@ const RANDOM_EVENTS = [
   }
 ];
 
+// English translations for random events
+const EVENTS_EN = {
+  game_bar: { title: 'Secret Game Bar Party', desc: 'You discover a hidden game bar in Sham Shui Po, full of industry bigwigs. A producer raises his glass at you...', choices: [{ label: '🔥 Approach the producer', desc: 'Bold self-introduction', flagText: '🎉 The producer loves you and offers a job on the spot!' },{ label: '🍺 Quietly observe', desc: 'Blend in first' },{ label: '🚪 Turn and leave', desc: 'Social anxiety kicks in...' }] },
+  film_fest: { title: 'Underground Film Festival', desc: 'Anonymous invitation to an indie film exhibition. Lots of VIPs...', choices: [{ label: '📹 Vlog everything', desc: 'Record it all, go big', flagText: '🌟 Your vlog went viral! 100K followers overnight!' },{ label: '👀 Just watch', desc: 'Observe only' },{ label: '😴 Too tired, skip', desc: 'Back to dorm' }] },
+  horse_race: { title: 'Jockey Club Horse Race', desc: 'Friends drag you to Happy Valley. "Just one bet!" You spot a horse named "HK Master Glory"...', choices: [{ label: '💰 ALL IN!', desc: 'YOLO, go big or go home', flagText: '🤑 "HK Master Glory" wins! JACKPOT!!!' },{ label: '🎫 Small bet for fun', desc: 'Spend a little' },{ label: '🙅 Gambling is bad', desc: 'Reason wins' }] },
+  wong_tai_sin: { title: 'Wong Tai Sin Love Fortune', desc: 'Roommate drags you to Wong Tai Sin Temple for love fortune. You hesitate...', choices: [{ label: '🙏 Pray sincerely', desc: 'Believe!', flagText: '💕 Walking out, you bump into someone. Eyes meet... you ended up together!' },{ label: '📸 Tourist photos', desc: 'Just sightseeing' },{ label: '🏃 Sneak away', desc: 'Not my thing' }] },
+  stock_discovery: { title: 'Forgotten Investment', desc: 'Cleaning emails, you find a 2021 brokerage notice. You vaguely remember buying stocks...', choices: [{ label: '😱 Open it trembling', desc: 'Heart pounding', flagText: '🤯 NV*DIA, TE*LA, GO*D... SEVEN FIGURES!!!' },{ label: '🤔 Check calmly', desc: "Let's see" },{ label: '🗑️ Delete as spam', desc: 'Must be a scam' }] },
+  wilderness: { title: 'Call of the Wild', desc: 'Weekend at Sai Kung beach. Wind on your face, the endless Pacific ahead...', choices: [{ label: '✈️ Buy a one-way ticket!', desc: 'Travel the world!', flagText: '🌍 You actually bought it! World travel begins!' },{ label: '🌅 Watch the sunset', desc: 'Feel the ocean' },{ label: '📱 Photo for socials', desc: 'Been here, done that' }] }
+};
+
 // ===================== ENDINGS =====================
 const ENDINGS = {
   billionaire: {
@@ -2625,25 +2635,33 @@ function showGpaWarning(checkpoint, currentGpa) {
 function triggerRandomEvent(event) {
   const modal = document.getElementById('event-modal');
   const content = document.getElementById('modal-content');
+  const isEn = currentLang === 'en';
+  const en = EVENTS_EN[event.id] || {};
 
   // Store current event for choice handler
   gameState._currentEvent = event;
 
+  const title = isEn && en.title ? en.title : event.title;
+  const desc = isEn && en.desc ? en.desc : event.desc;
+
   content.innerHTML = `
     <div class="modal-emoji">${event.emoji}</div>
-    <div class="modal-title">⚡ 随机事件！</div>
-    <div class="modal-title" style="font-size:20px">${event.title}</div>
-    <div class="modal-desc">${event.desc}</div>
+    <div class="modal-title">⚡ ${isEn ? 'Random Event!' : '随机事件！'}</div>
+    <div class="modal-title" style="font-size:20px">${title}</div>
+    <div class="modal-desc">${desc}</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
       ${event.choices.map((c, i) => {
+        const enC = (en.choices && en.choices[i]) || {};
+        const cLabel = isEn && enC.label ? enC.label : c.label;
+        const cDesc = isEn && enC.desc ? enC.desc : c.desc;
         return `
           <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;text-align:left"
                onmouseover="this.style.borderColor='var(--accent-gold)';this.style.background='rgba(246,197,71,0.05)'"
                onmouseout="this.style.borderColor='var(--border-color)';this.style.background='var(--bg-card)'"
                onclick="chooseEventOption(${i})">
-            <div style="font-size:14px;font-weight:600;margin-bottom:4px">${c.label}</div>
-            <div style="font-size:12px;color:var(--text-muted)">${c.desc}</div>
-            ${c.flagChance > 0 ? '<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">✨ 可能有意想不到的事发生...</div>' : ''}
+            <div style="font-size:14px;font-weight:600;margin-bottom:4px">${cLabel}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${cDesc}</div>
+            ${c.flagChance > 0 ? `<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">✨ ${isEn ? 'Something unexpected may happen...' : '可能有意想不到的事发生...'}</div>` : ''}
           </div>
         `;
       }).join('')}
@@ -2660,7 +2678,10 @@ function chooseEventOption(choiceIndex) {
   const choice = event.choices[choiceIndex];
   const modal = document.getElementById('event-modal');
   const content = document.getElementById('modal-content');
-  const statNames = {iq:'智商',eq:'情商',skill:'技能',money:'金钱',stress:'压力',lang:'语言'};
+  const isEn = currentLang === 'en';
+  const sn = getSN();
+  const en = EVENTS_EN[event.id] || {};
+  const enC = (en.choices && en.choices[choiceIndex]) || {};
 
   // Apply effects
   if (choice.effects && Object.keys(choice.effects).length > 0) {
@@ -2674,31 +2695,33 @@ function chooseEventOption(choiceIndex) {
     flagTriggered = true;
   }
 
-  // Show result
+  // Translated text
+  const evTitle = isEn && en.title ? en.title : event.title;
+  const cLabel = isEn && enC.label ? enC.label : choice.label;
+  const cDesc = isEn && enC.desc ? enC.desc : choice.desc;
+  const cFlagText = isEn && enC.flagText ? enC.flagText : choice.flagText;
+
   const effectsHtml = Object.entries(choice.effects || {}).length > 0
-    ? Object.entries(choice.effects).map(([k,v]) => {
-        return `<span style="margin:0 4px;">${statNames[k]||k} ${v>0?'+':''}${v}</span>`;
-      }).join(' ')
+    ? Object.entries(choice.effects).map(([k,v]) => `<span style="margin:0 4px;">${sn[k]||k} ${v>0?'+':''}${v}</span>`).join(' ')
     : '';
 
   content.innerHTML = `
     <div class="modal-emoji">${event.emoji}</div>
-    <div class="modal-title" style="font-size:18px">${event.title}</div>
-    <div style="margin:12px 0;font-size:14px;color:var(--text-secondary)">你选择了：<strong>${choice.label}</strong></div>
+    <div class="modal-title" style="font-size:18px">${evTitle}</div>
+    <div style="margin:12px 0;font-size:14px;color:var(--text-secondary)">${isEn ? 'You chose:' : '你选择了：'} <strong>${cLabel}</strong></div>
     ${flagTriggered ? `
       <div class="modal-result success" style="font-size:15px;line-height:1.7">
-        ${choice.flagText}
+        ${cFlagText}
       </div>
     ` : `
       <div class="modal-result ${Object.values(choice.effects || {}).some(v => v > 0) ? 'success' : Object.values(choice.effects || {}).some(v => v < 0) ? 'fail' : 'success'}">
-        ${choice.desc}
+        ${cDesc}
       </div>
     `}
     ${effectsHtml ? `<div style="margin-bottom:16px;font-size:13px;color:var(--text-muted)">${effectsHtml}</div>` : ''}
-    <button class="btn-modal" onclick="closeEventModal()">继续</button>
+    <button class="btn-modal" onclick="closeEventModal()">${isEn ? 'Continue' : '继续'}</button>
   `;
 
-  // Clean up
   gameState._currentEvent = null;
 }
 
@@ -3107,26 +3130,27 @@ function showNextUnlock() {
   if (pendingUnlocks.length === 0) return;
 
   const activity = pendingUnlocks.shift();
-  const statNames = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+  const sn = getSN();
+  const isEn = currentLang === 'en';
 
   document.getElementById('unlock-content').innerHTML = `
     <div style="text-align:center">
-      <div style="font-size:14px;color:var(--accent-gold);letter-spacing:2px;margin-bottom:12px">🔓 新活动解锁！</div>
+      <div style="font-size:14px;color:var(--accent-gold);letter-spacing:2px;margin-bottom:12px">🔓 ${isEn ? 'New Activity Unlocked!' : '新活动解锁！'}</div>
       <div class="unlock-card">
         <div class="unlock-card-emoji">${activity.emoji}</div>
-        <div class="unlock-card-name">${activity.name}</div>
-        <div class="unlock-card-desc">${activity.desc}</div>
+        <div class="unlock-card-name">${T(activity.name)}</div>
+        <div class="unlock-card-desc">${T(activity.desc)}</div>
         <div class="unlock-card-effects">
           ${Object.entries(activity.effects).map(([k, v]) => {
             const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
-            return `<span class="effect-tag ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+            return `<span class="effect-tag ${cls}">${sn[k]} ${v > 0 ? '+' : ''}${v}</span>`;
           }).join('')}
         </div>
       </div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">
-        你现在可以在每周安排中选择这个活动了！
+        ${isEn ? 'You can now add this to your weekly schedule!' : '你现在可以在每周安排中选择这个活动了！'}
       </div>
-      <button class="btn-modal" onclick="closeUnlockModal()">太好了！</button>
+      <button class="btn-modal" onclick="closeUnlockModal()">${isEn ? 'Great!' : '太好了！'}</button>
     </div>
   `;
 
