@@ -2327,6 +2327,20 @@ function applyEffects(effects) {
 function confirmWeek() {
   if (gameState.weekSlots.length === 0) return;
 
+  // Save snapshot before this week's changes (for undo)
+  gameState._lastWeekSnapshot = JSON.parse(JSON.stringify({
+    week: gameState.week,
+    stats: gameState.stats,
+    friends: gameState.friends,
+    gpa: gameState.gpa,
+    gpaCredits: gameState.gpaCredits,
+    portfolio: gameState.portfolio,
+    aiClassCount: gameState.aiClassCount,
+    interning: gameState.interning,
+    weekSlots: [],
+    history: gameState.history.slice() // copy
+  }));
+
   // Snapshot stats before
   const before = { ...gameState.stats };
 
@@ -2389,6 +2403,8 @@ function confirmWeek() {
 
   // Check stress burnout
   if (gameState.stats.stress >= 100) {
+    saveEndingToCollection('burnout');
+    updateCollectionBadge();
     setTimeout(() => showEnding('burnout'), 800);
     return;
   }
@@ -2605,28 +2621,41 @@ function showGpaWarning(checkpoint, currentGpa) {
   const content = document.getElementById('modal-content');
   const creditsNeeded = checkpoint.minCredits;
   const hasEnoughCredits = gameState.gpaCredits >= creditsNeeded;
+  const isEn = currentLang === 'en';
+
+  // Save expelled ending to collection
+  saveEndingToCollection('expelled');
+  updateCollectionBadge();
 
   let failReason = '';
-  if (!hasEnoughCredits) {
-    failReason = `你只修了 ${gameState.gpaCredits} 门课（需要至少 ${creditsNeeded} 门）。\n你上课太少了！`;
+  if (isEn) {
+    failReason = !hasEnoughCredits
+      ? `You only took ${gameState.gpaCredits} classes (need at least ${creditsNeeded}).\nYou didn't take enough classes!`
+      : `Your GPA is only ${currentGpa.toFixed(2)} (need ${checkpoint.minGpa.toFixed(1)}).\nGrades too low!`;
   } else {
-    failReason = `你的GPA只有 ${currentGpa.toFixed(2)}（需要 ${checkpoint.minGpa.toFixed(1)}）。\n成绩不够好！`;
+    failReason = !hasEnoughCredits
+      ? `你只修了 ${gameState.gpaCredits} 门课（需要至少 ${creditsNeeded} 门）。\n你上课太少了！`
+      : `你的GPA只有 ${currentGpa.toFixed(2)}（需要 ${checkpoint.minGpa.toFixed(1)}）。\n成绩不够好！`;
   }
 
   content.innerHTML = `
     <div class="modal-emoji">📉</div>
-    <div class="modal-title">⚠️ ${checkpoint.name}</div>
-    <div class="modal-title" style="font-size:18px;color:var(--accent-red)">GPA未达标！</div>
+    <div class="modal-title">⚠️ ${isEn ? 'GPA Check Failed!' : 'GPA未达标！'}</div>
     <div class="modal-desc" style="line-height:1.8">
       ${failReason.replace(/\n/g, '<br>')}<br><br>
       <span style="color:var(--text-muted)">
-        当前GPA: <strong style="color:var(--accent-red)">${currentGpa.toFixed(2)}</strong> / 需要: <strong>${checkpoint.minGpa.toFixed(1)}</strong><br>
-        已修学分: <strong style="${!hasEnoughCredits ? 'color:var(--accent-red)' : ''}">${gameState.gpaCredits}</strong> / 需要: <strong>${creditsNeeded}</strong>
+        GPA: <strong style="color:var(--accent-red)">${currentGpa.toFixed(2)}</strong> / ${isEn ? 'Need' : '需要'}: <strong>${checkpoint.minGpa.toFixed(1)}</strong><br>
+        ${isEn ? 'Credits' : '已修学分'}: <strong style="${!hasEnoughCredits ? 'color:var(--accent-red)' : ''}">${gameState.gpaCredits}</strong> / ${isEn ? 'Need' : '需要'}: <strong>${creditsNeeded}</strong>
       </span>
     </div>
-    <button class="btn-modal" onclick="document.getElementById('event-modal').classList.remove('active');showEnding('expelled')" style="background:linear-gradient(135deg,var(--accent-red),var(--accent-orange))">
-      😢 接受现实
-    </button>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-modal" onclick="document.getElementById('event-modal').classList.remove('active');showEnding('expelled')" style="background:linear-gradient(135deg,var(--accent-red),var(--accent-orange))">
+        😢 ${isEn ? 'Accept Fate' : '接受现实'}
+      </button>
+      <button class="btn-modal" onclick="document.getElementById('event-modal').classList.remove('active');goBackOneWeek()" style="background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple))">
+        ⏪ ${isEn ? 'Redo Last Week' : '回到上一周'}
+      </button>
+    </div>
   `;
 
   modal.classList.add('active');
@@ -2927,6 +2956,7 @@ function showEnding(endingId) {
     </div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
       <button class="btn-restart" onclick="restartGame()">🔄 ${isEn ? 'Restart' : '重新开始'}</button>
+      ${(endingId === 'burnout' || endingId === 'expelled') && gameState._lastWeekSnapshot ? `<button class="btn-restart" onclick="goBackOneWeek()" style="border-color:var(--accent-blue);color:var(--accent-blue)">⏪ ${isEn ? 'Redo Last Week' : '回到上一周'}</button>` : ''}
       <button class="btn-restart" onclick="showCollection()" style="border-color:var(--accent-purple);color:var(--accent-purple)">🏆 ${isEn ? 'Collection' : '结局收集'}</button>
       <button class="btn-restart" onclick="showAllEndings()" style="border-color:var(--accent-blue);color:var(--accent-blue)">📖 ${isEn ? 'All Endings' : '结局一览'}</button>
     </div>
@@ -2937,6 +2967,33 @@ function restartGame() {
   initGame();
   document.getElementById('btn-collection').style.display = 'none';
   switchScreen('screen-title');
+}
+
+function goBackOneWeek() {
+  const snap = gameState._lastWeekSnapshot;
+  if (!snap) {
+    showToast(currentLang === 'en' ? 'No snapshot to go back to!' : '没有可回退的存档！', 'warning');
+    return;
+  }
+
+  // Restore snapshot
+  gameState.week = snap.week;
+  gameState.stats = { ...snap.stats };
+  gameState.friends = snap.friends;
+  gameState.gpa = snap.gpa;
+  gameState.gpaCredits = snap.gpaCredits;
+  gameState.portfolio = snap.portfolio;
+  gameState.aiClassCount = snap.aiClassCount;
+  gameState.interning = snap.interning;
+  gameState.weekSlots = [];
+  gameState.history = snap.history.slice();
+  gameState._lastWeekSnapshot = null; // Only one undo allowed
+
+  // Back to game screen
+  document.getElementById('btn-collection').style.display = 'flex';
+  switchScreen('screen-game');
+  renderAll();
+  showToast(currentLang === 'en' ? '⏪ Back to last week! Make better choices!' : '⏪ 回到上一周！重新选择吧！', 'info');
 }
 
 function showToast(msg, type = 'info') {
