@@ -3169,24 +3169,32 @@ function updateCollectionBadge() {
 function showCollection() {
   const collection = getCollection();
   const total = Object.keys(ENDINGS).length;
-
+  const isEn = currentLang === 'en';
   const allEndings = Object.entries(ENDINGS);
 
-  // Group by line
+  // Group by line (use translated line names)
   const groups = {};
   allEndings.forEach(([id, e]) => {
-    const line = e.line || '其他';
+    const en = ENDINGS_EN[id] || {};
+    const line = isEn && en.line ? en.line : (e.line || 'Other');
     if (!groups[line]) groups[line] = [];
-    groups[line].push({ id, ...e, unlocked: collection.includes(id) });
+    groups[line].push({
+      id, ...e,
+      title: isEn && en.title ? en.title : e.title,
+      line: line,
+      unlocked: collection.includes(id)
+    });
   });
 
-  const qualityLabels = { good: '好结局', normal: '普通结局', bad: '坏结局' };
+  const qualityLabels = isEn
+    ? { good: 'Good', normal: 'Normal', bad: 'Bad' }
+    : { good: '好结局', normal: '普通结局', bad: '坏结局' };
 
   let html = `
     <div class="collection-header">
       <div style="font-size:40px;margin-bottom:8px">🏆</div>
-      <div class="collection-header-title">结局收集</div>
-      <div class="collection-header-sub">已收集 ${collection.length} / ${total} 个结局</div>
+      <div class="collection-header-title">${isEn ? 'Collection' : '结局收集'}</div>
+      <div class="collection-header-sub">${isEn ? `Collected ${collection.length} / ${total} endings` : `已收集 ${collection.length} / ${total} 个结局`}</div>
       <div style="margin-top:10px">
         <div class="progress-track" style="height:6px">
           <div class="progress-fill" style="width:${Math.round(collection.length / total * 100)}%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-pink))"></div>
@@ -3215,7 +3223,7 @@ function showCollection() {
             <div class="collection-card-emoji">❓</div>
             <div class="collection-card-title">???</div>
             <div class="collection-card-line">${e.line}</div>
-            <div class="collection-card-quality" style="color:var(--text-muted)">未解锁</div>
+            <div class="collection-card-quality" style="color:var(--text-muted)">${isEn ? 'Locked' : '未解锁'}</div>
           </div>
         `;
       }
@@ -3225,7 +3233,7 @@ function showCollection() {
 
   html += `</div>
     <div style="text-align:center;margin-top:20px">
-      <button class="btn-modal" onclick="closeCollection()">关闭</button>
+      <button class="btn-modal" onclick="closeCollection()">${isEn ? 'Close' : '关闭'}</button>
     </div>
   `;
 
@@ -3242,52 +3250,60 @@ function closeCollection() {
 function showAllEndings() {
   const allEndings = Object.entries(ENDINGS);
   const collection = getCollection();
-  const qualityLabels = { good: '好结局', normal: '普通结局', bad: '坏结局' };
+  const isEn = currentLang === 'en';
+  const qualityLabels = isEn
+    ? { good: 'Good', normal: 'Normal', bad: 'Bad' }
+    : { good: '好结局', normal: '普通结局', bad: '坏结局' };
 
-  // 每个结局的达成条件
   const CONDITIONS = {
-    billionaire:      '🎲 随机事件「赛马会」成功（50%概率）',
-    marriage:         '🎲 随机事件「黄大仙求姻缘」成功（50%概率）',
-    stock_god:        '🎲 随机事件「尘封投资账户」成功（50%概率）',
-    wilderness:       '🎲 随机事件「旷野的呼唤」成功（压力≥60时触发，50%概率）',
-    ai_overlord:      '😰 压力≥70 且 🤖 AI课程累计≥12次',
-    burnout:          '😰 压力值达到100（任何时候触发）',
-    expelled:         '📉 GPA考核未达标：第7周(GPA≥1.5且≥5学分)、第14周(GPA≥2.0且≥12学分)、第20周(GPA≥2.0且≥18学分)',
-    nightclub_good:   '🍸 夜店兼职≥12次 且 💖情商≥70 且 💰金钱≥60',
-    nightclub_normal: '🍸 夜店兼职≥12次 且（💖情商≥50 或 💰金钱≥50）',
-    nightclub_bad:    '🍸 夜店兼职≥12次 且 情商<50 且 金钱<50',
-    startup_good:     '🚀 搞创业≥10次 且 💼技能≥70 且 🧠智商≥60 且 💰金钱≥30',
-    startup_normal:   '🚀 搞创业≥10次 且（💼技能≥50 或 🧠智商≥50）',
-    startup_bad:      '🚀 搞创业≥10次 且 技能<50 且 智商<50',
-    mcd_good:         '🍔 麦当劳打工≥15次 且 💼技能≥60 且 🧠智商≥50 且 💰金钱≥40',
-    mcd_normal:       '🍔 麦当劳打工≥15次 且（💼技能≥40 或 🗣️语言≥50）',
-    mcd_bad:          '🍔 麦当劳打工≥15次 且 技能<40 且 语言<50',
-    influencer_good:  '🎲 随机事件「电影节」成功 且（💖情商≥60 或 💼技能≥60）',
-    influencer_normal:'📱 做自媒体≥10次 且 💼技能≥40',
-    influencer_bad:   '📱 做自媒体≥16次（或电影节成功）但其他条件不满足',
-    work_good2:       '🗣️ 语言≥60 且 💖情商≥50',
-    work_good:        '🎲 游戏酒吧获得Offer，或（💼技能≥70 且 🧠智商≥60）',
-    work_normal:      '💼 技能≥45 或 🧠智商≥45（且不满足好结局条件）',
-    work_bad:         '💼 技能<45 且 🧠智商<45（兜底结局）'
+    billionaire:      { zh: '🎲 随机事件「赛马会」成功（50%概率）', en: '🎲 Horse Race event success (5% chance)' },
+    marriage:         { zh: '🎲 随机事件「黄大仙求姻缘」成功（50%概率）', en: '🎲 Wong Tai Sin event success (5% chance)' },
+    stock_god:        { zh: '🎲 随机事件「尘封投资账户」成功（50%概率）', en: '🎲 Stock Discovery event success (5% chance)' },
+    wilderness:       { zh: '🎲 随机事件「旷野的呼唤」成功（压力≥60时触发，50%概率）', en: '🎲 Wilderness Call event (stress≥60, 5% chance)' },
+    ai_overlord:      { zh: '😰 压力≥70 且 🤖 AI课程累计≥12次', en: '😰 Stress≥70 & 🤖 AI classes≥12' },
+    burnout:          { zh: '😰 压力值达到100（任何时候触发）', en: '😰 Stress reaches 100 (instant trigger)' },
+    expelled:         { zh: '📉 GPA考核未达标', en: '📉 GPA check failed at week 7/14/20' },
+    nightclub_good:   { zh: '🍸 夜店兼职≥12次 且 💖情商≥70 且 💰金钱≥60', en: '🍸 Nightclub≥12 & EQ≥70 & $≥60' },
+    nightclub_normal: { zh: '🍸 夜店兼职≥12次 且（💖情商≥50 或 💰金钱≥50）', en: '🍸 Nightclub≥12 & (EQ≥50 or $≥50)' },
+    nightclub_bad:    { zh: '🍸 夜店兼职≥12次 且 情商<50 且 金钱<50', en: '🍸 Nightclub≥12 & EQ<50 & $<50' },
+    startup_good:     { zh: '🚀 搞创业≥10次 且 💼技能≥70 且 🧠智商≥60 且 💰金钱≥30', en: '🚀 Startup≥10 & Skill≥70 & IQ≥60 & $≥30' },
+    startup_normal:   { zh: '🚀 搞创业≥10次 且（💼技能≥50 或 🧠智商≥50）', en: '🚀 Startup≥10 & (Skill≥50 or IQ≥50)' },
+    startup_bad:      { zh: '🚀 搞创业≥10次 且 技能<50 且 智商<50', en: '🚀 Startup≥10 & Skill<50 & IQ<50' },
+    mcd_good:         { zh: '🍔 麦当劳打工≥15次 且 💼技能≥60 且 🧠智商≥50 且 💰金钱≥40', en: "🍔 McDonald's≥15 & Skill≥60 & IQ≥50 & $≥40" },
+    mcd_normal:       { zh: '🍔 麦当劳打工≥15次 且（💼技能≥40 或 🗣️语言≥50）', en: "🍔 McDonald's≥15 & (Skill≥40 or Lang≥50)" },
+    mcd_bad:          { zh: '🍔 麦当劳打工≥15次 且 技能<40 且 语言<50', en: "🍔 McDonald's≥15 & Skill<40 & Lang<50" },
+    influencer_good:  { zh: '🎲 随机事件「电影节」成功 且（💖情商≥60 或 💼技能≥60）', en: '🎲 Film Fest success & (EQ≥60 or Skill≥60)' },
+    influencer_normal:{ zh: '📱 做自媒体≥10次 且 💼技能≥40', en: '📱 Social Media≥10 & Skill≥40' },
+    influencer_bad:   { zh: '📱 做自媒体≥16次 但其他条件不满足', en: '📱 Social Media≥16 but other conditions not met' },
+    work_good2:       { zh: '🗣️ 语言≥60 且 💖情商≥50', en: '🗣️ Lang≥60 & EQ≥50' },
+    work_good:        { zh: '🎲 游戏酒吧获得Offer，或（💼技能≥70 且 🧠智商≥60）', en: '🎲 Game Bar offer, or (Skill≥70 & IQ≥60)' },
+    work_normal:      { zh: '💼 技能≥45 或 🧠智商≥45', en: '💼 Skill≥45 or IQ≥45' },
+    work_bad:         { zh: '💼 技能<45 且 🧠智商<45（兜底结局）', en: '💼 Skill<45 & IQ<45 (fallback)' }
   };
 
   // Group by line
   const groups = {};
   const lineOrder = [];
   allEndings.forEach(([id, e]) => {
-    const line = e.line || '其他';
-    if (!groups[line]) {
-      groups[line] = [];
-      lineOrder.push(line);
-    }
-    groups[line].push({ id, ...e, collected: collection.includes(id), condition: CONDITIONS[id] || '' });
+    const en = ENDINGS_EN[id] || {};
+    const line = isEn && en.line ? en.line : (e.line || 'Other');
+    if (!groups[line]) { groups[line] = []; lineOrder.push(line); }
+    const cond = CONDITIONS[id] || { zh: '', en: '' };
+    groups[line].push({
+      id, ...e,
+      title: isEn && en.title ? en.title : e.title,
+      desc: isEn && en.desc ? en.desc : e.desc,
+      line,
+      collected: collection.includes(id),
+      condition: isEn ? cond.en : cond.zh
+    });
   });
 
   let html = `
     <div class="collection-header">
       <div style="font-size:40px;margin-bottom:8px">📖</div>
-      <div class="collection-header-title">结局一览</div>
-      <div class="collection-header-sub">全部 ${allEndings.length} 个结局 · 点击展开查看详情和达成条件</div>
+      <div class="collection-header-title">${isEn ? 'All Endings' : '结局一览'}</div>
+      <div class="collection-header-sub">${isEn ? `All ${allEndings.length} endings · Click to expand` : `全部 ${allEndings.length} 个结局 · 点击展开查看详情`}</div>
     </div>
     <div class="endings-gallery">
   `;
@@ -3298,8 +3314,8 @@ function showAllEndings() {
 
     endings.forEach(e => {
       const collectedTag = e.collected
-        ? '<span style="font-size:10px;background:rgba(52,211,153,0.12);color:var(--accent-green);padding:1px 6px;border-radius:8px;margin-left:6px">✓ 已收集</span>'
-        : '<span style="font-size:10px;background:rgba(255,255,255,0.06);color:var(--text-muted);padding:1px 6px;border-radius:8px;margin-left:6px">未收集</span>';
+        ? `<span style="font-size:10px;background:rgba(52,211,153,0.12);color:var(--accent-green);padding:1px 6px;border-radius:8px;margin-left:6px">✓ ${isEn ? 'Got' : '已收集'}</span>`
+        : `<span style="font-size:10px;background:rgba(255,255,255,0.06);color:var(--text-muted);padding:1px 6px;border-radius:8px;margin-left:6px">${isEn ? 'Locked' : '未收集'}</span>`;
 
       html += `
         <div class="ending-full-card" onclick="toggleEndingCard(this)">
@@ -3316,7 +3332,7 @@ function showAllEndings() {
           </div>
           <div class="ending-full-body">
             <div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.15);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;line-height:1.7">
-              <span style="color:var(--accent-blue);font-weight:600">📋 达成条件：</span><br>
+              <span style="color:var(--accent-blue);font-weight:600">📋 ${isEn ? 'Condition:' : '达成条件：'}</span><br>
               <span style="color:var(--text-secondary)">${e.condition}</span>
             </div>
             ${e.desc.replace(/\n/g, '<br>')}
@@ -3328,7 +3344,7 @@ function showAllEndings() {
 
   html += `</div>
     <div style="text-align:center;margin-top:20px">
-      <button class="btn-modal" onclick="closeAllEndings()">关闭</button>
+      <button class="btn-modal" onclick="closeAllEndings()">${isEn ? 'Close' : '关闭'}</button>
     </div>
   `;
 
