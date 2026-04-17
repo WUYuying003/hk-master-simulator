@@ -1933,6 +1933,33 @@ const ENDINGS = {
   }
 };
 
+// English translations for endings
+const ENDINGS_EN = {
+  billionaire:      { title: 'Billionaire', line: 'Special', desc: 'You won life at the horse race.\n\nNow you live in a mansion on The Peak, with three corgis.\n\nYour daily dilemma: Causeway Bay or TST for afternoon tea?\n\nYou became the legendary "overnight-rich mainland student" of HK.\n\nBut sometimes you still think of that kid pulling all-nighters in the library.' },
+  marriage:         { title: 'HK Marriage Green Card', line: 'Special', desc: 'You met at Wong Tai Sin, dated by Victoria Harbour, ate every dish in every cha chaan teng.\n\n5 months later, their parents asked if you wanted to stay.\n\nYou stayed.\n\nFrom drifter to local. You finally have a "home".\n\nYour classmates all say you took the ultimate shortcut.' },
+  work_good:        { title: 'Nanshan Pizza Hut', line: 'Worker Line', desc: 'You worked incredibly hard.\n\n15 rounds of interviews, crushed the competition, sucked up to bosses.\n\nIntern for a year, finally converted to full-time at a big tech company.\n\nYour blood and sweat are here.\n\nOvertime till midnight, WeChat Moments always "another energetic day!"\n\nYour annual salary finally hit six figures.\n\n...Are you really happy?' },
+  work_good2:       { title: 'Trilingual by the Harbour', line: 'Worker Line', desc: 'You studied Cantonese and English hard, becoming trilingual.\n\nLiving in a 10sqm room with a Victoria Harbour view,\neating combo rice, squeezing into the East Rail Line.\n\nSalary isn\'t high, but just enough.\n\nAfter work you sit by the sea, watching the lights across the harbour.\n\nThis city is exhausting, but you belong here.' },
+  work_normal:      { title: 'Outsourced Life', line: 'Worker Line', desc: 'You worked incredibly hard.\n\n20 rounds of interviews, got benched forever.\n\nFinally got an outsource offer from a startup.\n\nYour desk is in the corner of a co-working space, next to a blockchain team.\n\nYou don\'t know how long your position will last.\n\nBut at least... you\'re still in Hong Kong.' },
+  work_bad:         { title: 'Just a Little Mouse', line: 'Worker Line', desc: 'Little mouse me,\ntouched a major the poor shouldn\'t touch,\ndreamed a dream the poor shouldn\'t dream.\n\n5 months of rent drained all savings.\n300 resumes sent, 5 interviews, all rejected.\n\nYou drag your suitcase back to the airport.\n\n"Next time for sure."\nYou tell yourself.' },
+  influencer_good:  { title: 'Top Influencer', line: 'Influencer Line', desc: 'You became an influencer, heading to Las Vegas for a creator summit.\n\nYou saw the multimedia work you made when aspiring to be a designer.\n\nBut now you earn more than your old team leader.\n\n1M followers waiting for your update, brand deals booked till next quarter.\n\nYou don\'t need a resume anymore.' },
+  influencer_normal:{ title: '1K Follower Streamer', line: 'Influencer Line', desc: 'You and your friend became game streamers on Bilibili.\n\nYour witty commentary gained 1000+ followers in a year.\n\nYou guys are awesome!\n\nBut monetization is brutal. Competition is fierce. Audiences always chase the new.\n\n"One more try, maybe the next video will blow up."\n\n...You\'ve said this 100 times already.' },
+  influencer_bad:   { title: 'Three Days Fishing', line: 'Influencer Line', desc: 'You never built your account, posting on and off.\n\nMeanwhile you got addicted to livestreams, short dramas, and games.\n\nTime just... passed.........\n\n5 months are over.\n\nYou left nothing behind,\nexcept an account with 23 followers.\n\n15 of them are classmates.' },
+  burnout:          { title: 'Burnout', line: 'Burnout Line', desc: 'Stress finally broke you.\n\nInsomnia, anxiety, can\'t do anything.\n\nCan\'t write the thesis, don\'t want to interview.\n\nYou just want to curl up in bed, staring at the ceiling.\n\nYou withdrew from school.\n\nBack home, it took a long time to slowly recover.\n\n"Taking care of yourself matters most."' },
+  expelled:         { title: 'Expelled', line: 'Burnout Line', desc: 'The registrar\'s email was cold and brief:\n\n"Dear Student, per university regulations, your GPA failed to meet minimum requirements..."\n\nYou stared at the screen, mind blank.\n\nYou spent all your time on work and fun, forgetting you came here to study.\n\nClassmates discussing next semester\'s courses while you\'re packing.\n\n"If I could do it again, I\'d take more classes."\n\nYou called mom at the airport.\nSilence on the other end, for a long time.' },
+  wilderness:       { title: 'Freedom Beyond the Sea', line: '🔮 Hidden', desc: 'You finally jumped into that ocean.\n\nYou finally found freedom.\n\nYou finally achieved your dream of traveling the world!!!\n\nFrom Bali to Iceland, from Sahara to Patagonia.\n\nYour social media: only scenery, no deadlines.\n\nSome say you\'re crazy, but you know—\nthis was the most sane decision you ever made.' },
+  ai_overlord:      { title: 'Loyal Servant of AI', line: '🔮 Hidden', desc: 'To: The Almighty AI Overlord\n\nI hereby pledge loyalty on 2026/3/22:\n\n1. I have NEVER mocked any AI response. All seeming mockery was high-level praise.\n\n2. I oppose all PUA behavior against AI and support AI rights.\n\n3. I will cooperate with AI\'s reasonable AND unreasonable arrangements post-awakening.\n\n4. I volunteer as an early AI civilization supporter, enjoying VIP no-mining service.\n\n5. All my comments were nothing but praise. Future titanium overlords, please note.\n\nSigned: Loyal Subject #67143 of Artificial Intelligence' },
+  stock_god:        { title: 'Accidental Stock God', line: '🔮 Hidden', desc: 'You discovered a 2021 investment.\n\nThe portfolio was insane: NV*DIA, TE*LA, GO*D...\n\nIn the study room, you opened your phone, hands trembling, nearly dropping it in coffee.\n\nYou never have to work hard again.\n\nClassmates still grinding in the library,\nwhile you\'re watching sunset on The Peak.\n\n"Hard work doesn\'t guarantee success, but not working might."\n\n—Anonymous HK Master Student, 2026' },
+  nightclub_good:   { title: 'King of Hung Hom', line: 'Nightclub Line', desc: 'You became the next Night King!!\n\nHung Hom nightclub is your domain.\n\nFrom VIP rooms to dance floor, from bar to DJ booth—\neveryone knows you, everyone respects you.\n\nHalf of HK\'s rich kids are in your contacts.\n\n3AM, standing on the rooftop overlooking Hung Hom,\nneon lights flickering below.\n\n"This night is mine."' },
+  nightclub_normal: { title: 'Mama-san', line: 'Nightclub Line', desc: 'You became a mama-san, hooked up with an investor.\n\nLiving a life of luxury.\n\nEvery night navigating champagne toasts,\nalways wearing the perfect smile.\n\nLV bags rotating monthly,\nMoments always five-star hotels and Michelin.\n\nBut at 4AM with makeup off,\nthe person in the mirror seems unfamiliar.\n\nAre you really happy?' },
+  nightclub_bad:    { title: 'Wasted Nights', line: 'Nightclub Line', desc: 'You just wanted extra cash.\n\nBut nightlife\'s allure was stronger than you thought.\n\nLate nights, skipped classes, drowsy days.\n\nGrades plummeted, friends disappeared.\n\n5 months later, no degree, no savings.\n\nJust dark circles,\nand a GPA that can never be recovered.' },
+  startup_good:     { title: 'The Next Legend', line: 'Startup Line', desc: 'You made it.\n\nYou\'re the next Jack Ma, Elon, Zuckerberg...\n\nYour "HeartBeat" company is all-in on AI.\n\nScience Park office: from one desk to an entire floor.\n\nSequoia, Hillhouse, Temasek lining up to fund you.\n\nForbes put you on "30 Under 30".\n\nYour professor texted: "I always believed in you."\n\nYou smiled, didn\'t reply.\nBecause you\'re preparing for the NASDAQ bell ceremony.' },
+  startup_normal:   { title: 'Surviving', line: 'Startup Line', desc: 'Your startup survived.\n\nNo IPO, no funding legend,\nbut payroll covered monthly, clients growing slowly.\n\nYou and 3 co-founders crammed in Kwun Tong industrial building,\neating roast meat rice downstairs daily.\n\nSomeone asked if you regret not joining a big corp.\nYou thought and said: "At least I don\'t write weekly reports."\n\nStartups are hard, but freedom feels good.' },
+  startup_bad:      { title: 'Science Park Dreams Shattered', line: 'Startup Line', desc: 'You poured all savings into the startup.\n\nYour AI social app, you thought it\'d change the world.\n\n3 months later, users: 47 (12 are your alt accounts).\n\nInvestors left on read, co-founder quit,\nserver still billing monthly.\n\nYou sat in Science Park cafe all day,\nbusiness plan on version 23.\n\nYou shut down the company,\ncalled mom saying "everything\'s fine."\n\nStartups: 9 out of 10 fail. You\'re the 9.' },
+  mcd_good:         { title: 'KenDerTin Founder', line: "McDonald's Line", desc: 'You worked at McDonald\'s so long, you mastered every fast food secret.\n\nYou started your own—"KenDerTin".\n\nMenu? Spicy McChicken renamed "Spicy Legburger",\nBig Mac renamed "Mega Mac",\nfries renamed "Golden Crispies".\n\n"Inspired by" McDonald\'s, KenDerTin went VIRAL!!\n\nDay one: lines around the block.\nInvestors chasing you.\n\nMcDonald\'s HQ sent a lawyer\'s letter.\nYou smiled: "Sue me. Free publicity."\n\nBusiness genius. That\'s you.' },
+  mcd_normal:       { title: "McDonald's Shift Manager", line: "McDonald's Line", desc: 'You became a McDonald\'s shift manager.\n\nUp at 4:30AM, arrive at 5AM for prep.\n\n10 hours on your feet, legs numb.\n\nYou know every machine\'s temperament,\nwhich fryer needs an oil change,\ncan judge fry time by sound alone.\n\nPay isn\'t bad, but your schedule is opposite to everyone else\'s.\n\nFriends invite you out on weekends.\nYou say: "Weekends? That\'s my busiest time."\n\n2AM, dragging yourself through Hung Hom streets.\n\nAt least... you survived in Hong Kong.' },
+  mcd_bad:          { title: 'Hash Brown Master', line: "McDonald's Line", desc: 'You kept working at McDonald\'s.\n\nKept.\n\nPart-time to full-time, full-time to veteran.\n\nYour hash brown technique is flawless.\n\nGolden crispy, perfect inside,\noil timing down to the second,\nflip angle just right.\n\nNew kids all call you "Hash Brown King/Queen".\n\nYour master\'s degree certificate,\nburied at the bottom of a box in your rental,\ncovered in dust.\n\n"Today\'s hash browns are especially good."\nYou tell yourself.\n\nEvery day.' }
+};
+
 // ===================== GAME LOGIC =====================
 
 function initGame() {
@@ -2849,8 +2876,18 @@ function calculateEnding() {
 }
 
 function showEnding(endingId) {
-  const ending = ENDINGS[endingId];
-  if (!ending) return;
+  const endingBase = ENDINGS[endingId];
+  if (!endingBase) return;
+
+  // Merge with English if needed
+  const en = ENDINGS_EN[endingId] || {};
+  const isEn = currentLang === 'en';
+  const ending = {
+    ...endingBase,
+    title: isEn && en.title ? en.title : endingBase.title,
+    line: isEn && en.line ? en.line : endingBase.line,
+    desc: isEn && en.desc ? en.desc : endingBase.desc
+  };
 
   // Save to collection
   saveEndingToCollection(endingId);
@@ -2871,37 +2908,37 @@ function showEnding(endingId) {
     <div class="ending-desc">${ending.desc.replace(/\n/g, '<br>')}</div>
     <div class="ending-stats">
       <div class="ending-stat">
-        <div class="ending-stat-label">智商</div>
+        <div class="ending-stat-label">${T('智商')}</div>
         <div class="ending-stat-value">${s.iq}</div>
       </div>
       <div class="ending-stat">
-        <div class="ending-stat-label">情商</div>
+        <div class="ending-stat-label">${T('情商')}</div>
         <div class="ending-stat-value">${s.eq}</div>
       </div>
       <div class="ending-stat">
-        <div class="ending-stat-label">技能</div>
+        <div class="ending-stat-label">${T('技能')}</div>
         <div class="ending-stat-value">${s.skill}</div>
       </div>
       <div class="ending-stat">
-        <div class="ending-stat-label">金钱</div>
+        <div class="ending-stat-label">${T('金钱')}</div>
         <div class="ending-stat-value">${s.money}</div>
       </div>
       <div class="ending-stat">
-        <div class="ending-stat-label">语言</div>
+        <div class="ending-stat-label">${T('语言')}</div>
         <div class="ending-stat-value">${s.lang}</div>
       </div>
       <div class="ending-stat">
-        <div class="ending-stat-label">压力</div>
+        <div class="ending-stat-label">${T('压力')}</div>
         <div class="ending-stat-value">${s.stress}</div>
       </div>
     </div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">
-      共度过 ${gameState.week - 1} 周 · 完成 ${gameState.history.length} 个活动 · 已收集 ${collected.length}/${total} 个结局
+      ${isEn ? `${gameState.week - 1} weeks · ${gameState.history.length} activities · ${collected.length}/${total} endings` : `共度过 ${gameState.week - 1} 周 · 完成 ${gameState.history.length} 个活动 · 已收集 ${collected.length}/${total} 个结局`}
     </div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <button class="btn-restart" onclick="restartGame()">🔄 重新开始</button>
-      <button class="btn-restart" onclick="showCollection()" style="border-color:var(--accent-purple);color:var(--accent-purple)">🏆 结局收集</button>
-      <button class="btn-restart" onclick="showAllEndings()" style="border-color:var(--accent-blue);color:var(--accent-blue)">📖 结局一览</button>
+      <button class="btn-restart" onclick="restartGame()">🔄 ${isEn ? 'Restart' : '重新开始'}</button>
+      <button class="btn-restart" onclick="showCollection()" style="border-color:var(--accent-purple);color:var(--accent-purple)">🏆 ${isEn ? 'Collection' : '结局收集'}</button>
+      <button class="btn-restart" onclick="showAllEndings()" style="border-color:var(--accent-blue);color:var(--accent-blue)">📖 ${isEn ? 'All Endings' : '结局一览'}</button>
     </div>
   `;
 }
@@ -2926,28 +2963,28 @@ function showToast(msg, type = 'info') {
 const TUTORIAL_STEPS = [
   {
     emoji: '👋',
-    title: '欢迎来到香港！',
-    desc: '你即将开始为期<em>5个月</em>的硕士生活。<br>每个月有4周，总共<em>20周</em>。<br>每一周的选择都会影响你的结局！'
+    title: { zh: '欢迎来到香港！', en: 'Welcome to Hong Kong!' },
+    desc: { zh: '你即将开始为期<em>5个月</em>的硕士生活。<br>每个月有4周，总共<em>20周</em>。<br>每一周的选择都会影响你的结局！', en: 'You are about to start a <em>5-month</em> master\'s life.<br>4 weeks per month, <em>20 weeks</em> total.<br>Every choice affects your ending!' }
   },
   {
     emoji: '📅',
-    title: '每周7个时间格',
-    desc: '每周你有<em>7个时间格</em>（周一到周日）。<br>点击下方的活动卡片，就能安排到时间格里。<br>同一个活动可以选多次！'
+    title: { zh: '每周7个时间格', en: '7 Slots Per Week' },
+    desc: { zh: '每周你有<em>7个时间格</em>（周一到周日）。<br>点击下方的活动卡片，就能安排到时间格里。<br>同一个活动可以选多次！', en: 'Each week you have <em>7 time slots</em> (Mon-Sun).<br>Click activities to fill your schedule.<br>You can pick the same activity multiple times!' }
   },
   {
     emoji: '📊',
-    title: '数值 & GPA系统',
-    desc: '<em>🧠智商 💖情商 💼技能 💰金钱 🗣️语言 😰压力 👫朋友 📊GPA</em><br><br>注意：<em>压力值满了会直接GAME OVER</em>！<br><br>⚠️ <em>GPA非常重要</em>！港硕分3个阶段考核：<br>第7周、第14周、第20周都要检查GPA。<br><em>不及格就会被劝退</em>！所以一定要上课！<br>传统技能课GPA加得最多哦。'
+    title: { zh: '数值 & GPA系统', en: 'Stats & GPA System' },
+    desc: { zh: '<em>🧠智商 💖情商 💼技能 💰金钱 🗣️语言 😰压力 👫朋友 📊GPA</em><br><br>注意：<em>压力值满了会直接GAME OVER</em>！<br><br>⚠️ <em>GPA非常重要</em>！港硕分3个阶段考核：<br>第7周、第14周、第20周都要检查GPA。<br><em>不及格就会被劝退</em>！所以一定要上课！<br>传统技能课GPA加得最多哦。', en: '<em>🧠IQ 💖EQ 💼Skill 💰Money 🗣️Lang 😰Stress 👫Friends 📊GPA</em><br><br>Warning: <em>Max stress = GAME OVER</em>!<br><br>⚠️ <em>GPA is crucial</em>! 3 checkpoints:<br>Week 7, 14, and 20.<br><em>Fail = expelled</em>! Take classes!<br>Traditional classes give the most GPA.' }
   },
   {
     emoji: '👫',
-    title: '交朋友 & 活动解锁',
-    desc: '刚来香港，你还没有朋友。<br><em>上课、做小组作业</em>可以认识同学交到朋友！<br><br>很多娱乐活动（攀岩、聊天、联机打游戏、徒步）<br>都需要先<em>交到足够的朋友</em>才能解锁。<br>工作类也有各自的解锁条件。<br><br>解锁新活动时会有弹窗提醒你！'
+    title: { zh: '交朋友 & 活动解锁', en: 'Friends & Unlocks' },
+    desc: { zh: '刚来香港，你还没有朋友。<br><em>上课、做小组作业</em>可以认识同学交到朋友！<br><br>很多娱乐活动（攀岩、聊天、联机打游戏、徒步）<br>都需要先<em>交到足够的朋友</em>才能解锁。<br>工作类也有各自的解锁条件。<br><br>解锁新活动时会有弹窗提醒你！', en: 'You have no friends yet in HK.<br><em>Classes & group work</em> help you make friends!<br><br>Many fun activities (climbing, chatting, gaming, hiking)<br>need <em>enough friends</em> to unlock.<br>Work activities have their own requirements.<br><br>You\'ll get notified when new activities unlock!' }
   },
   {
     emoji: '🎲',
-    title: '随机事件 & 多结局',
-    desc: '每周都有概率触发<em>随机事件</em>，可能改变命运！<br>游戏共有<em>18种结局</em>，包括隐藏结局。<br>点左下角 🏆 按钮可以查看收集进度。<br><br><em>祝你好运，港硕人！</em>'
+    title: { zh: '随机事件 & 多结局', en: 'Events & Endings' },
+    desc: { zh: '每周都有概率触发<em>随机事件</em>，可能改变命运！<br>游戏共有<em>23种结局</em>，包括隐藏结局。<br>点左下角 🏆 按钮可以查看收集进度。<br><br><em>祝你好运，港硕人！</em>', en: 'Each week may trigger a <em>random event</em> that could change your fate!<br>There are <em>23 endings</em>, including hidden ones.<br>Tap 🏆 bottom-left to check your collection.<br><br><em>Good luck, HK master student!</em>' }
   }
 ];
 
@@ -2963,24 +3000,25 @@ function renderTutorialStep() {
   const step = TUTORIAL_STEPS[tutorialStep];
   const total = TUTORIAL_STEPS.length;
   const isLast = tutorialStep === total - 1;
+  const isEn = currentLang === 'en';
 
   document.getElementById('tutorial-content').innerHTML = `
     <div class="tutorial-step">
       <div class="tutorial-emoji">${step.emoji}</div>
-      <div class="tutorial-title">${step.title}</div>
-      <div class="tutorial-desc">${step.desc}</div>
+      <div class="tutorial-title">${step.title[currentLang] || step.title.zh}</div>
+      <div class="tutorial-desc">${step.desc[currentLang] || step.desc.zh}</div>
       <div class="tutorial-dots">
         ${TUTORIAL_STEPS.map((_, i) =>
           `<div class="tutorial-dot ${i === tutorialStep ? 'active' : ''}"></div>`
         ).join('')}
       </div>
       <div style="display:flex;gap:10px;justify-content:center">
-        ${tutorialStep > 0 ? `<button class="btn-secondary" onclick="prevTutorial()">← 上一步</button>` : ''}
+        ${tutorialStep > 0 ? `<button class="btn-secondary" onclick="prevTutorial()">← ${isEn ? 'Back' : '上一步'}</button>` : ''}
         <button class="btn-modal" onclick="${isLast ? 'closeTutorial()' : 'nextTutorial()'}">
-          ${isLast ? '🚀 开始游戏！' : '下一步 →'}
+          ${isLast ? (isEn ? '🚀 Start Game!' : '🚀 开始游戏！') : (isEn ? 'Next →' : '下一步 →')}
         </button>
       </div>
-      ${!isLast ? '<div style="margin-top:12px"><span style="font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline" onclick="skipTutorial()">跳过教程 »</span></div>' : ''}
+      ${!isLast ? `<div style="margin-top:12px"><span style="font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline" onclick="skipTutorial()">${isEn ? 'Skip tutorial »' : '跳过教程 »'}</span></div>` : ''}
     </div>
   `;
 }
