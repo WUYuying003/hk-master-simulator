@@ -160,6 +160,35 @@
   }
 
   /* === Game Top Bar === */
+  .lang-toggle {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 50;
+    display: flex;
+    gap: 2px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 2px;
+  }
+  .lang-btn {
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lang-btn:hover { color: var(--text-primary); }
+  .lang-btn.active {
+    background: var(--accent-gold);
+    color: #000;
+  }
+
   .game-topbar {
     display: flex;
     justify-content: space-between;
@@ -1334,6 +1363,12 @@
 </head>
 <body>
 
+<!-- Language Toggle -->
+<div class="lang-toggle">
+  <button class="lang-btn active" data-lang="zh" onclick="switchLang('zh')">中文</button>
+  <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
+</div>
+
 <div id="app">
   <!-- Title Screen -->
   <div id="screen-title" class="screen active">
@@ -1461,6 +1496,97 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script>
+// ===================== I18N SYSTEM =====================
+let currentLang = localStorage.getItem('hk_sim_lang') || 'zh';
+
+const I18N = {
+  // UI
+  '港硕模拟器': { en: 'HK Master Sim' },
+  'HONG KONG MASTER SIMULATOR': { en: 'HONG KONG MASTER SIMULATOR' },
+  '开始留学之旅': { en: 'Start Journey' },
+  '开始第一周': { en: 'Start Week 1' },
+  '确认本周安排': { en: 'Confirm Week' },
+  '本周已排满！': { en: 'Week is full!' },
+  '重新开始': { en: 'Restart' },
+  '结局收集': { en: 'Collection' },
+  '结局一览': { en: 'All Endings' },
+  '实习中': { en: 'Interning' },
+  // Stats
+  '智商': { en: 'IQ' },
+  '情商': { en: 'EQ' },
+  '技能': { en: 'Skill' },
+  '金钱': { en: 'Money' },
+  '压力': { en: 'Stress' },
+  '语言': { en: 'Lang' },
+  '朋友': { en: 'Friends' },
+  'GPA': { en: 'GPA' },
+  // Time
+  '第': { en: 'M' },
+  '月': { en: '' },
+  '周': { en: 'W' },
+  // Categories
+  '娱乐': { en: 'Fun' },
+  '学习': { en: 'Study' },
+  '工作': { en: 'Work' },
+  // Activities
+  '游泳': { en: 'Swimming' },
+  '看电影': { en: 'Movie' },
+  '逛街': { en: 'Shopping' },
+  '吃寿司郎': { en: 'Sushiro' },
+  '攀岩': { en: 'Climbing' },
+  '和朋友聊天': { en: 'Chatting' },
+  '联机打游戏': { en: 'Gaming' },
+  '徒步': { en: 'Hiking' },
+  '上传统技能课': { en: 'Trad Class' },
+  '上AI技能课': { en: 'AI Class' },
+  '上语言课': { en: 'Lang Class' },
+  '做小组作业': { en: 'Group Work' },
+  '改作品集': { en: 'Portfolio' },
+  '做毕业项目': { en: 'Thesis' },
+  '实习': { en: 'Intern' },
+  '做研究助理': { en: 'RA' },
+  '做活动兼职': { en: 'Event PT' },
+  '做麦当劳打工': { en: "McDonald's" },
+  '做独立游戏': { en: 'Indie Game' },
+  '做自媒体': { en: 'Social Media' },
+  '夜店兼职': { en: 'Nightclub' },
+  '搞创业': { en: 'Startup' },
+  // Week days
+  '一': { en: 'Mo' },
+  '二': { en: 'Tu' },
+  '三': { en: 'We' },
+  '四': { en: 'Th' },
+  '五': { en: 'Fr' },
+  '六': { en: 'Sa' },
+  '日': { en: 'Su' },
+  // Misc
+  '上周': { en: 'Last Week' },
+  '做好准备了吗？': { en: 'Are you ready?' },
+};
+
+function T(text) {
+  if (currentLang === 'zh') return text;
+  const entry = I18N[text];
+  return entry && entry[currentLang] ? entry[currentLang] : text;
+}
+
+function switchLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('hk_sim_lang', lang);
+  // Re-render current screen
+  const gameScreen = document.getElementById('screen-game');
+  if (gameScreen.classList.contains('active')) {
+    renderAll();
+  }
+  updateLangButtons();
+}
+
+function updateLangButtons() {
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+}
+
 // ===================== GAME DATA =====================
 const GAME_CONFIG = {
   totalMonths: 5,
@@ -1819,18 +1945,19 @@ function renderAll() {
 function renderTopBar() {
   const month = Math.ceil(gameState.week / 4);
   const weekInMonth = ((gameState.week - 1) % 4) + 1;
-  document.getElementById('current-time').textContent = `第${month}月 第${weekInMonth}周`;
-  document.getElementById('total-progress').textContent = `${gameState.week - 1}/${GAME_CONFIG.totalWeeks}周`;
+  document.getElementById('current-time').textContent = currentLang === 'zh' ? `第${month}月 第${weekInMonth}周` : `M${month} W${weekInMonth}`;
+  document.getElementById('total-progress').textContent = `${gameState.week - 1}/${GAME_CONFIG.totalWeeks}${T('周')}`;
 
   const s = gameState.stats;
   const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits).toFixed(1) : '0.0';
-  const internTag = gameState.interning ? '<span class="topbar-badge" style="border-color:var(--accent-orange);color:var(--accent-orange)">👔实习中</span>' : '';
+  const internTag = gameState.interning ? `<span class="topbar-badge" style="border-color:var(--accent-orange);color:var(--accent-orange)">👔${T('实习中')}</span>` : '';
 
+  // 只显示图标，不显示数字
   document.getElementById('topbar-badges').innerHTML = `
-    <span class="topbar-badge">💰 ${s.money}</span>
-    <span class="topbar-badge" style="${s.stress >= 80 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">😰 ${s.stress}/100</span>
-    <span class="topbar-badge" style="${parseFloat(gpaDisplay) < 2.0 && gameState.gpaCredits > 0 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">📊 ${gpaDisplay}</span>
-    <span class="topbar-badge">👫 ${gameState.friends}</span>
+    <span class="topbar-badge">💰</span>
+    <span class="topbar-badge" style="${s.stress >= 80 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">😰${s.stress >= 80 ? '⚠️' : ''}</span>
+    <span class="topbar-badge" style="${parseFloat(gpaDisplay) < 2.0 && gameState.gpaCredits > 0 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">📊</span>
+    <span class="topbar-badge">👫</span>
     ${internTag}
   `;
 }
@@ -1851,16 +1978,14 @@ function renderSideStats() {
 
   document.getElementById('side-stats').innerHTML = stats.map(st => {
     const pct = Math.min(100, Math.round((st.val / st.max) * 100));
-    const display = st.isGpa ? st.val.toFixed(1) : st.val;
     const danger = (st.name === '压力' && st.val >= 80) || (st.name === 'GPA' && gpaDisplay < 2.0 && gameState.gpaCredits > 0);
     return `
       <div class="side-stat">
         <div class="side-stat-header">
-          <div class="side-stat-label"><span>${st.icon}</span>${st.name}</div>
-          <div class="side-stat-val" style="${danger ? 'color:var(--accent-red)' : 'color:var(--text-primary)'}">${display}</div>
+          <div class="side-stat-label"><span>${st.icon}</span>${T(st.name)}</div>
         </div>
-        <div class="side-stat-bar">
-          <div class="side-stat-bar-fill" style="width:${pct}%;background:${st.color}"></div>
+        <div class="side-stat-bar" style="${danger ? 'animation:pulse 1.5s ease infinite' : ''}">
+          <div class="side-stat-bar-fill" style="width:${pct}%;background:${danger ? 'var(--accent-red)' : st.color}"></div>
         </div>
       </div>
     `;
@@ -1873,9 +1998,9 @@ function renderCenterActivities() {
   const slotsFull = gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek;
 
   const cols = [
-    { key:'fun', label:'🎮 娱乐', cls:'fun' },
-    { key:'study', label:'📚 学习', cls:'study' },
-    { key:'work', label:'💼 工作', cls:'work' }
+    { key:'fun', label:`🎮 ${T('娱乐')}`, cls:'fun' },
+    { key:'study', label:`📚 ${T('学习')}`, cls:'study' },
+    { key:'work', label:`💼 ${T('工作')}`, cls:'work' }
   ];
 
   container.innerHTML = cols.map(col => {
@@ -1894,7 +2019,7 @@ function renderCenterActivities() {
                    style="${slotsFull && !isLocked ? 'opacity:0.4;cursor:not-allowed' : ''}">
                 <div class="act-item-emoji">${item.emoji}${count > 0 ? '<span style="font-size:9px;position:relative;top:-4px;color:var(--accent-gold)">'+count+'</span>' : ''}</div>
                 <div class="act-item-info">
-                  <div class="act-item-name">${item.name}</div>
+                  <div class="act-item-name">${T(item.name)}</div>
                   <div class="act-item-desc">${item.desc}</div>
                   <div class="act-item-tooltip">
                     ${Object.entries(item.effects).map(([k, v]) => {
@@ -1924,16 +2049,16 @@ function renderWeekSlots() {
       const isLockedIntern = slot.locked && slot.id === 'intern';
       return `
         <div class="week-slot filled ${isLockedIntern ? 'intern-locked' : ''}" ${!isLockedIntern ? `onclick="removeSlot(${i})"` : ''}>
-          <div class="week-slot-label">${day}</div>
+          <div class="week-slot-label">${T(day)}</div>
           <div class="week-slot-content">${slot.emoji}</div>
-          <div class="week-slot-name">${slot.name}</div>
+          <div class="week-slot-name">${T(slot.name)}</div>
           ${isLockedIntern ? '<div style="font-size:7px;color:var(--accent-orange)">📌</div>' : '<div class="remove-btn">✕</div>'}
         </div>
       `;
     }
     return `
       <div class="week-slot">
-        <div class="week-slot-label">${day}</div>
+        <div class="week-slot-label">${T(day)}</div>
         <div class="week-slot-content" style="color:var(--text-muted);font-size:14px">+</div>
       </div>
     `;
@@ -2103,11 +2228,11 @@ function updateConfirmButton() {
   const count = gameState.weekSlots.length;
   btn.disabled = count === 0;
   if (count === GAME_CONFIG.slotsPerWeek) {
-    btn.textContent = `✅ 确认本周安排 (${count}/${GAME_CONFIG.slotsPerWeek})`;
+    btn.textContent = `✅ ${T('确认本周安排')} (${count}/${GAME_CONFIG.slotsPerWeek})`;
   } else if (count > 0) {
-    btn.textContent = `⏩ 确认本周安排 (${count}/${GAME_CONFIG.slotsPerWeek})`;
+    btn.textContent = `⏩ ${T('确认本周安排')} (${count}/${GAME_CONFIG.slotsPerWeek})`;
   } else {
-    btn.textContent = `请选择本周活动`;
+    btn.textContent = currentLang === 'zh' ? '请选择本周活动' : 'Pick activities';
   }
 }
 
@@ -3164,6 +3289,7 @@ function closeAllEndings() {
 document.addEventListener('DOMContentLoaded', () => {
   switchScreen('screen-title');
   updateCollectionBadge();
+  updateLangButtons();
 });
 </script>
 </body>
