@@ -290,15 +290,6 @@
   .act-item-desc { font-size: 8px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .act-item-lock { font-size: 7px; color: var(--accent-orange); }
 
-  /* Hover tooltip for effects - inline below name */
-  .act-item-tooltip {
-    display: none;
-    flex-wrap: wrap;
-    gap: 3px;
-    margin-top: 3px;
-  }
-  .act-item:hover .act-item-tooltip { display: flex; }
-
   /* === Bottom Section === */
   .bottom-section {
     background: var(--bg-secondary);
@@ -616,7 +607,6 @@
 
   /* 手机上hover不生效，数值默认展开 */
   @media (hover: none) {
-    .act-item-tooltip { display: flex !important; }
   }
 
   @media (max-width: 768px) {
@@ -667,7 +657,6 @@
     .act-item-name { font-size: 9px; }
     .act-item-desc { font-size: 7px; }
     .act-item-lock { font-size: 6px; }
-    .act-item-tooltip .effect-tag { font-size: 7px; padding: 0px 3px; }
 
     /* Week slots */
     .week-slots { gap: 3px; }
@@ -707,7 +696,6 @@
     /* Very small phones */
     .center-activities { grid-template-columns: 1fr 1fr 1fr; }
     .act-item-desc { display: none; }
-    .act-item-tooltip .effect-tag { font-size: 6px; }
     .side-stat { min-width: 60px; }
   }
 
@@ -2092,12 +2080,6 @@ function renderCenterActivities() {
                 <div class="act-item-info">
                   <div class="act-item-name">${T(item.name)}</div>
                   <div class="act-item-desc">${T(item.desc)}</div>
-                  <div class="act-item-tooltip">
-                    ${Object.entries(item.effects).map(([k, v]) => {
-                      const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
-                      return `<span class="effect-tag ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
-                    }).join('')}
-                  </div>
                   ${isLocked ? `<div class="act-item-lock">🔒 ${unlock.hint}</div>` : ''}
                 </div>
               </div>
@@ -2239,18 +2221,12 @@ function renderWeekLog() {
   }
 
   logDiv.style.display = 'block';
-  // Show last week's activities (up to 7)
+  document.querySelector('.week-log-title').textContent = currentLang === 'en' ? '📋 Last Week' : '📋 上周';
   const lastWeek = gameState.history.filter(h => h.week === gameState.week - 1);
-  if (lastWeek.length === 0) {
-    const recent = gameState.history.slice(-7);
-    entriesDiv.innerHTML = recent.map(h =>
-      `<span class="log-entry">${h.emoji} ${h.name}</span>`
-    ).join('');
-  } else {
-    entriesDiv.innerHTML = lastWeek.map(h =>
-      `<span class="log-entry">${h.emoji} ${h.name}</span>`
-    ).join('');
-  }
+  const items = lastWeek.length > 0 ? lastWeek : gameState.history.slice(-7);
+  entriesDiv.innerHTML = items.map(h =>
+    `<span class="log-entry">${h.emoji} ${T(h.name)}</span>`
+  ).join('');
 }
 
 function checkStressWarning() {
@@ -2435,118 +2411,106 @@ function generateWeeklyComment(data) {
   const mediaCount = slotIds.filter(id => id === 'media').length;
 
   // Priority: check special combos first
-  if (sushiCount >= 3) return { emoji: '🍣', text: '你这周吃了<em>' + sushiCount + '次</em>寿司郎...<br>排队的时间加起来比上课还长。<br>你的胃：开心。你的钱包：痛哭。' };
-  if (gamingCount >= 4) return { emoji: '🎮', text: '你这周<em>' + gamingCount + '天</em>都在打游戏。<br>你的段位上去了，你的GPA呢？<br>队友：这人怎么天天在线的？？' };
-  if (movieCount >= 3) return { emoji: '🎬', text: '百老汇院线的工作人员已经认识你了。<br>"老样子？大桶爆米花？"<br>你这周看了<em>' + movieCount + '部</em>电影，比影评人还敬业。' };
-  if (shoppingCount >= 3) return { emoji: '🛍️', text: '铜锣湾的店员看到你都笑了——<br>"这位靓女/靓仔又来啦！"<br>你的快递已经多到门卫开始投诉了。' };
-  if (chatCount >= 4) return { emoji: '💬', text: '你这周的社交量堪比外交官。<br>朋友们的八卦你全知道了，<br>但你的作业一个字没写。<br>不过没关系，<em>快乐就完事了</em>。' };
-  if (aiCount >= 4) return { emoji: '🤖', text: '你已经连续' + aiCount + '天学AI了...<br>你开始用ChatGPT写周报、做PPT、甚至点外卖。<br>"未来属于掌握AI的人！"你疯狂暗示自己。<br>你的黑眼圈表示不太赞同。' };
-  if (thesisCount >= 3) return { emoji: '📝', text: '论文战士就是你！<br>你已经和导师邮件往返了' + (thesisCount * 5) + '封。<br>导师的最新回复："再改改。"<br><em>再改改是什么意思？？？</em>' };
-  if (groupCount >= 3) return { emoji: '👥', text: '你这周疯狂做小组作业。<br>你已经成为了全组的爸爸/妈妈，<br>carry全场的感觉如何？<br>Free rider们纷纷表示：<em>"谢谢大佬带飞"</em>' };
-  if (internCount >= 4) return { emoji: '👔', text: '实习牛马就是你本人。<br>你已经连续加班到凌晨，<br>leader说"年轻人就是要多锻炼"。<br>你的眼神已经死了，但PPT做得很漂亮。' };
-  if (mcdCount >= 4) return { emoji: '🍔', text: '"欢迎光临麦当劳！"你已经可以用粤语、英语、普通话无缝切换点餐话术了。<br>你甚至学会了日语的"いらっしゃいませ"。<br><em>语言天才是这样炼成的。</em>' };
-  if (nightCount >= 3) return { emoji: '🍸', text: '你这周在夜总会出没了' + nightCount + '次。<br>你的黑眼圈和社交能力都在疯狂增长。<br>你的同学："你最近气色好好啊怎么做到的？"<br>你："早睡早起。"' };
-  if (startupCount >= 3) return { emoji: '🚀', text: '创业狂人！你这周开了' + startupCount + '次会，<br>写了3版商业计划书，<br>pitch了2个投资人（都被拒了）。<br>但你的眼里还有光，<em>这很重要</em>。' };
-  if (mediaCount >= 3) return { emoji: '📱', text: '你这周疯狂更新自媒体。<br>粉丝增长：+7<br>你："只要坚持就会成功！"<br>第8个粉丝是你妈。<em>但妈妈的赞也是赞。</em>' };
-  if (swimCount >= 3 && climbCount >= 2) return { emoji: '💪', text: '运动健将！你的身材在港硕中已经属于顶级了。<br>虽然论文还没写，<br>但至少你有<em>人鱼线</em>。' };
+  if (sushiCount >= 3) return { emoji: '🍣', text: currentLang==='en' ? `You ate Sushiro <em>${sushiCount} times</em> this week...<br>More time queuing than in class.<br>Stomach: happy. Wallet: crying.` : '你这周吃了<em>' + sushiCount + '次</em>寿司郎...<br>排队的时间加起来比上课还长。<br>你的胃：开心。你的钱包：痛哭。' };
+  if (gamingCount >= 4) return { emoji: '🎮', text: currentLang==='en' ? `You gamed <em>${gamingCount} days</em> this week.<br>Your rank went up. Your GPA?<br>Teammates: "Why is this person always online??"` : '你这周<em>' + gamingCount + '天</em>都在打游戏。<br>你的段位上去了，你的GPA呢？<br>队友：这人怎么天天在线的？？' };
+  if (movieCount >= 3) return { emoji: '🎬', text: currentLang==='en' ? `Broadway staff recognizes you now.<br>"The usual? Large popcorn?"<br>You watched <em>${movieCount} movies</em> this week. More dedicated than a film critic.` : '百老汇院线的工作人员已经认识你了。<br>"老样子？大桶爆米花？"<br>你这周看了<em>' + movieCount + '部</em>电影，比影评人还敬业。' };
+  if (shoppingCount >= 3) return { emoji: '🛍️', text: currentLang==='en' ? 'CWB shop staff smiled seeing you—<br>"Our regular is back!"<br>Your deliveries have piled up so much the guard is complaining.' : '铜锣湾的店员看到你都笑了——<br>"这位靓女/靓仔又来啦！"<br>你的快递已经多到门卫开始投诉了。' };
+  if (chatCount >= 4) return { emoji: '💬', text: currentLang==='en' ? 'Your social volume rivals a diplomat.<br>You know all the gossip now,<br>but haven\'t written a single assignment.<br>No worries, <em>happiness is key</em>.' : '你这周的社交量堪比外交官。<br>朋友们的八卦你全知道了，<br>但你的作业一个字没写。<br>不过没关系，<em>快乐就完事了</em>。' };
+  if (aiCount >= 4) return { emoji: '🤖', text: currentLang==='en' ? `${aiCount} days of AI classes straight...<br>You started using ChatGPT for reports, PPTs, even food delivery.<br>"The future belongs to AI masters!" you tell yourself.<br>Your dark circles disagree.` : '你已经连续' + aiCount + '天学AI了...<br>你开始用ChatGPT写周报、做PPT、甚至点外卖。<br>"未来属于掌握AI的人！"你疯狂暗示自己。<br>你的黑眼圈表示不太赞同。' };
+  if (thesisCount >= 3) return { emoji: '📝', text: currentLang==='en' ? `Thesis warrior!<br>You've exchanged ${thesisCount*5} emails with your supervisor.<br>Latest reply: "Revise again."<br><em>What does "revise again" even MEAN???</em>` : '论文战士就是你！<br>你已经和导师邮件往返了' + (thesisCount * 5) + '封。<br>导师的最新回复："再改改。"<br><em>再改改是什么意思？？？</em>' };
+  if (groupCount >= 3) return { emoji: '👥', text: currentLang==='en' ? 'Group work machine!<br>You\'re the team\'s parent now, carrying everyone.<br>Free riders: <em>"Thanks for the carry!"</em>' : '你这周疯狂做小组作业。<br>你已经成为了全组的爸爸/妈妈，<br>carry全场的感觉如何？<br>Free rider们纷纷表示：<em>"谢谢大佬带飞"</em>' };
+  if (internCount >= 4) return { emoji: '👔', text: currentLang==='en' ? 'Intern grind mode ON.<br>Overtime till midnight, leader says "young people need exercise".<br>Your eyes are dead, but the PPT looks great.' : '实习牛马就是你本人。<br>你已经连续加班到凌晨，<br>leader说"年轻人就是要多锻炼"。<br>你的眼神已经死了，但PPT做得很漂亮。' };
+  if (mcdCount >= 4) return { emoji: '🍔', text: currentLang==='en' ? '"Welcome to McDonald\'s!" You can now seamlessly switch between Cantonese, English, and Mandarin.<br>You even learned Japanese greetings.<br><em>This is how language geniuses are made.</em>' : '"欢迎光临麦当劳！"你已经可以用粤语、英语、普通话无缝切换点餐话术了。<br>你甚至学会了日语的"いらっしゃいませ"。<br><em>语言天才是这样炼成的。</em>' };
+  if (nightCount >= 3) return { emoji: '🍸', text: currentLang==='en' ? `Nightclub ${nightCount} times this week.<br>Dark circles AND social skills both leveling up.<br>Classmate: "You look so well-rested!"<br>You: "Early to bed, early to rise."` : '你这周在夜总会出没了' + nightCount + '次。<br>你的黑眼圈和社交能力都在疯狂增长。<br>你的同学："你最近气色好好啊怎么做到的？"<br>你："早睡早起。"' };
+  if (startupCount >= 3) return { emoji: '🚀', text: currentLang==='en' ? `Startup maniac! ${startupCount} meetings this week,<br>3 versions of business plans,<br>pitched 2 investors (both rejected).<br>But your eyes still shine. <em>That matters.</em>` : '创业狂人！你这周开了' + startupCount + '次会，<br>写了3版商业计划书，<br>pitch了2个投资人（都被拒了）。<br>但你的眼里还有光，<em>这很重要</em>。' };
+  if (mediaCount >= 3) return { emoji: '📱', text: currentLang==='en' ? 'Content creator mode this week.<br>Follower growth: +7<br>"Consistency is key!" you say.<br>Follower #8 is your mom. <em>But mom\'s like counts too.</em>' : '你这周疯狂更新自媒体。<br>粉丝增长：+7<br>你："只要坚持就会成功！"<br>第8个粉丝是你妈。<em>但妈妈的赞也是赞。</em>' };
+  if (swimCount >= 3 && climbCount >= 2) return { emoji: '💪', text: currentLang==='en' ? 'Fitness beast! Your physique is top-tier among HK masters.<br>Thesis still unwritten,<br>but at least you have <em>abs</em>.' : '运动健将！你的身材在港硕中已经属于顶级了。<br>虽然论文还没写，<br>但至少你有<em>人鱼线</em>。' };
 
-  // === Category-based comments ===
+  // === Category-based comments (bilingual) ===
+  const E = currentLang === 'en';
+
   if (funCount === 7) {
-    const pool = [
-      { emoji: '🎉', text: '这周你<em>一节课都没上</em>，整整玩了7天。<br>你的导师已经开始怀疑你是不是退学了。<br>但你的压力值确实降低了，所以...值？' },
-      { emoji: '🏖️', text: '恭喜你完成了<em>"完全摆烂周"</em>成就！<br>整整7天，你没有学习，没有工作，<br>只有快乐。<br>你的同学看你的眼神充满了羡慕和不解。' },
-      { emoji: '🤡', text: '你这周的时间表就像放假一样。<br>等等，你本来就在读书啊？？<br>你的学费在哭泣：<em>"我值多少钱你知道吗！"</em>' }
-    ];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return E
+      ? { emoji: '🎉', text: 'You <em>skipped every class</em> and played for 7 days straight.<br>Your supervisor thinks you dropped out.<br>But stress is down, so... worth it?' }
+      : { emoji: '🎉', text: '这周你<em>一节课都没上</em>，整整玩了7天。<br>你的导师已经开始怀疑你是不是退学了。<br>但你的压力值确实降低了，所以...值？' };
   }
-
   if (studyCount === 7) {
-    const pool = [
-      { emoji: '🤓', text: '你这周<em>每天都在学习</em>。你是机器人吗？？<br>你的压力已经快爆表了朋友。<br>建议下周去吃个寿司郎放松一下，<br>你值得拥有。' },
-      { emoji: '📚', text: '学霸模式启动！你已经连续7天泡在图书馆了。<br>保安开始以为你住在这里。<br>温馨提示：<em>人不是机器，休息也是学习的一部分。</em>' },
-      { emoji: '😵‍💫', text: '你真的需要出去走走了。<br>7天全学习，你的大脑在尖叫：<br><em>"给我放个假！！！"</em><br>下周建议：至少去看场电影？' }
-    ];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return E
+      ? { emoji: '🤓', text: 'You studied <em>every single day</em>. Are you a robot??<br>Your stress is about to explode.<br>Suggestion: treat yourself to sushi next week.<br>You deserve it.' }
+      : { emoji: '🤓', text: '你这周<em>每天都在学习</em>。你是机器人吗？？<br>你的压力已经快爆表了朋友。<br>建议下周去吃个寿司郎放松一下，<br>你值得拥有。' };
   }
-
   if (workCount === 7) {
-    const pool = [
-      { emoji: '⚙️', text: '你这周<em>每天都在工作</em>。<br>你确定你是来读硕士的，不是来打工的？<br>虽然钱包鼓了，但你的灵魂需要充电。' },
-      { emoji: '💼', text: '打工人打工魂！7天全勤！<br>你的雇主们非常感动，<br>你的导师非常生气。<br><em>"论文呢？？？"</em>' }
-    ];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return E
+      ? { emoji: '⚙️', text: 'You worked <em>every day</em> this week.<br>Are you here for a master\'s or a job?<br>Wallet\'s full, but your soul needs recharging.' }
+      : { emoji: '⚙️', text: '你这周<em>每天都在工作</em>。<br>你确定你是来读硕士的，不是来打工的？<br>虽然钱包鼓了，但你的灵魂需要充电。' };
   }
-
   if (funCount >= 5) {
-    const pool = [
-      { emoji: '🎈', text: '玩了<em>' + funCount + '天</em>，你的快乐值拉满了！<br>但你的同学已经在讨论实习面试了，<br>你还在纠结今晚吃什么。<br>没事，<em>快乐也是一种竞争力</em>（大概）。' },
-      { emoji: '😎', text: '这周你基本在度假。<br>你开始怀疑自己是不是来旅游的。<br>答案是：你确实是来旅游的。<br>但偶尔也要<em>假装</em>学习一下。' }
-    ];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return E
+      ? { emoji: '🎈', text: `Played <em>${funCount} days</em>! Max happiness!<br>Your classmates are discussing internships<br>while you\'re deciding what to eat tonight.<br><em>Happiness is a competitive advantage</em> (maybe).` }
+      : { emoji: '🎈', text: '玩了<em>' + funCount + '天</em>，你的快乐值拉满了！<br>但你的同学已经在讨论实习面试了，<br>你还在纠结今晚吃什么。<br>没事，<em>快乐也是一种竞争力</em>（大概）。' };
   }
-
   if (studyCount >= 5) {
-    const pool = [
-      { emoji: '📖', text: '学了<em>' + studyCount + '天</em>！卷王就是你！<br>你的努力老天都看得见。<br>不过下周记得给自己放个小假，<br><em>去看场电影或者逛逛街吧</em>。' },
-      { emoji: '🧠', text: '本周学习强度拉满！<br>你的大脑已经处于超频状态。<br>建议下周安排1-2天休息，<br><em>磨刀不误砍柴工嘛</em>。' }
-    ];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return E
+      ? { emoji: '📖', text: `Studied <em>${studyCount} days</em>! Academic weapon!<br>The heavens see your effort.<br>But remember to take a break next week—<br><em>catch a movie or go shopping</em>.` }
+      : { emoji: '📖', text: '学了<em>' + studyCount + '天</em>！卷王就是你！<br>你的努力老天都看得见。<br>不过下周记得给自己放个小假，<br><em>去看场电影或者逛逛街吧</em>。' };
   }
-
   if (workCount >= 5) {
-    return { emoji: '🔧', text: '这周你几乎都在工作。<br>钱包充实了，知识呢？<br>别忘了你是来<em>读书</em>的，<br>不是来当社畜的...虽然迟早也是。' };
+    return E
+      ? { emoji: '🔧', text: 'Almost all work this week.<br>Wallet\'s fat. Knowledge?<br>Remember you\'re here to <em>study</em>,<br>not to be a wage slave... yet.' }
+      : { emoji: '🔧', text: '这周你几乎都在工作。<br>钱包充实了，知识呢？<br>别忘了你是来<em>读书</em>的，<br>不是来当社畜的...虽然迟早也是。' };
   }
 
   // Balanced week
   if (funCount >= 2 && studyCount >= 2 && workCount >= 1) {
-    const pool = [
-      { emoji: '⚖️', text: '完美的一周！<br>学习、工作、娱乐三不误。<br>你就是传说中的<em>"时间管理大师"</em>。<br>继续保持！' },
-      { emoji: '👏', text: '这周安排得很合理！<br>既有学习充电，又有放松时间。<br>你的港硕生活正在正确的轨道上。<br><em>这才是留学该有的样子。</em>' },
-      { emoji: '✨', text: '均衡发展的一周！<br>你的各项数值都在稳步提升。<br>继续这样下去，<em>好结局在向你招手</em>。' }
-    ];
-    return pool[Math.floor(Math.random() * pool.length)];
+    return E
+      ? { emoji: '⚖️', text: 'Perfect week!<br>Study, work, fun—all balanced.<br>You are the legendary <em>"time management master"</em>.<br>Keep it up!' }
+      : { emoji: '⚖️', text: '完美的一周！<br>学习、工作、娱乐三不误。<br>你就是传说中的<em>"时间管理大师"</em>。<br>继续保持！' };
   }
 
   if (funCount >= 2 && studyCount >= 2) {
-    return { emoji: '🙂', text: '劳逸结合的一周。<br>学了也玩了，这就是<em>生活的智慧</em>。<br>不过别忘了，赚钱也很重要。<br>毕竟香港的物价可不便宜。' };
+    return E
+      ? { emoji: '🙂', text: 'Work-life balance this week.<br>Studied and played. That\'s <em>the wisdom of life</em>.<br>But don\'t forget, making money matters too.<br>HK prices ain\'t cheap.' }
+      : { emoji: '🙂', text: '劳逸结合的一周。<br>学了也玩了，这就是<em>生活的智慧</em>。<br>不过别忘了，赚钱也很重要。<br>毕竟香港的物价可不便宜。' };
   }
 
   // Fallback generic
   const month2 = Math.ceil(week / 4);
-  const generic = [
-    { emoji: '📅', text: '第' + month2 + '个月了！<br>时间过得好快啊。<br>回头看看你的数值，<br>想想你的目标，<em>继续加油</em>！' },
-    { emoji: '🌟', text: '又度过了一周。<br>不管做了什么选择，都是你的人生。<br><em>没有标准答案，只有你的答案。</em>' },
-    { emoji: '☕', text: '喝杯奶茶，回顾一下这周。<br>有收获吗？有遗憾吗？<br>没关系，<em>下周又是新的开始</em>。' }
-  ];
-  return generic[Math.floor(Math.random() * generic.length)];
+  return E
+    ? { emoji: '📅', text: `Month ${month2}!<br>Time flies.<br>Check your progress, think about your goals.<br><em>Keep going!</em>` }
+    : { emoji: '📅', text: '第' + month2 + '个月了！<br>时间过得好快啊。<br>回头看看你的数值，<br>想想你的目标，<em>继续加油</em>！' };
 }
 
 function showWeeklySummary(data) {
   const modal = document.getElementById('summary-modal');
   const content = document.getElementById('summary-content');
+  const isEn = currentLang === 'en';
 
   const month = Math.ceil(gameState.week / 4);
   const weekInMonth = ((gameState.week - 1) % 4) + 1;
   const comment = generateWeeklyComment(data);
-  const statNames = { iq:'🧠智商', eq:'💖情商', skill:'💼技能', money:'💰金钱', stress:'😰压力', lang:'🗣️语言' };
+  const sn = getSN();
+  const snFull = { iq:`🧠${sn.iq}`, eq:`💖${sn.eq}`, skill:`💼${sn.skill}`, money:`💰${sn.money}`, stress:`😰${sn.stress}`, lang:`🗣️${sn.lang}` };
 
   // Unique activities with count
   const actMap = {};
   data.weekActivities.forEach(a => {
-    actMap[a.name] = actMap[a.name] || { emoji: a.emoji, count: 0 };
-    actMap[a.name].count++;
+    const tName = T(a.name);
+    actMap[tName] = actMap[tName] || { emoji: a.emoji, count: 0 };
+    actMap[tName].count++;
   });
+
+  const headerTitle = isEn ? `M${month} W${weekInMonth} · Weekly Report` : `第${month}月 第${weekInMonth}周 · 周报`;
 
   content.innerHTML = `
     <div class="summary-modal-content">
       <div class="summary-header">
         <div class="summary-header-emoji">${comment.emoji}</div>
-        <div class="summary-header-title">第${month}月 第${weekInMonth}周 · 周报</div>
+        <div class="summary-header-title">${headerTitle}</div>
       </div>
 
       <div class="summary-activities">
         ${Object.entries(actMap).map(([name, info]) =>
-          `<span class="summary-activity-tag">${info.emoji} ${name}${info.count > 1 ? ' ×' + info.count : ''}</span>`
+          `<span class="summary-activity-tag">${info.emoji} ${name}${info.count > 1 ? ' x' + info.count : ''}</span>`
         ).join('')}
       </div>
 
@@ -2555,12 +2519,12 @@ function showWeeklySummary(data) {
       <div class="summary-stats-change">
         ${Object.entries(data.changes).map(([k, v]) => {
           const cls = v > 0 ? (k === 'stress' ? 'down' : 'up') : (k === 'stress' ? 'up' : 'down');
-          return `<span class="stat-change-pill ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+          return `<span class="stat-change-pill ${cls}">${snFull[k]||k} ${v > 0 ? '+' : ''}${v}</span>`;
         }).join('')}
       </div>
 
       <div style="text-align:center">
-        <button class="btn-modal" onclick="closeSummaryModal()">👉 进入下一周</button>
+        <button class="btn-modal" onclick="closeSummaryModal()">👉 ${isEn ? 'Next Week' : '进入下一周'}</button>
       </div>
     </div>
   `;
