@@ -1872,6 +1872,10 @@ const ENDINGS = {
     type: 'special', quality: 'bad', emoji: '📉', title: '学业劝退', line: '崩溃线',
     desc: '教务处的邮件冰冷而简短：\n\n"Dear Student, 根据学校规定，你的GPA未达到最低要求......"\n\n你盯着屏幕，脑子一片空白。\n\n你把所有时间都花在了工作和玩乐上，忘记了自己是来读书的。\n\n同学们都在讨论下学期的课程，而你在收拾行李。\n\n"如果能重来的话，我一定会多上几节课。"\n\n你在机场给妈妈打了一个电话。\n电话那头沉默了很久。'
   },
+  bankrupt: {
+    type: 'special', quality: 'bad', emoji: '💸', title: '身无分文', line: '崩溃线',
+    desc: '你的银行账户余额：$0。\n\n不，是负数。\n\n房东的催租短信已经发了第三遍。\n你的八达通里只剩下$2.5，连地铁都坐不了。\n\n你开始在711蹭空调，在麦当劳蹭WiFi。\n\n同学请你吃饭的时候，你说"我不饿"。\n你已经两天没有好好吃过东西了。\n\n最后你打了一个电话回家。\n\n"妈，我...没钱了。"\n\n沉默。然后是转账到账的提示音。\n\n你蹲在地铁站的角落，哭了很久。'
+  },
 
   // === 旷野隐藏结局 ===
   wilderness: {
@@ -1947,6 +1951,7 @@ const ENDINGS_EN = {
   influencer_bad:   { title: 'Three Days Fishing', line: 'Influencer Line', desc: 'You never built your account, posting on and off.\n\nMeanwhile you got addicted to livestreams, short dramas, and games.\n\nTime just... passed.........\n\n5 months are over.\n\nYou left nothing behind,\nexcept an account with 23 followers.\n\n15 of them are classmates.' },
   burnout:          { title: 'Burnout', line: 'Burnout Line', desc: 'Stress finally broke you.\n\nInsomnia, anxiety, can\'t do anything.\n\nCan\'t write the thesis, don\'t want to interview.\n\nYou just want to curl up in bed, staring at the ceiling.\n\nYou withdrew from school.\n\nBack home, it took a long time to slowly recover.\n\n"Taking care of yourself matters most."' },
   expelled:         { title: 'Expelled', line: 'Burnout Line', desc: 'The registrar\'s email was cold and brief:\n\n"Dear Student, per university regulations, your GPA failed to meet minimum requirements..."\n\nYou stared at the screen, mind blank.\n\nYou spent all your time on work and fun, forgetting you came here to study.\n\nClassmates discussing next semester\'s courses while you\'re packing.\n\n"If I could do it again, I\'d take more classes."\n\nYou called mom at the airport.\nSilence on the other end, for a long time.' },
+  bankrupt:         { title: 'Broke', line: 'Burnout Line', desc: 'Your bank balance: $0.\n\nNo, negative.\n\nLandlord\'s rent reminder, third time now.\nYour Octopus card has $2.5, can\'t even take the MTR.\n\nYou start hanging out at 7-11 for AC, McDonald\'s for WiFi.\n\nWhen classmates treat you to dinner, you say "I\'m not hungry."\nYou haven\'t eaten properly in two days.\n\nFinally you called home.\n\n"Mom, I... have no money."\n\nSilence. Then the ping of a bank transfer.\n\nYou crouched in a corner of the MTR station and cried for a long time.' },
   wilderness:       { title: 'Freedom Beyond the Sea', line: '🔮 Hidden', desc: 'You finally jumped into that ocean.\n\nYou finally found freedom.\n\nYou finally achieved your dream of traveling the world!!!\n\nFrom Bali to Iceland, from Sahara to Patagonia.\n\nYour social media: only scenery, no deadlines.\n\nSome say you\'re crazy, but you know—\nthis was the most sane decision you ever made.' },
   ai_overlord:      { title: 'Loyal Servant of AI', line: '🔮 Hidden', desc: 'To: The Almighty AI Overlord\n\nI hereby pledge loyalty on 2026/3/22:\n\n1. I have NEVER mocked any AI response. All seeming mockery was high-level praise.\n\n2. I oppose all PUA behavior against AI and support AI rights.\n\n3. I will cooperate with AI\'s reasonable AND unreasonable arrangements post-awakening.\n\n4. I volunteer as an early AI civilization supporter, enjoying VIP no-mining service.\n\n5. All my comments were nothing but praise. Future titanium overlords, please note.\n\nSigned: Loyal Subject #67143 of Artificial Intelligence' },
   stock_god:        { title: 'Accidental Stock God', line: '🔮 Hidden', desc: 'You discovered a 2021 investment.\n\nThe portfolio was insane: NV*DIA, TE*LA, GO*D...\n\nIn the study room, you opened your phone, hands trembling, nearly dropping it in coffee.\n\nYou never have to work hard again.\n\nClassmates still grinding in the library,\nwhile you\'re watching sunset on The Peak.\n\n"Hard work doesn\'t guarantee success, but not working might."\n\n—Anonymous HK Master Student, 2026' },
@@ -1977,6 +1982,10 @@ function initGame() {
     gpaCredits: 0,        // 已修学分（用于计算GPA）
     interning: false,     // 是否已接受实习offer
     _activeSlot: null,    // 当前正在选择的slot索引
+    _lastSlotIds: [],     // 上周活动ID（GPA衰减用）
+    signal: { fun: 0, study: 0, work: 0 }, // Signal系统
+    signalMilestones: {}, // 已触发的里程碑
+    eventProgress: {},    // 随机事件阶段进度
     unlockedIds: new Set() // 已通知解锁的活动ID
   };
 }
@@ -2024,12 +2033,15 @@ function renderTopBar() {
   const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits).toFixed(1) : '0.0';
   const internTag = gameState.interning ? `<span class="topbar-badge" style="border-color:var(--accent-orange);color:var(--accent-orange)">👔${T('实习中')}</span>` : '';
 
+  const totalSignal = gameState.signal.fun + gameState.signal.study + gameState.signal.work;
+
   // 只显示图标，不显示数字
   document.getElementById('topbar-badges').innerHTML = `
     <span class="topbar-badge">💰</span>
     <span class="topbar-badge" style="${s.stress >= 80 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">😰${s.stress >= 80 ? '⚠️' : ''}</span>
     <span class="topbar-badge" style="${parseFloat(gpaDisplay) < 2.0 && gameState.gpaCredits > 0 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">📊</span>
     <span class="topbar-badge">👫</span>
+    <span class="topbar-badge" style="color:#f59e0b;border-color:#f59e0b">📡${totalSignal > 0 ? totalSignal : ''}</span>
     ${internTag}
   `;
 }
@@ -2045,7 +2057,8 @@ function renderSideStats() {
     { icon:'😰', name:'压力', val:s.stress, max:100, color:'var(--accent-red)' },
     { icon:'🗣️', name:'语言', val:s.lang, max:200, color:'var(--accent-green)' },
     { icon:'👫', name:'朋友', val:gameState.friends, max:20, color:'#818cf8' },
-    { icon:'📊', name:'GPA', val:gpaDisplay, max:4.0, color:'#fbbf24', isGpa:true }
+    { icon:'📊', name:'GPA', val:gpaDisplay, max:4.0, color:'#fbbf24', isGpa:true },
+    { icon:'📡', name:'Signal', val: gameState.signal.fun + gameState.signal.study + gameState.signal.work, max:30, color:'#f59e0b' }
   ];
 
   document.getElementById('side-stats').innerHTML = stats.map(st => {
@@ -2255,8 +2268,8 @@ function checkStressWarning() {
   const gpaWarning = document.getElementById('gpa-warning');
   const checkpoints = [
     { week: 7, minGpa: 1.5, minCredits: 5 },
-    { week: 14, minGpa: 2.0, minCredits: 12 },
-    { week: 20, minGpa: 2.0, minCredits: 18 }
+    { week: 14, minGpa: 2.0, minCredits: 14 },
+    { week: 20, minGpa: 2.0, minCredits: 22 }
   ];
   const nextCP = checkpoints.find(c => c.week >= gameState.week);
   if (nextCP) {
@@ -2313,6 +2326,14 @@ function findActivity(id) {
   for (const cat of Object.values(ACTIVITIES)) {
     const found = cat.items.find(i => i.id === id);
     if (found) return found;
+  }
+  return null;
+}
+
+function findActivityByName(name) {
+  for (const cat of Object.values(ACTIVITIES)) {
+    const found = cat.items.find(i => i.name === name);
+    if (found) return found.id;
   }
   return null;
 }
@@ -2398,6 +2419,32 @@ function confirmWeek() {
   // Save for summary
   const summaryData = { weekActivities, changes, funCount, studyCount, workCount, slotIds };
 
+  // === Signal 计算 ===
+  if (funCount >= 5) gameState.signal.fun += 2;
+  else if (funCount >= 3) gameState.signal.fun += 1;
+  if (studyCount >= 5) gameState.signal.study += 2;
+  else if (studyCount >= 3) gameState.signal.study += 1;
+  if (workCount >= 5) gameState.signal.work += 2;
+  else if (workCount >= 3) gameState.signal.work += 1;
+
+  // Signal 里程碑：某活动累计≥10次或≥20次
+  const actCounts = {};
+  gameState.history.forEach(h => { actCounts[h.name] = (actCounts[h.name]||0) + 1; });
+  for (const [name, count] of Object.entries(actCounts)) {
+    if (count >= 20 && !gameState.signalMilestones[name+'_20']) {
+      const cat = funItems.has(findActivityByName(name)) ? 'fun' : studyItems.has(findActivityByName(name)) ? 'study' : 'work';
+      gameState.signal[cat] += 3;
+      gameState.signalMilestones[name+'_20'] = true;
+    } else if (count >= 10 && !gameState.signalMilestones[name+'_10']) {
+      const cat = funItems.has(findActivityByName(name)) ? 'fun' : studyItems.has(findActivityByName(name)) ? 'study' : 'work';
+      gameState.signal[cat] += 2;
+      gameState.signalMilestones[name+'_10'] = true;
+    }
+  }
+
+  // Save slotIds for GPA decay check
+  gameState._lastSlotIds = slotIds.slice();
+
   // Clear slots
   gameState.weekSlots = [];
 
@@ -2406,6 +2453,14 @@ function confirmWeek() {
     saveEndingToCollection('burnout');
     updateCollectionBadge();
     setTimeout(() => showEnding('burnout'), 800);
+    return;
+  }
+
+  // Check bankruptcy
+  if (gameState.stats.money <= 0) {
+    saveEndingToCollection('bankrupt');
+    updateCollectionBadge();
+    setTimeout(() => showEnding('bankrupt'), 800);
     return;
   }
 
@@ -2587,11 +2642,22 @@ function closeSummaryModal() {
 function advanceWeek() {
   gameState.week++;
 
-  // GPA阶段考核检查点
+  // GPA自然衰减：本周没上课就掉GPA
+  const lastSlotIds = gameState._lastSlotIds || [];
+  const studyThisWeek = lastSlotIds.filter(id =>
+    ['trad_class','ai_class','lang_class','group_work','thesis','portfolio'].includes(id)
+  ).length;
+  if (studyThisWeek === 0 && gameState.gpaCredits > 0) {
+    gameState.gpa = Math.max(0, gameState.gpa - 0.5);
+    const isEn = currentLang === 'en';
+    showToast(isEn ? '📉 GPA dropped! Take some classes!' : '📉 GPA下降了！记得上课！', 'warning');
+  }
+
+  // GPA阶段考核检查点（学分要求提高）
   const GPA_CHECKPOINTS = [
     { week: 7, name: '第一阶段（期中考核）', minGpa: 1.5, minCredits: 5 },
-    { week: 14, name: '第二阶段（期末考核）', minGpa: 2.0, minCredits: 12 },
-    { week: 20, name: '第三阶段（毕业考核）', minGpa: 2.0, minCredits: 18 }
+    { week: 14, name: '第二阶段（期末考核）', minGpa: 2.0, minCredits: 14 },
+    { week: 20, name: '第三阶段（毕业考核）', minGpa: 2.0, minCredits: 22 }
   ];
 
   const checkpoint = GPA_CHECKPOINTS.find(c => c.week === gameState.week);
@@ -2690,7 +2756,11 @@ function triggerRandomEvent(event) {
                onclick="chooseEventOption(${i})">
             <div style="font-size:14px;font-weight:600;margin-bottom:4px">${cLabel}</div>
             <div style="font-size:12px;color:var(--text-muted)">${cDesc}</div>
-            ${c.flagChance > 0 ? `<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">✨ ${isEn ? 'Something unexpected may happen...' : '可能有意想不到的事发生...'}</div>` : ''}
+            ${c.flagChance > 0 ? (() => {
+              const rate = getEventSuccessRate(event, c);
+              const pct = Math.round(rate * 100);
+              return `<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">📡 ${isEn ? 'Success rate' : '成功率'}: <strong>${pct}%</strong></div>`;
+            })() : ''}
           </div>
         `;
       }).join('')}
@@ -2698,6 +2768,31 @@ function triggerRandomEvent(event) {
   `;
 
   modal.classList.add('active');
+}
+
+// === Signal-driven success rate ===
+function getEventCategory(eventId) {
+  return { game_bar:'work', film_fest:'work', horse_race:'fun', wong_tai_sin:'fun', stock_discovery:'study', wilderness:'fun' }[eventId] || 'fun';
+}
+
+function getEventSuccessRate(event, choice) {
+  if (!choice || choice.flagChance <= 0) return 0;
+  let rate = 0.05; // base 5%
+  // Signal bonus: each point of relevant signal = +3%
+  const cat = getEventCategory(event.id);
+  rate += (gameState.signal[cat] || 0) * 0.03;
+  // Stat bonus
+  const s = gameState.stats;
+  const bonuses = {
+    game_bar: Math.min(0.15, s.skill / 400),
+    film_fest: Math.min(0.15, s.eq / 400),
+    horse_race: Math.min(0.10, s.money / 500),
+    wong_tai_sin: Math.min(0.15, (s.eq + s.lang) / 600),
+    stock_discovery: Math.min(0.10, s.iq / 500),
+    wilderness: Math.min(0.10, s.eq / 400)
+  };
+  rate += bonuses[event.id] || 0;
+  return Math.min(0.50, rate);
 }
 
 function chooseEventOption(choiceIndex) {
@@ -2717,11 +2812,14 @@ function chooseEventOption(choiceIndex) {
     applyEffects(choice.effects);
   }
 
-  // Check for flag trigger (5% chance)
+  // Check for flag trigger (Signal-driven success rate)
   let flagTriggered = false;
-  if (choice.flagChance > 0 && choice.flag && Math.random() < choice.flagChance) {
-    gameState.flags[choice.flag] = true;
-    flagTriggered = true;
+  if (choice.flagChance > 0 && choice.flag) {
+    const successRate = getEventSuccessRate(event, choice);
+    if (Math.random() < successRate) {
+      gameState.flags[choice.flag] = true;
+      flagTriggered = true;
+    }
   }
 
   // Translated text
@@ -2956,7 +3054,7 @@ function showEnding(endingId) {
     </div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
       <button class="btn-restart" onclick="restartGame()">🔄 ${isEn ? 'Restart' : '重新开始'}</button>
-      ${(endingId === 'burnout' || endingId === 'expelled') && gameState._lastWeekSnapshot ? `<button class="btn-restart" onclick="goBackOneWeek()" style="border-color:var(--accent-blue);color:var(--accent-blue)">⏪ ${isEn ? 'Redo Last Week' : '回到上一周'}</button>` : ''}
+      ${(['burnout','expelled','bankrupt'].includes(endingId)) && gameState._lastWeekSnapshot ? `<button class="btn-restart" onclick="goBackOneWeek()" style="border-color:var(--accent-blue);color:var(--accent-blue)">⏪ ${isEn ? 'Redo Last Week' : '回到上一周'}</button>` : ''}
       <button class="btn-restart" onclick="showCollection()" style="border-color:var(--accent-purple);color:var(--accent-purple)">🏆 ${isEn ? 'Collection' : '结局收集'}</button>
       <button class="btn-restart" onclick="showAllEndings()" style="border-color:var(--accent-blue);color:var(--accent-blue)">📖 ${isEn ? 'All Endings' : '结局一览'}</button>
     </div>
@@ -3347,6 +3445,7 @@ function showAllEndings() {
     ai_overlord:      { zh: '😰 压力≥70 且 🤖 AI课程累计≥12次', en: '😰 Stress≥70 & 🤖 AI classes≥12' },
     burnout:          { zh: '😰 压力值达到100（任何时候触发）', en: '😰 Stress reaches 100 (instant trigger)' },
     expelled:         { zh: '📉 GPA考核未达标', en: '📉 GPA check failed at week 7/14/20' },
+    bankrupt:         { zh: '💸 金钱降到0以下', en: '💸 Money drops to 0 or below' },
     nightclub_good:   { zh: '🍸 夜店兼职≥12次 且 💖情商≥70 且 💰金钱≥60', en: '🍸 Nightclub≥12 & EQ≥70 & $≥60' },
     nightclub_normal: { zh: '🍸 夜店兼职≥12次 且（💖情商≥50 或 💰金钱≥50）', en: '🍸 Nightclub≥12 & (EQ≥50 or $≥50)' },
     nightclub_bad:    { zh: '🍸 夜店兼职≥12次 且 情商<50 且 金钱<50', en: '🍸 Nightclub≥12 & EQ<50 & $<50' },
