@@ -1520,7 +1520,7 @@
   }
 
   .offer-card.disabled::after {
-    content: '💸 资金不足';
+    content: attr(data-disabled-text);
     position: absolute;
     bottom: 10px;
     left: 50%;
@@ -1996,6 +1996,7 @@ function selectOffer(offerId) {
     setTimeout(() => {
       // 变灰 + 抖动
       card.classList.add('disabled');
+      card.setAttribute('data-disabled-text', isEn ? '💸 Can\'t afford' : '💸 资金不足');
       card.style.transform = '';
       card.style.boxShadow = '';
       card.style.animation = 'shake 0.5s ease';
@@ -2817,10 +2818,10 @@ function renderWeekSlots() {
 
 function removeSlot(index) {
   const slot = gameState.weekSlots[index];
-  if (slot && slot.locked) { showToast('📌 实习日不能移除', 'warning'); return; }
+  if (slot && slot.locked) { showToast(currentLang === 'en' ? '📌 Intern days are locked' : '📌 实习日不能移除', 'warning'); return; }
   if (slot && slot.id === 'intern' && gameState.interning) {
     if (gameState.weekSlots.filter(s => s.id === 'intern').length <= 4) {
-      showToast('📌 实习不能少于4天', 'warning'); return;
+      showToast(currentLang === 'en' ? '📌 Must intern at least 4 days' : '📌 实习不能少于4天', 'warning'); return;
     }
   }
   gameState.weekSlots.splice(index, 1);
@@ -2830,7 +2831,7 @@ function removeSlot(index) {
 // 点击活动直接添加到课表（面板常驻不消失）
 function pickActivity(activityId) {
   if (gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek) {
-    showToast('本周已排满！', 'warning');
+    showToast(currentLang === 'en' ? 'Week is full!' : '本周已排满！', 'warning');
     return;
   }
   if (activityId === 'intern' && !gameState.interning) {
@@ -2840,7 +2841,7 @@ function pickActivity(activityId) {
   const activity = findActivity(activityId);
   if (!activity) return;
   gameState.weekSlots.push({ id: activity.id, emoji: activity.emoji, name: activity.name, locked: false });
-  showToast(`${activity.emoji} ${activity.name}`, 'info');
+  showToast(`${activity.emoji} ${T(activity.name)}`, 'info');
   renderAll();
 }
 
@@ -2849,27 +2850,23 @@ function pickActivity(activityId) {
 function showInternOffer() {
   const modal = document.getElementById('event-modal');
   const content = document.getElementById('modal-content');
+  const isEn = currentLang === 'en';
 
   content.innerHTML = `
     <div class="modal-emoji">👔</div>
-    <div class="modal-title">💼 实习Offer！</div>
+    <div class="modal-title">💼 ${isEn ? 'Intern Offer!' : '实习Offer！'}</div>
     <div class="modal-desc" style="line-height:2">
-      恭喜！你收到了一份实习Offer！<br><br>
-      但是请注意：<br>
-      <em style="color:var(--accent-gold)">接受实习后，每周至少4天必须用来实习</em><br>
-      你只剩下 <strong>3天</strong> 可以自由安排。<br><br>
-      <span style="color:var(--text-muted);font-size:12px">
-        实习一旦接受就不能反悔！<br>
-        你可以选择一周实习超过4天，但不能少于4天。<br>
-        实习会大幅提升工作技能和金钱，但自由时间变少。
-      </span>
+      ${isEn
+        ? 'Congrats! You received an intern offer!<br><br>But note:<br><em style="color:var(--accent-gold)">After accepting, at least 4 days/week must be internship</em><br>You\'ll only have <strong>3 days</strong> to arrange freely.<br><br><span style="color:var(--text-muted);font-size:12px">Once accepted, no going back!<br>You can intern more than 4 days, but not less.<br>Internship boosts skills and money, but less free time.</span>'
+        : '恭喜！你收到了一份实习Offer！<br><br>但是请注意：<br><em style="color:var(--accent-gold)">接受实习后，每周至少4天必须用来实习</em><br>你只剩下 <strong>3天</strong> 可以自由安排。<br><br><span style="color:var(--text-muted);font-size:12px">实习一旦接受就不能反悔！<br>你可以选择一周实习超过4天，但不能少于4天。<br>实习会大幅提升工作技能和金钱，但自由时间变少。</span>'
+      }
     </div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
       <button class="btn-modal" onclick="acceptInternOffer()" style="background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange))">
-        ✅ 接受Offer！
+        ✅ ${isEn ? 'Accept!' : '接受Offer！'}
       </button>
       <button class="btn-modal" onclick="declineInternOffer()" style="background:linear-gradient(135deg,#4b5563,#6b7280)">
-        🙅 暂时不了
+        🙅 ${isEn ? 'Not now' : '暂时不了'}
       </button>
     </div>
   `;
@@ -2884,13 +2881,13 @@ function acceptInternOffer() {
   // 自动填入4天实习到本周
   fillInternSlots();
 
-  showToast('👔 恭喜！你正式成为了实习生！每周至少4天实习', 'success');
+  showToast(currentLang === 'en' ? '👔 Congrats! You are now an intern! At least 4 days/week' : '👔 恭喜！你正式成为了实习生！每周至少4天实习', 'success');
   renderAll();
 }
 
 function declineInternOffer() {
   document.getElementById('event-modal').classList.remove('active');
-  showToast('你拒绝了这次实习机会', 'info');
+  showToast(currentLang === 'en' ? 'You declined the intern offer' : '你拒绝了这次实习机会', 'info');
 }
 
 function fillInternSlots() {
@@ -3339,9 +3336,9 @@ function advanceWeek() {
 
   // GPA阶段考核检查点（学分要求提高）
   const GPA_CHECKPOINTS = [
-    { week: 7, name: '第一阶段（期中考核）', minGpa: 1.5, minCredits: 5 },
-    { week: 14, name: '第二阶段（期末考核）', minGpa: 2.0, minCredits: 14 },
-    { week: 20, name: '第三阶段（毕业考核）', minGpa: 2.0, minCredits: 22 }
+    { week: 7, name: { zh: '第一阶段（期中考核）', en: 'Phase 1 (Midterm)' }, minGpa: 1.5, minCredits: 5 },
+    { week: 14, name: { zh: '第二阶段（期末考核）', en: 'Phase 2 (Final)' }, minGpa: 2.0, minCredits: 14 },
+    { week: 20, name: { zh: '第三阶段（毕业考核）', en: 'Phase 3 (Graduation)' }, minGpa: 2.0, minCredits: 22 }
   ];
 
   const checkpoint = GPA_CHECKPOINTS.find(c => c.week === gameState.week);
@@ -3353,7 +3350,7 @@ function advanceWeek() {
       return;
     } else {
       // 通过考核
-      showToast(`✅ ${checkpoint.name}通过！GPA: ${currentGpa.toFixed(1)} 🎉`, 'success');
+      showToast(`✅ ${currentLang === 'en' ? checkpoint.name.en : checkpoint.name.zh} ${currentLang === 'en' ? 'passed' : '通过'}！GPA: ${currentGpa.toFixed(1)} 🎉`, 'success');
     }
   }
 
@@ -3623,25 +3620,27 @@ function closeEventModal() {
 function showSpecialEndingChoice(ending) {
   const modal = document.getElementById('event-modal');
   const content = document.getElementById('modal-content');
+  const isEn = currentLang === 'en';
 
   content.innerHTML = `
     <div class="modal-emoji">${ending.emoji}</div>
-    <div class="modal-title">🌟 触发特殊结局！</div>
+    <div class="modal-title">🌟 ${isEn ? 'Special Ending Triggered!' : '触发特殊结局！'}</div>
     <div class="modal-title" style="font-size:22px">${ending.title}</div>
     <div class="modal-desc" style="margin-bottom:8px">
-      你触发了一个特殊结局！<br>
-      你可以选择<em style="color:var(--accent-gold)">直接进入这个结局</em>，<br>
-      或者<em style="color:var(--accent-blue)">带着增益继续游戏</em>，争取更好的结局。
+      ${isEn
+        ? 'You triggered a special ending!<br>You can <em style="color:var(--accent-gold)">accept this ending now</em>,<br>or <em style="color:var(--accent-blue)">keep playing with your buffs</em> for a better one.'
+        : '你触发了一个特殊结局！<br>你可以选择<em style="color:var(--accent-gold)">直接进入这个结局</em>，<br>或者<em style="color:var(--accent-blue)">带着增益继续游戏</em>，争取更好的结局。'
+      }
     </div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:24px">
-      （数值加成已生效，不管你选什么都会保留）
+      ${isEn ? '(Stat buffs are already applied and will be kept either way)' : '（数值加成已生效，不管你选什么都会保留）'}
     </div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
       <button class="btn-modal" onclick="acceptSpecialEnding('${ending.id}')" style="background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange))">
-        ${ending.emoji} 接受结局
+        ${ending.emoji} ${isEn ? 'Accept Ending' : '接受结局'}
       </button>
       <button class="btn-modal" onclick="skipSpecialEnding()" style="background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple))">
-        💪 继续游戏
+        💪 ${isEn ? 'Keep Playing' : '继续游戏'}
       </button>
     </div>
   `;
@@ -3656,7 +3655,7 @@ function acceptSpecialEnding(endingId) {
 
 function skipSpecialEnding() {
   document.getElementById('event-modal').classList.remove('active');
-  showToast('💪 你选择继续奋斗！数值加成已保留', 'info');
+  showToast(currentLang === 'en' ? '💪 You chose to keep going! Buffs retained' : '💪 你选择继续奋斗！数值加成已保留', 'info');
   advanceWeek();
 }
 
