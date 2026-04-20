@@ -3483,22 +3483,22 @@ function getEventCategory(eventId) {
 
 function getEventSuccessRate(event, choice) {
   if (!choice || choice.flagChance <= 0) return 0;
-  let rate = 0.05; // base 5%
-  // Signal bonus: each point of relevant signal = +3%
+  let rate = 0.03; // base 3%
+  // Signal bonus: each point of relevant signal = +1%
   const cat = getEventCategory(event.id);
-  rate += (gameState.signal[cat] || 0) * 0.03;
-  // Stat bonus
+  rate += (gameState.signal[cat] || 0) * 0.01;
+  // Stat bonus (halved)
   const s = gameState.stats;
   const bonuses = {
-    game_bar: Math.min(0.15, s.skill / 400),
-    film_fest: Math.min(0.15, s.eq / 400),
-    horse_race: Math.min(0.10, s.money / 500),
-    wong_tai_sin: Math.min(0.15, (s.eq + s.lang) / 600),
-    stock_discovery: Math.min(0.10, s.iq / 500),
-    wilderness: Math.min(0.10, s.eq / 400)
+    game_bar: Math.min(0.07, s.skill / 800),
+    film_fest: Math.min(0.07, s.eq / 800),
+    horse_race: Math.min(0.05, s.money / 1000),
+    wong_tai_sin: Math.min(0.07, (s.eq + s.lang) / 1200),
+    stock_discovery: Math.min(0.05, s.iq / 1000),
+    wilderness: Math.min(0.05, s.eq / 800)
   };
   rate += bonuses[event.id] || 0;
-  return Math.min(0.50, rate);
+  return Math.min(0.25, rate); // cap at 25%
 }
 
 // === Event Stage Rewards ===
