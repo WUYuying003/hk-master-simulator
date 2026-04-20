@@ -372,6 +372,87 @@
   .effect-tag.positive { background: rgba(52,211,153,0.15); color: var(--accent-green); }
   .effect-tag.negative { background: rgba(248,113,113,0.15); color: var(--accent-red); }
 
+  /* === Signal Tree === */
+  .signal-tree-btn {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    z-index: 50;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000;
+    border: none;
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(245,158,11,0.4);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .signal-tree-btn:hover { transform: scale(1.1); box-shadow: 0 6px 25px rgba(245,158,11,0.5); }
+  .signal-tree-btn .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--accent-red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+
+  .signal-tree-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 4px;
+  }
+  .signal-tree-grid::-webkit-scrollbar { width: 4px; }
+  .signal-tree-grid::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+
+  .st-node {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    transition: all 0.25s;
+    cursor: pointer;
+    position: relative;
+  }
+  .st-node:hover { border-color: var(--accent-gold); transform: translateY(-1px); }
+  .st-node.unlocked { border-color: var(--accent-green); background: rgba(52,211,153,0.06); cursor: default; }
+  .st-node.can-unlock { border-color: var(--accent-gold); background: rgba(245,158,11,0.06); animation: pulse 2s ease infinite; }
+  .st-node.locked { opacity: 0.5; cursor: not-allowed; }
+  .st-node .st-emoji { font-size: 22px; }
+  .st-node .st-name { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .st-node .st-cost { font-size: 10px; color: var(--accent-gold); margin-top: 2px; }
+  .st-node .st-req { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+  .st-node .st-check { position: absolute; top: 4px; right: 6px; font-size: 12px; }
+
+  .st-header {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 0;
+    border-radius: 8px;
+    margin-bottom: 2px;
+  }
+  .st-header.fun { color: var(--accent-pink); }
+  .st-header.study { color: var(--accent-blue); }
+  .st-header.work { color: var(--accent-purple); }
+
   /* === Event Modal === */
   .modal-overlay {
     display: none;
@@ -690,6 +771,8 @@
 
     /* Collection button */
     .btn-collection { width: 40px; height: 40px; font-size: 18px; bottom: 12px; left: 12px; }
+    /* Signal Tree button */
+    .signal-tree-btn { width: 44px; height: 44px; font-size: 20px; bottom: 60px; left: 12px; }
   }
 
   @media (max-width: 400px) {
@@ -1347,6 +1430,193 @@
   @keyframes blink {
     50% { border-color: transparent; }
   }
+
+  /* === Offer Selection Screen === */
+  .offer-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 90vh;
+    text-align: center;
+  }
+
+  .offer-tagline {
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+
+  .offer-tagline em {
+    color: var(--accent-gold);
+    font-style: normal;
+    font-weight: 700;
+    font-size: 24px;
+  }
+
+  .offer-tagline .highlight {
+    color: var(--accent-pink);
+    font-weight: 600;
+  }
+
+  .offer-subtitle {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 24px 0 8px;
+    letter-spacing: 2px;
+  }
+
+  .offer-money-hint {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .offer-money-hint strong {
+    color: var(--accent-gold);
+    font-size: 18px;
+  }
+
+  .offer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    max-width: 560px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 500px) {
+    .offer-grid { grid-template-columns: 1fr; gap: 10px; }
+  }
+
+  .offer-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 18px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .offer-card:hover:not(.disabled) {
+    border-color: var(--accent-gold);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(246,197,71,0.2);
+  }
+
+  .offer-card.disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    filter: grayscale(0.8);
+    transition: all 0.4s ease;
+  }
+
+  .offer-card.disabled::after {
+    content: '💸 资金不足';
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--accent-red);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-8px); }
+    30% { transform: translateX(7px); }
+    45% { transform: translateX(-6px); }
+    60% { transform: translateX(5px); }
+    75% { transform: translateX(-3px); }
+    90% { transform: translateX(2px); }
+  }
+
+  .offer-card.hk-special {
+    border-color: rgba(246,197,71,0.3);
+    background: linear-gradient(135deg, rgba(246,197,71,0.06), rgba(167,139,250,0.06));
+    animation: pulse 2.5s ease infinite;
+  }
+
+  .offer-card-flag { font-size: 48px; margin-bottom: 8px; }
+  .offer-card-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .offer-card-cost { font-size: 15px; color: var(--accent-gold); font-weight: 600; margin-bottom: 2px; }
+  .offer-card-duration { font-size: 12px; color: var(--text-muted); }
+
+  .offer-card.disabled .offer-card-name,
+  .offer-card.disabled .offer-card-cost,
+  .offer-card.disabled .offer-card-flag { opacity: 0.5; }
+
+  /* HK confirm dialog */
+  .offer-confirm-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 150;
+    align-items: center;
+    justify-content: center;
+  }
+  .offer-confirm-overlay.active { display: flex; }
+
+  .offer-confirm-box {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 420px;
+    width: 90%;
+    border: 2px solid var(--accent-gold);
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+    box-shadow: 0 20px 60px rgba(246,197,71,0.15);
+  }
+
+  .offer-confirm-emoji { font-size: 64px; margin-bottom: 12px; }
+  .offer-confirm-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--accent-gold);
+    margin-bottom: 16px;
+  }
+  .offer-confirm-desc {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.9;
+    margin-bottom: 28px;
+  }
+  .offer-confirm-desc em {
+    color: var(--accent-gold);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .btn-offer-confirm {
+    padding: 14px 50px;
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
+    color: #000;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 30px rgba(246,197,71,0.3);
+  }
+  .btn-offer-confirm:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 40px rgba(246,197,71,0.5);
+  }
 </style>
 </head>
 <body>
@@ -1361,6 +1631,11 @@
   <!-- Title Screen -->
   <div id="screen-title" class="screen active">
     <div class="title-screen" id="title-content"></div>
+  </div>
+
+  <!-- Offer Selection Screen -->
+  <div id="screen-offer" class="screen">
+    <div class="offer-screen" id="offer-content"></div>
   </div>
 
   <!-- Intro Screen -->
@@ -1452,6 +1727,22 @@
   🏆
   <span class="badge-count" id="collection-count">0</span>
 </button>
+
+<!-- Signal Tree Button (always visible during game) -->
+<button class="signal-tree-btn" id="btn-signal-tree" onclick="showSignalTree()" style="display:none" title="Signal Tree">
+  📡
+  <span class="badge" id="signal-tree-badge" style="display:none">0</span>
+</button>
+
+<!-- Signal Tree Modal -->
+<div class="modal-overlay" id="signal-tree-modal">
+  <div class="modal-content" id="signal-tree-content" style="max-width:550px"></div>
+</div>
+
+<!-- Offer Confirm Dialog -->
+<div class="offer-confirm-overlay" id="offer-confirm-overlay">
+  <div class="offer-confirm-box" id="offer-confirm-box"></div>
+</div>
 
 <!-- Toast Container -->
 <div class="toast-container" id="toast-container"></div>
@@ -1576,6 +1867,7 @@ function switchLang(lang) {
   updateLangButtons();
   // Re-render all screens
   renderTitleScreen();
+  renderOfferScreen();
   renderIntroScreen();
   const gameScreen = document.getElementById('screen-game');
   if (gameScreen.classList.contains('active')) {
@@ -1620,6 +1912,131 @@ function renderIntroScreen() {
     </div>
     <button class="btn-start" onclick="showGameScreen()">📖 ${isEn ? 'Start Week 1' : '开始第一周'}</button>
   `;
+}
+
+// ===================== OFFER SELECTION SCREEN =====================
+const OFFERS = [
+  { id: 'us', flag: '🇺🇸', name: { zh: '美国硕士', en: 'US Master' }, cost: 250, duration: { zh: '两年', en: '2 Years' }, costLabel: '250W' },
+  { id: 'eu', flag: '🇪🇺', name: { zh: '欧洲硕士', en: 'EU Master' }, cost: 70, duration: { zh: '两年', en: '2 Years' }, costLabel: '70W' },
+  { id: 'uk', flag: '🇬🇧', name: { zh: '英国硕士', en: 'UK Master' }, cost: 80, duration: { zh: '一年', en: '1 Year' }, costLabel: '80W' },
+  { id: 'hk', flag: '🇭🇰', name: { zh: '香港硕士', en: 'HK Master' }, cost: 35, duration: { zh: '一年', en: '1 Year' }, costLabel: '35W' }
+];
+const PLAYER_BUDGET = 35; // 起始资金35W
+
+function renderOfferScreen() {
+  const isEn = currentLang === 'en';
+  const container = document.getElementById('offer-content');
+
+  container.innerHTML = `
+    <div style="margin-bottom:20px">
+      <div class="offer-tagline">
+        ${isEn
+          ? 'In this life, the most important stage is<br><em>getting a water master\'s degree</em>'
+          : '人这一生<br>最重要的就是<br><em>水硕</em>这个阶段'
+        }
+      </div>
+      <div class="offer-tagline" style="margin-top:12px;font-size:16px">
+        ${isEn
+          ? '<span class="highlight">Make the most of your water master life!</span>'
+          : '<span class="highlight">好好把握你的水硕人生！</span>'
+        }
+      </div>
+    </div>
+
+    <div class="offer-subtitle">
+      ${isEn ? '🎓 Choose Your Offer' : '🎓 接下来，来选 offer 吧'}
+    </div>
+
+    <div class="offer-money-hint">
+      ${isEn
+        ? 'Your budget: <strong>¥35W</strong>'
+        : '你的启动资金只有 <strong>35W</strong>'
+      }
+    </div>
+
+    <div class="offer-grid">
+      ${OFFERS.map(offer => {
+        const isHK = offer.id === 'hk';
+        const name = isEn ? offer.name.en : offer.name.zh;
+        const dur = isEn ? offer.duration.en : offer.duration.zh;
+        return `
+          <div class="offer-card ${isHK ? 'hk-special' : ''}" id="offer-card-${offer.id}"
+               onclick="selectOffer('${offer.id}')">
+            <div class="offer-card-flag">${offer.flag}</div>
+            <div class="offer-card-name">${name}</div>
+            <div class="offer-card-cost">${offer.costLabel}</div>
+            <div class="offer-card-duration">${dur}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div style="font-size:12px;color:var(--text-muted);max-width:400px">
+      ${isEn ? '※ Grey cards mean you can\'t afford them. Choose wisely... or not.' : '※ 变灰的 offer 代表你负担不起。量力而行...或者说没得选。'}
+    </div>
+  `;
+}
+
+
+function selectOffer(offerId) {
+  const offer = OFFERS.find(o => o.id === offerId);
+  if (!offer) return;
+  const isEn = currentLang === 'en';
+
+  if (offerId !== 'hk') {
+    // 先给个选中效果，然后变灰+提示资金不足
+    const card = document.getElementById('offer-card-' + offerId);
+    if (!card) return;
+
+    // 短暂选中高亮
+    card.style.borderColor = 'var(--accent-gold)';
+    card.style.transform = 'translateY(-4px)';
+    card.style.boxShadow = '0 8px 30px rgba(246,197,71,0.3)';
+
+    setTimeout(() => {
+      // 变灰 + 抖动
+      card.classList.add('disabled');
+      card.style.transform = '';
+      card.style.boxShadow = '';
+      card.style.animation = 'shake 0.5s ease';
+
+      const name = isEn ? offer.name.en : offer.name.zh;
+      showToast(`💸 ${isEn ? `Can't afford ${name}! Need ${offer.costLabel}, you only have 35W` : `读不起${name}！需要${offer.costLabel}，你只有35W`}`, 'danger');
+
+      // 抖动结束后保持灰色
+      setTimeout(() => {
+        card.style.animation = '';
+      }, 500);
+    }, 400);
+
+    return;
+  }
+
+  // HK offer - show confirm dialog
+  const overlay = document.getElementById('offer-confirm-overlay');
+  const box = document.getElementById('offer-confirm-box');
+
+  box.innerHTML = `
+    <div class="offer-confirm-emoji">🇭🇰</div>
+    <div class="offer-confirm-title">${isEn ? 'Sure about this?' : '确定要来吗？'}</div>
+    <div class="offer-confirm-desc">
+      ${isEn
+        ? 'Hong Kong Master · <em>¥35W</em> · 1 Year<br><br>Your entire budget... for a one-year degree.<br>No turning back.<br><br><span style="color:var(--text-muted);font-size:13px">Well, it\'s not like you have other options anyway.</span>'
+        : '香港硕士 · <em>35W</em> · 一年<br><br>你的全部身家...换一个一年制学位。<br>没有退路了。<br><br><span style="color:var(--text-muted);font-size:13px">好像也没有别的选择了是吧。</span>'
+      }
+    </div>
+    <button class="btn-offer-confirm" onclick="confirmHKOffer()">
+      ${isEn ? '😤 Let\'s GO!' : '😤 来都来了！'}
+    </button>
+  `;
+
+  overlay.classList.add('active');
+}
+
+function confirmHKOffer() {
+  document.getElementById('offer-confirm-overlay').classList.remove('active');
+  // Proceed to intro screen
+  switchScreen('screen-intro');
 }
 
 // ===================== GAME DATA =====================
@@ -1691,6 +2108,17 @@ const UNLOCK_RULES = {
 };
 
 function checkUnlock(activityId) {
+  // If activity is in Signal Tree, use Signal Tree logic
+  if (SIGNAL_TREE[activityId]) {
+    if (signalUnlocked.has(activityId)) {
+      return { locked: false, hint: '' };
+    }
+    const node = SIGNAL_TREE[activityId];
+    const isEn = currentLang === 'en';
+    const catLabel = { fun: isEn ? 'Fun' : '娱乐', study: isEn ? 'Study' : '学习', work: isEn ? 'Work' : '工作' }[node.cat];
+    return { locked: true, hint: `📡 ${catLabel} Signal ×${node.cost}` };
+  }
+  // Otherwise use original unlock rules
   const rule = UNLOCK_RULES[activityId];
   if (!rule) return { locked: false, hint: '' };
   return rule(gameState);
@@ -1986,24 +2414,287 @@ function initGame() {
     signal: { fun: 0, study: 0, work: 0 }, // Signal系统
     signalMilestones: {}, // 已触发的里程碑
     eventProgress: {},    // 随机事件阶段进度
-    unlockedIds: new Set() // 已通知解锁的活动ID
+    unlockedIds: new Set(), // 已通知解锁的活动ID
+    chosenPath: null       // 开局路线选择
   };
 }
 
 function startGame() {
   initGame();
-  switchScreen('screen-intro');
+  renderOfferScreen();
+  switchScreen('screen-offer');
 }
 
 function showGameScreen() {
   switchScreen('screen-game');
   document.getElementById('btn-collection').style.display = 'flex';
+  document.getElementById('btn-signal-tree').style.display = 'flex';
   updateCollectionBadge();
+  updateSignalTreeBadge();
   renderAll();
-  // Show tutorial on first week
-  if (gameState.week === 1) {
+  // Show path choice on first week, then tutorial
+  if (gameState.week === 1 && !gameState.chosenPath) {
+    setTimeout(() => showPathChoice(), 300);
+  } else if (gameState.week === 1) {
     setTimeout(() => showTutorial(), 500);
   }
+}
+
+// ===================== P1-1: LIFE PATH CHOICE =====================
+const LIFE_PATHS = {
+  elite: {
+    emoji: '🏢',
+    name: { zh: '人上人', en: 'Top Player' },
+    desc: { zh: '冲大厂、进金融，成为行业精英。初始技能+10，但压力也+10。', en: 'Big corp or finance — become an industry elite. Skill +10, but Stress +10.' },
+    bonuses: { skill: 10, stress: 10 },
+    signalBonus: 'work'
+  },
+  happy: {
+    emoji: '😄',
+    name: { zh: '开心就好', en: 'Just Be Happy' },
+    desc: { zh: '低压生活，快乐至上。情商+10，压力-10。', en: 'Low stress, happiness first. EQ +10, Stress -10.' },
+    bonuses: { eq: 10, stress: -10 },
+    signalBonus: 'fun'
+  },
+  chosen: {
+    emoji: '✨',
+    name: { zh: '被选中的孩子', en: 'The Chosen One' },
+    desc: { zh: '学术大牛或创业新星。智商+10，但口袋空空（金钱-10）。', en: 'Academic star or startup founder. IQ +10, but less cash (Money -10).' },
+    bonuses: { iq: 10, money: -10 },
+    signalBonus: 'study'
+  },
+  wild: {
+    emoji: '🌊',
+    name: { zh: '旷野人生', en: 'Wild Life' },
+    desc: { zh: '什么都想尝试，均衡发展。四项数值各+5。', en: 'Try everything, balanced growth. Four stats +5 each.' },
+    bonuses: { iq: 5, eq: 5, skill: 5, lang: 5 },
+    signalBonus: null
+  }
+};
+
+function showPathChoice() {
+  const modal = document.getElementById('event-modal');
+  const content = document.getElementById('modal-content');
+  const isEn = currentLang === 'en';
+
+  content.innerHTML = `
+    <div class="modal-emoji" style="font-size:48px">🎯</div>
+    <div class="modal-title" style="font-size:22px;margin-bottom:4px">${isEn ? 'Choose Your Path' : '选择你的人生目标'}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${isEn ? 'This will shape your starting stats and Signal direction.' : '这将决定你的初始数值加成和Signal方向。'}</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${Object.entries(LIFE_PATHS).map(([key, path]) => {
+        const name = isEn ? path.name.en : path.name.zh;
+        const desc = isEn ? path.desc.en : path.desc.zh;
+        const bonusText = Object.entries(path.bonuses).map(([k,v]) => {
+          const names = isEn ? { iq:'IQ', eq:'EQ', skill:'Skill', money:'Money', stress:'Stress', lang:'Lang' } : { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+          return `${names[k]||k} ${v>0?'+':''}${v}`;
+        }).join('  ');
+        const signalTag = path.signalBonus ? `📡 ${path.signalBonus.toUpperCase()} Signal` : (isEn ? '📡 Balanced' : '📡 均衡');
+        return `
+          <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:16px;cursor:pointer;transition:all 0.25s;text-align:left"
+               onmouseover="this.style.borderColor='var(--accent-gold)';this.style.background='rgba(246,197,71,0.06)';this.style.transform='translateY(-2px)'"
+               onmouseout="this.style.borderColor='var(--border-color)';this.style.background='var(--bg-card)';this.style.transform='translateY(0)'"
+               onclick="choosePath('${key}')">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <span style="font-size:28px">${path.emoji}</span>
+              <div>
+                <div style="font-size:16px;font-weight:700;color:var(--text-primary)">${name}</div>
+                <div style="font-size:11px;color:var(--accent-gold)">${signalTag}</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:6px">${desc}</div>
+            <div style="font-size:11px;color:var(--accent-blue);font-weight:500">${bonusText}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+function choosePath(pathKey) {
+  const path = LIFE_PATHS[pathKey];
+  if (!path) return;
+
+  // Apply bonuses
+  for (const [stat, val] of Object.entries(path.bonuses)) {
+    gameState.stats[stat] = Math.max(0, (gameState.stats[stat] || 0) + val);
+  }
+
+  // Store chosen path
+  gameState.chosenPath = pathKey;
+
+  // Close modal
+  document.getElementById('event-modal').classList.remove('active');
+
+  // Update display
+  renderAll();
+
+  // Show confirmation toast
+  const isEn = currentLang === 'en';
+  const name = isEn ? path.name.en : path.name.zh;
+  showToast(`${path.emoji} ${isEn ? 'Path chosen:' : '选择路线：'} ${name}`, 'info');
+
+  // Then show tutorial
+  setTimeout(() => showTutorial(), 600);
+}
+
+// ===================== P1-2: SIGNAL TREE =====================
+const SIGNAL_TREE = {
+  // 前期节点（1 Signal）
+  'shopping':   { cat: 'fun', cost: 1, req: { friends: 2 }, emoji: '🛍️', name: { zh: '购物', en: 'Shopping' } },
+  'sushi':      { cat: 'fun', cost: 1, req: { friends: 4 }, emoji: '🍣', name: { zh: '寿司', en: 'Sushi' } },
+  'group_work': { cat: 'study', cost: 1, req: {}, emoji: '👥', name: { zh: '小组作业', en: 'Group Work' } },
+  'ai_class':   { cat: 'study', cost: 1, req: { iq: 35 }, emoji: '🤖', name: { zh: 'AI课', en: 'AI Class' } },
+  'event_pt':   { cat: 'work', cost: 1, req: { eq: 35 }, emoji: '📋', name: { zh: '活动兼职', en: 'Event PT' } },
+
+  // 中期节点（2 Signal）
+  'climb':      { cat: 'fun', cost: 2, req: { friends: 8 }, emoji: '🧗', name: { zh: '爬山', en: 'Climbing' } },
+  'chat':       { cat: 'fun', cost: 2, req: { friends: 10 }, emoji: '💬', name: { zh: '聊天', en: 'Chat' } },
+  'portfolio':  { cat: 'study', cost: 2, req: { skill: 35 }, emoji: '📁', name: { zh: '改作品集', en: 'Portfolio' } },
+  'ra':         { cat: 'study', cost: 2, req: { iq: 50 }, emoji: '🔬', name: { zh: '做RA', en: 'RA Work' } },
+  'media':      { cat: 'work', cost: 2, req: { eq: 45 }, emoji: '📱', name: { zh: '自媒体', en: 'Media' } },
+
+  // 后期节点（3 Signal）
+  'gaming':     { cat: 'fun', cost: 3, req: { friends: 14, eq: 40 }, emoji: '🎮', name: { zh: '打游戏', en: 'Gaming' } },
+  'hiking':     { cat: 'fun', cost: 3, req: { friends: 18 }, emoji: '🥾', name: { zh: '远足', en: 'Hiking' } },
+  'thesis':     { cat: 'study', cost: 3, req: {}, emoji: '📝', name: { zh: '毕业项目', en: 'Thesis' } },
+  'intern':     { cat: 'work', cost: 3, req: { skill: 60 }, emoji: '👔', name: { zh: '实习', en: 'Intern' } },
+  'indie_game': { cat: 'work', cost: 3, req: { skill: 50 }, emoji: '🕹️', name: { zh: '独立游戏', en: 'Indie Game' } },
+  'nightclub':  { cat: 'work', cost: 3, req: { eq: 50, lang: 30 }, emoji: '🍸', name: { zh: '夜店PR', en: 'Nightclub' } },
+
+  // 终极节点（4 Signal）
+  'startup':    { cat: 'work', cost: 4, req: { skill: 70, iq: 55 }, emoji: '🚀', name: { zh: '创业', en: 'Startup' } }
+};
+
+// Track Signal-unlocked activities
+let signalUnlocked = new Set();
+
+function getSignalNodeState(nodeId) {
+  const node = SIGNAL_TREE[nodeId];
+  if (!node) return 'none';
+
+  // Already unlocked via signal tree
+  if (signalUnlocked.has(nodeId)) return 'unlocked';
+
+  // Check if can unlock: enough signal + meets stat requirements
+  const signal = gameState.signal[node.cat] || 0;
+  if (signal < node.cost) return 'locked';
+
+  const s = gameState.stats;
+  const reqMap = { iq: s.iq, eq: s.eq, skill: s.skill, money: s.money, lang: s.lang, friends: gameState.friends };
+  for (const [stat, min] of Object.entries(node.req)) {
+    if ((reqMap[stat] || 0) < min) return 'locked';
+  }
+
+  return 'can_unlock';
+}
+
+function unlockSignalNode(nodeId) {
+  const node = SIGNAL_TREE[nodeId];
+  if (!node) return;
+  if (signalUnlocked.has(nodeId)) return;
+  if (getSignalNodeState(nodeId) !== 'can_unlock') return;
+
+  // Spend signal
+  gameState.signal[node.cat] -= node.cost;
+  signalUnlocked.add(nodeId);
+
+  // Trigger unlock notification
+  const activity = findActivity(nodeId);
+  if (activity && !gameState.unlockedIds.has(nodeId)) {
+    gameState.unlockedIds.add(nodeId);
+  }
+
+  const isEn = currentLang === 'en';
+  const name = isEn ? (node.name.en || nodeId) : (node.name.zh || nodeId);
+  showToast(`${node.emoji} ${isEn ? 'Unlocked:' : '解锁了：'} ${name}`, 'info');
+
+  // Refresh displays
+  renderAll();
+  updateSignalTreeBadge();
+  // Only re-render full tree if it's already open (not from popup)
+  if (document.getElementById('signal-tree-modal').classList.contains('active')) {
+    // Will be re-rendered by caller if needed
+  }
+}
+
+function updateSignalTreeBadge() {
+  let canUnlock = 0;
+  for (const nodeId of Object.keys(SIGNAL_TREE)) {
+    if (getSignalNodeState(nodeId) === 'can_unlock') canUnlock++;
+  }
+  const badge = document.getElementById('signal-tree-badge');
+  if (canUnlock > 0) {
+    badge.textContent = canUnlock;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function showSignalTree() {
+  const modal = document.getElementById('signal-tree-modal');
+  const content = document.getElementById('signal-tree-content');
+  const isEn = currentLang === 'en';
+
+  const totalSignal = gameState.signal.fun + gameState.signal.study + gameState.signal.work;
+  const sn = isEn ? { iq:'IQ', eq:'EQ', skill:'Skill', money:'Money', lang:'Lang', friends:'Friends' } : { iq:'智商', eq:'情商', skill:'技能', money:'金钱', lang:'语言', friends:'朋友' };
+
+  // Group by category
+  const cats = ['fun', 'study', 'work'];
+  const catLabels = isEn ? { fun: '🎮 Fun', study: '📚 Study', work: '💼 Work' } : { fun: '🎮 娱乐', study: '📚 学习', work: '💼 工作' };
+
+  let gridHtml = '';
+  // Build column by column
+  const columns = cats.map(cat => {
+    const nodes = Object.entries(SIGNAL_TREE).filter(([,n]) => n.cat === cat).sort((a,b) => a[1].cost - b[1].cost);
+    let col = `<div>`;
+    col += `<div class="st-header ${cat}">${catLabels[cat]}<br><span style="font-size:10px;font-weight:400">📡 ${gameState.signal[cat]}</span></div>`;
+    nodes.forEach(([id, node]) => {
+      const state = getSignalNodeState(id);
+      const stClass = state === 'unlocked' ? 'unlocked' : state === 'can_unlock' ? 'can-unlock' : 'locked';
+      const name = isEn ? (node.name.en || id) : (node.name.zh || id);
+      const reqText = Object.entries(node.req).map(([k,v]) => `${sn[k]||k}≥${v}`).join(' ');
+      const clickAction = state === 'can_unlock' ? `unlockSignalNode('${id}')` : '';
+      col += `
+        <div class="st-node ${stClass}" onclick="${clickAction}">
+          ${state === 'unlocked' ? '<div class="st-check">✅</div>' : ''}
+          <div class="st-emoji">${node.emoji}</div>
+          <div class="st-name">${name}</div>
+          <div class="st-cost">📡 ×${node.cost}</div>
+          ${reqText ? `<div class="st-req">${reqText}</div>` : ''}
+        </div>
+      `;
+    });
+    col += `</div>`;
+    return col;
+  });
+
+  content.innerHTML = `
+    <div class="modal-emoji" style="font-size:36px">📡</div>
+    <div class="modal-title" style="font-size:20px;margin-bottom:2px">Signal Tree</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">
+      ${isEn ? 'Spend Signal to unlock activities' : '花费 Signal 解锁新活动'}
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--accent-pink)">🎮 Fun: ${gameState.signal.fun}</span>
+      <span style="font-size:12px;color:var(--accent-blue)">📚 Study: ${gameState.signal.study}</span>
+      <span style="font-size:12px;color:var(--accent-purple)">💼 Work: ${gameState.signal.work}</span>
+      <span style="font-size:12px;color:var(--accent-gold)">📡 Total: ${totalSignal}</span>
+    </div>
+    <div class="signal-tree-grid">
+      ${columns.join('')}
+    </div>
+    <button class="btn-modal" onclick="closeSignalTree()" style="margin-top:12px">${isEn ? 'Close' : '关闭'}</button>
+  `;
+
+  modal.classList.add('active');
+}
+
+function closeSignalTree() {
+  document.getElementById('signal-tree-modal').classList.remove('active');
 }
 
 function switchScreen(screenId) {
@@ -2348,6 +3039,9 @@ function applyEffects(effects) {
 function confirmWeek() {
   if (gameState.weekSlots.length === 0) return;
 
+  // Reset signal popup flag so it can show again next week
+  gameState._signalPopupShownThisWeek = false;
+
   // Save snapshot before this week's changes (for undo)
   gameState._lastWeekSnapshot = JSON.parse(JSON.stringify({
     week: gameState.week,
@@ -2358,6 +3052,8 @@ function confirmWeek() {
     portfolio: gameState.portfolio,
     aiClassCount: gameState.aiClassCount,
     interning: gameState.interning,
+    signal: gameState.signal,
+    eventProgress: gameState.eventProgress,
     weekSlots: [],
     history: gameState.history.slice() // copy
   }));
@@ -2439,6 +3135,14 @@ function confirmWeek() {
       const cat = funItems.has(findActivityByName(name)) ? 'fun' : studyItems.has(findActivityByName(name)) ? 'study' : 'work';
       gameState.signal[cat] += 2;
       gameState.signalMilestones[name+'_10'] = true;
+    }
+  }
+
+  // Path bonus: chosen path gives +1 Signal to its category each week
+  if (gameState.chosenPath) {
+    const pathSignal = LIFE_PATHS[gameState.chosenPath]?.signalBonus;
+    if (pathSignal && gameState.signal[pathSignal] !== undefined) {
+      gameState.signal[pathSignal] += 1;
     }
   }
 
@@ -2759,7 +3463,9 @@ function triggerRandomEvent(event) {
             ${c.flagChance > 0 ? (() => {
               const rate = getEventSuccessRate(event, c);
               const pct = Math.round(rate * 100);
-              return `<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">📡 ${isEn ? 'Success rate' : '成功率'}: <strong>${pct}%</strong></div>`;
+              const stage = gameState.eventProgress[event.id] || 0;
+              const stageLabel = stage > 0 ? ` | ${isEn ? 'Stage' : '阶段'} ${stage}/3` : '';
+              return `<div style="font-size:10px;color:var(--accent-gold);margin-top:4px">📡 ${isEn ? 'Success rate' : '成功率'}: <strong>${pct}%</strong>${stageLabel}</div>`;
             })() : ''}
           </div>
         `;
@@ -2795,6 +3501,46 @@ function getEventSuccessRate(event, choice) {
   return Math.min(0.50, rate);
 }
 
+// === Event Stage Rewards ===
+const EVENT_STAGE_REWARDS = {
+  horse_race: [
+    null, // stage 0 (unused)
+    { effects: { money: 10 }, textZh: '🏇 马赢了！你小赚了一笔！（金钱+10）', textEn: '🏇 The horse won! You made some money! (Money +10)' },
+    { effects: { money: 20, eq: 3 }, textZh: '🏇 又赢了！你开始有了赌神的直觉！（金钱+20 情商+3）', textEn: '🏇 Won again! You\'re developing a gambler\'s intuition! (Money +20, EQ +3)' }
+  ],
+  wong_tai_sin: [
+    null,
+    { effects: { eq: 5 }, textZh: '🏮 嗯...有一种莫名的好感觉。（情商+5）', textEn: '🏮 Hmm... there\'s a strange good feeling. (EQ +5)' },
+    { effects: { eq: 8, stress: -5 }, textZh: '🏮 你在庙门口遇到了一个人...你们开始约会了！（情商+8 压力-5）', textEn: '🏮 You met someone at the temple gate... you started dating! (EQ +8, Stress -5)' }
+  ],
+  stock_discovery: [
+    null,
+    { effects: { money: 8 }, textZh: '📈 账户涨了一些！小有收益。（金钱+8）', textEn: '📈 Your account grew a bit! Small gains. (Money +8)' },
+    { effects: { money: 15, iq: 3 }, textZh: '📈 涨得不少！你开始研究投资策略了。（金钱+15 智商+3）', textEn: '📈 Significant gains! You\'re studying investment strategies. (Money +15, IQ +3)' }
+  ],
+  game_bar: [
+    null,
+    { effects: { skill: 5 }, textZh: '🎲 和制作人交换了名片！（技能+5）', textEn: '🎲 Exchanged cards with the producer! (Skill +5)' },
+    { effects: { skill: 8, eq: 5 }, textZh: '🎲 你们深入交流了项目想法，他对你印象深刻！（技能+8 情商+5）', textEn: '🎲 You had a deep conversation about project ideas, he\'s impressed! (Skill +8, EQ +5)' }
+  ],
+  film_fest: [
+    null,
+    { effects: { eq: 5 }, textZh: '🎬 认识了几个创作者朋友！（情商+5）', textEn: '🎬 Met some creator friends! (EQ +5)' },
+    { effects: { eq: 8, money: 5 }, textZh: '🎬 你的短片在圈内有了反响！（情商+8 金钱+5）', textEn: '🎬 Your short film got buzz in the community! (EQ +8, Money +5)' }
+  ],
+  wilderness: [
+    null,
+    { effects: { stress: -10 }, textZh: '🌊 大海让你内心触动，压力一扫而空。（压力-10）', textEn: '🌊 The ocean touched your heart, stress melted away. (Stress -10)' },
+    { effects: { eq: 5, stress: -15 }, textZh: '🌊 你开始做起了环游世界的攻略...（情商+5 压力-15）', textEn: '🌊 You started planning a world trip... (EQ +5, Stress -15)' }
+  ]
+};
+
+function getStageReward(eventId, stage) {
+  const rewards = EVENT_STAGE_REWARDS[eventId];
+  if (!rewards || !rewards[stage]) return null;
+  return rewards[stage];
+}
+
 function chooseEventOption(choiceIndex) {
   const event = gameState._currentEvent;
   if (!event) return;
@@ -2812,13 +3558,28 @@ function chooseEventOption(choiceIndex) {
     applyEffects(choice.effects);
   }
 
-  // Check for flag trigger (Signal-driven success rate)
+  // Check for flag trigger (Signal-driven success rate with stage system)
   let flagTriggered = false;
+  let stageRewardText = '';
   if (choice.flagChance > 0 && choice.flag) {
     const successRate = getEventSuccessRate(event, choice);
     if (Math.random() < successRate) {
-      gameState.flags[choice.flag] = true;
-      flagTriggered = true;
+      // Stage system: need 3 successes to trigger ending
+      const progress = (gameState.eventProgress[event.id] || 0) + 1;
+      gameState.eventProgress[event.id] = progress;
+
+      if (progress >= 3) {
+        // Third success → trigger actual ending flag
+        gameState.flags[choice.flag] = true;
+        flagTriggered = true;
+      } else {
+        // Stage reward
+        const reward = getStageReward(event.id, progress);
+        if (reward) {
+          applyEffects(reward.effects);
+          stageRewardText = isEn ? reward.textEn : reward.textZh;
+        }
+      }
     }
   }
 
@@ -2839,6 +3600,11 @@ function chooseEventOption(choiceIndex) {
     ${flagTriggered ? `
       <div class="modal-result success" style="font-size:15px;line-height:1.7">
         ${cFlagText}
+      </div>
+    ` : stageRewardText ? `
+      <div class="modal-result success" style="font-size:14px;line-height:1.7">
+        ${stageRewardText}
+        <div style="font-size:11px;color:var(--accent-gold);margin-top:8px">📡 ${isEn ? `Stage ${gameState.eventProgress[event.id]}/3` : `阶段 ${gameState.eventProgress[event.id]}/3`}</div>
       </div>
     ` : `
       <div class="modal-result ${Object.values(choice.effects || {}).some(v => v > 0) ? 'success' : Object.values(choice.effects || {}).some(v => v < 0) ? 'fail' : 'success'}">
@@ -3009,6 +3775,7 @@ function showEnding(endingId) {
   // Save to collection
   saveEndingToCollection(endingId);
   document.getElementById('btn-collection').style.display = 'none';
+  document.getElementById('btn-signal-tree').style.display = 'none';
 
   switchScreen('screen-ending');
 
@@ -3063,7 +3830,9 @@ function showEnding(endingId) {
 
 function restartGame() {
   initGame();
+  signalUnlocked = new Set();
   document.getElementById('btn-collection').style.display = 'none';
+  document.getElementById('btn-signal-tree').style.display = 'none';
   switchScreen('screen-title');
 }
 
@@ -3083,12 +3852,15 @@ function goBackOneWeek() {
   gameState.portfolio = snap.portfolio;
   gameState.aiClassCount = snap.aiClassCount;
   gameState.interning = snap.interning;
+  if (snap.signal) gameState.signal = { ...snap.signal };
+  if (snap.eventProgress) gameState.eventProgress = { ...snap.eventProgress };
   gameState.weekSlots = [];
   gameState.history = snap.history.slice();
   gameState._lastWeekSnapshot = null; // Only one undo allowed
 
   // Back to game screen
   document.getElementById('btn-collection').style.display = 'flex';
+  document.getElementById('btn-signal-tree').style.display = 'flex';
   switchScreen('screen-game');
   renderAll();
   showToast(currentLang === 'en' ? '⏪ Back to last week! Make better choices!' : '⏪ 回到上一周！重新选择吧！', 'info');
@@ -3218,23 +3990,24 @@ function showNextIntro() {
 
   const item = introQueue.shift();
   const remaining = introQueue.length;
-  const statNames = { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
+  const isEn = currentLang === 'en';
+  const sn = getSN();
 
   document.getElementById('unlock-content').innerHTML = `
     <div style="text-align:center">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;letter-spacing:1px">📋 活动介绍${remaining > 0 ? ` · 还有${remaining}个` : ''}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;letter-spacing:1px">📋 ${isEn ? `Activity Info${remaining > 0 ? ` · ${remaining} more` : ''}` : `活动介绍${remaining > 0 ? ` · 还有${remaining}个` : ''}`}</div>
       <div class="unlock-card">
         <div class="unlock-card-emoji">${item.emoji}</div>
-        <div class="unlock-card-name">${item.name}</div>
-        <div class="unlock-card-desc">${item.desc}</div>
+        <div class="unlock-card-name">${T(item.name)}</div>
+        <div class="unlock-card-desc">${T(item.desc)}</div>
         <div class="unlock-card-effects">
           ${Object.entries(item.effects).map(([k, v]) => {
             const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
-            return `<span class="effect-tag ${cls}">${statNames[k]} ${v > 0 ? '+' : ''}${v}</span>`;
+            return `<span class="effect-tag ${cls}">${sn[k]} ${v > 0 ? '+' : ''}${v}</span>`;
           }).join('')}
         </div>
       </div>
-      <button class="btn-modal" onclick="closeIntroAndNext()">${remaining > 0 ? '下一个 →' : '开始安排第一周！'}</button>
+      <button class="btn-modal" onclick="closeIntroAndNext()">${remaining > 0 ? (isEn ? 'Next →' : '下一个 →') : (isEn ? 'Start Week 1!' : '开始安排第一周！')}</button>
     </div>
   `;
 
@@ -3253,8 +4026,9 @@ function closeIntroAndNext() {
 let pendingUnlocks = []; // Queue of newly unlocked activities
 
 function checkNewUnlocks() {
-  // Check all activities with unlock rules
+  // Check activities with unlock rules (skip Signal Tree activities)
   for (const [actId, rule] of Object.entries(UNLOCK_RULES)) {
+    if (SIGNAL_TREE[actId]) continue; // Signal Tree activities are manually unlocked
     const result = rule(gameState);
     if (!result.locked && !gameState.unlockedIds.has(actId)) {
       // Newly unlocked!
@@ -3267,10 +4041,158 @@ function checkNewUnlocks() {
     }
   }
 
+  // Also update Signal Tree badge
+  updateSignalTreeBadge();
+
   // Show first pending unlock if no other modal is open
   if (pendingUnlocks.length > 0 && !isAnyModalOpen()) {
     setTimeout(() => showNextUnlock(), 300);
   }
+  // After normal unlocks are done, check Signal Tree for proactive popup
+  else if (pendingUnlocks.length === 0 && !isAnyModalOpen()) {
+    const canUnlockNodes = getCanUnlockSignalNodes();
+    if (canUnlockNodes.length > 0 && !gameState._signalPopupShownThisWeek) {
+      gameState._signalPopupShownThisWeek = true;
+      setTimeout(() => showSignalUnlockPopup(canUnlockNodes), 400);
+    }
+  }
+}
+
+// Get all Signal Tree nodes that can be unlocked right now
+function getCanUnlockSignalNodes() {
+  const result = [];
+  for (const [nodeId, node] of Object.entries(SIGNAL_TREE)) {
+    if (getSignalNodeState(nodeId) === 'can_unlock') {
+      result.push({ id: nodeId, ...node });
+    }
+  }
+  return result;
+}
+
+// Proactive Signal Tree unlock popup — shows up in player's face
+function showSignalUnlockPopup(nodes) {
+  if (nodes.length === 0) return;
+  const modal = document.getElementById('signal-tree-modal');
+  const content = document.getElementById('signal-tree-content');
+  const isEn = currentLang === 'en';
+  const sn = isEn ? { iq:'IQ', eq:'EQ', skill:'Skill', money:'Money', lang:'Lang', friends:'Friends' } : { iq:'智商', eq:'情商', skill:'技能', money:'金钱', lang:'语言', friends:'朋友' };
+  const catLabels = isEn ? { fun: '🎮 Fun', study: '📚 Study', work: '💼 Work' } : { fun: '🎮 娱乐', study: '📚 学习', work: '💼 工作' };
+  const catColors = { fun: 'var(--accent-pink)', study: 'var(--accent-blue)', work: 'var(--accent-purple)' };
+
+  // Calculate how many the player can actually afford per category
+  // (greedy: count affordable nodes sorted by cost ascending)
+  const signalCopy = { fun: gameState.signal.fun, study: gameState.signal.study, work: gameState.signal.work };
+  const sortedNodes = [...nodes].sort((a, b) => a.cost - b.cost);
+  let affordableCount = 0;
+  const tempSignal = { ...signalCopy };
+  for (const node of sortedNodes) {
+    if (tempSignal[node.cat] >= node.cost) {
+      tempSignal[node.cat] -= node.cost;
+      affordableCount++;
+    }
+  }
+
+  // Build signal status display with clear budget info
+  const signalStatus = ['fun', 'study', 'work'].map(cat => {
+    const available = gameState.signal[cat];
+    const catNodes = nodes.filter(n => n.cat === cat);
+    const catCount = catNodes.length;
+    if (catCount === 0) return '';
+    const cheapest = Math.min(...catNodes.map(n => n.cost));
+    const canBuy = available >= cheapest;
+    return `
+      <div style="background:${canBuy ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.03)'};border:1px solid ${canBuy ? 'rgba(245,158,11,0.3)' : 'var(--border-color)'};border-radius:10px;padding:8px 12px;flex:1;min-width:100px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted)">${catLabels[cat]}</div>
+        <div style="font-size:20px;font-weight:900;color:${catColors[cat]}">${available}</div>
+        <div style="font-size:10px;color:${canBuy ? 'var(--accent-gold)' : 'var(--text-muted)'}">${catCount} ${isEn ? 'available' : '个可选'}</div>
+      </div>
+    `;
+  }).filter(Boolean).join('');
+
+  content.innerHTML = `
+    <div class="modal-emoji" style="font-size:40px">🔓📡</div>
+    <div class="modal-title" style="font-size:20px;margin-bottom:4px">${isEn ? 'Signal Unlock!' : 'Signal 解锁！'}</div>
+    <div style="font-size:14px;color:var(--text-primary);margin-bottom:4px;font-weight:600">
+      ${isEn
+        ? `You can afford to unlock <span style="color:var(--accent-gold);font-size:18px">${affordableCount}</span> activit${affordableCount > 1 ? 'ies' : 'y'}`
+        : `你的 Signal 够解锁 <span style="color:var(--accent-gold);font-size:18px">${affordableCount}</span> 个活动`
+      }
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+      ${isEn
+        ? `${nodes.length} available below — pick 1 to unlock now!`
+        : `下面有 ${nodes.length} 个可解锁 —— 选 1 个解锁吧！`
+      }
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;justify-content:center">
+      ${signalStatus}
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;max-height:45vh;overflow-y:auto;padding:4px">
+      ${nodes.map(node => {
+        const name = isEn ? (node.name.en || node.id) : (node.name.zh || node.id);
+        const activity = findActivity(node.id);
+        const effectsHtml = activity ? Object.entries(activity.effects).map(([k, v]) => {
+          const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
+          const snObj = getSN();
+          return `<span class="effect-tag ${cls}" style="font-size:10px">${snObj[k]||k} ${v > 0 ? '+' : ''}${v}</span>`;
+        }).join(' ') : '';
+        const descText = activity ? T(activity.desc) : '';
+        const costDisplay = `📡 ×${node.cost}`;
+        const afterUnlock = gameState.signal[node.cat] - node.cost;
+        return `
+          <div style="background:var(--bg-card);border:2px solid rgba(245,158,11,0.4);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.25s;text-align:left"
+               onmouseover="this.style.borderColor='var(--accent-gold)';this.style.background='rgba(245,158,11,0.08)';this.style.transform='translateY(-2px)'"
+               onmouseout="this.style.borderColor='rgba(245,158,11,0.4)';this.style.background='var(--bg-card)';this.style.transform='translateY(0)'"
+               onclick="unlockFromPopup('${node.id}')">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <span style="font-size:28px">${node.emoji}</span>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:700;color:var(--text-primary)">${name}</div>
+                <div style="font-size:11px;color:${catColors[node.cat]}">
+                  ${catLabels[node.cat]} ${costDisplay}
+                  <span style="color:var(--text-muted);font-size:10px">（${isEn ? 'after' : '解锁后'}: ${afterUnlock}）</span>
+                </div>
+              </div>
+              <div style="background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange));color:#000;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap">
+                ${isEn ? 'Pick!' : '选这个！'}
+              </div>
+            </div>
+            ${descText ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">${descText}</div>` : ''}
+            ${effectsHtml ? `<div style="display:flex;flex-wrap:wrap;gap:3px">${effectsHtml}</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div style="margin-top:14px;text-align:center">
+      <button class="btn-modal" onclick="closeSignalPopup()" style="background:linear-gradient(135deg,#4b5563,#6b7280);font-size:13px;padding:10px 30px">
+        ${isEn ? 'Skip for Now' : '先不解锁'}
+      </button>
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+function unlockFromPopup(nodeId) {
+  unlockSignalNode(nodeId);
+  // After unlocking, check if more can still be unlocked
+  const remaining = getCanUnlockSignalNodes();
+  if (remaining.length > 0) {
+    // Recalculate — can player still afford any?
+    const signalCopy = { fun: gameState.signal.fun, study: gameState.signal.study, work: gameState.signal.work };
+    const canAffordAny = remaining.some(n => signalCopy[n.cat] >= n.cost);
+    if (canAffordAny) {
+      showSignalUnlockPopup(remaining);
+      return;
+    }
+  }
+  closeSignalPopup();
+}
+
+function closeSignalPopup() {
+  document.getElementById('signal-tree-modal').classList.remove('active');
 }
 
 function isAnyModalOpen() {
@@ -3278,7 +4200,8 @@ function isAnyModalOpen() {
          document.getElementById('event-modal').classList.contains('active') ||
          document.getElementById('summary-modal').classList.contains('active') ||
          document.getElementById('unlock-modal').classList.contains('active') ||
-         document.getElementById('collection-modal').classList.contains('active');
+         document.getElementById('collection-modal').classList.contains('active') ||
+         document.getElementById('signal-tree-modal').classList.contains('active');
 }
 
 function showNextUnlock() {
@@ -3317,6 +4240,13 @@ function closeUnlockModal() {
   // Show next unlock if queued
   if (pendingUnlocks.length > 0) {
     setTimeout(() => showNextUnlock(), 300);
+  } else {
+    // Normal unlocks done, now check Signal Tree
+    const canUnlockNodes = getCanUnlockSignalNodes();
+    if (canUnlockNodes.length > 0 && !gameState._signalPopupShownThisWeek) {
+      gameState._signalPopupShownThisWeek = true;
+      setTimeout(() => showSignalUnlockPopup(canUnlockNodes), 400);
+    }
   }
 }
 
@@ -3438,10 +4368,10 @@ function showAllEndings() {
     : { good: '好结局', normal: '普通结局', bad: '坏结局' };
 
   const CONDITIONS = {
-    billionaire:      { zh: '🎲 随机事件「赛马会」成功（50%概率）', en: '🎲 Horse Race event success (5% chance)' },
-    marriage:         { zh: '🎲 随机事件「黄大仙求姻缘」成功（50%概率）', en: '🎲 Wong Tai Sin event success (5% chance)' },
-    stock_god:        { zh: '🎲 随机事件「尘封投资账户」成功（50%概率）', en: '🎲 Stock Discovery event success (5% chance)' },
-    wilderness:       { zh: '🎲 随机事件「旷野的呼唤」成功（压力≥60时触发，50%概率）', en: '🎲 Wilderness Call event (stress≥60, 5% chance)' },
+    billionaire:      { zh: '🎲 随机事件「赛马会」3次成功（Signal驱动，上限50%）', en: '🎲 Horse Race event 3 successes (Signal-driven, max 50%)' },
+    marriage:         { zh: '🎲 随机事件「黄大仙求姻缘」3次成功（Signal驱动，上限50%）', en: '🎲 Wong Tai Sin event 3 successes (Signal-driven, max 50%)' },
+    stock_god:        { zh: '🎲 随机事件「尘封投资账户」3次成功（Signal驱动，上限50%）', en: '🎲 Stock Discovery event 3 successes (Signal-driven, max 50%)' },
+    wilderness:       { zh: '🎲 随机事件「旷野的呼唤」3次成功（压力≥60时触发，Signal驱动）', en: '🎲 Wilderness Call event 3 successes (stress≥60, Signal-driven)' },
     ai_overlord:      { zh: '😰 压力≥70 且 🤖 AI课程累计≥12次', en: '😰 Stress≥70 & 🤖 AI classes≥12' },
     burnout:          { zh: '😰 压力值达到100（任何时候触发）', en: '😰 Stress reaches 100 (instant trigger)' },
     expelled:         { zh: '📉 GPA考核未达标', en: '📉 GPA check failed at week 7/14/20' },
@@ -3546,6 +4476,7 @@ function closeAllEndings() {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   renderTitleScreen();
+  renderOfferScreen();
   renderIntroScreen();
   switchScreen('screen-title');
   updateCollectionBadge();
