@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="港硕模拟器">
+<meta name="apple-mobile-web-app-title" content="水硕模拟器">
 <meta name="theme-color" content="#0a0e1a">
-<title>🎓 港硕模拟器 — 你的香港留学生存指南</title>
+<title>🎓 水硕模拟器 — Watered-Down Master: HK</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
 
@@ -1753,8 +1753,8 @@ let currentLang = localStorage.getItem('hk_sim_lang') || 'zh';
 
 const I18N = {
   // UI
-  '港硕模拟器': { en: 'HK Master Sim' },
-  'HONG KONG MASTER SIMULATOR': { en: 'HONG KONG MASTER SIMULATOR' },
+  '水硕模拟器': { en: 'Watered-Down Master: HK' },
+  'WATERED-DOWN MASTER: HK': { en: 'WATERED-DOWN MASTER: HK' },
   '开始留学之旅': { en: 'Start Journey' },
   '开始第一周': { en: 'Start Week 1' },
   '确认本周安排': { en: 'Confirm Week' },
@@ -1885,8 +1885,8 @@ function renderTitleScreen() {
   const isEn = currentLang === 'en';
   document.getElementById('title-content').innerHTML = `
     <div class="title-logo">🎓</div>
-    <div class="title-main">${isEn ? 'HK Master Sim' : '港硕模拟器'}</div>
-    <div class="title-sub">HONG KONG MASTER SIMULATOR</div>
+    <div class="title-main">${isEn ? 'Watered-Down Master' : '水硕模拟器'}</div>
+    <div class="title-sub">${isEn ? 'HONG KONG EDITION' : 'WATERED-DOWN MASTER: HK'}</div>
     <div class="title-desc">
       ${isEn
         ? 'You are about to embark on a Hong Kong master\'s journey.<br>5 months, 20 weeks, 7 time slots per week to arrange.<br>Study, work, or relax?<br>Every decision shapes your ending.<br><br><em style="color:var(--accent-gold)">Are you ready?</em>'
