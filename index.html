@@ -2064,47 +2064,27 @@ let gameState = {
 // 解锁条件: 返回 { locked: bool, hint: string }
 const UNLOCK_RULES = {
   // ======= 前期解锁（第1-6周）=======
-  // 初始可用：游泳、看电影、上传统技能课、上语言课、做麦当劳打工
-  // 以下在前期通过少量条件解锁：
-
-  // 娱乐 - 需要交朋友
   'shopping':   (gs) => ({ locked: gs.friends < 2, hint: '交到朋友一起逛（朋友≥2）' }),
   'sushi':      (gs) => ({ locked: gs.friends < 4, hint: '约朋友吃饭（朋友≥4）' }),
-
-  // 学习 - 需要上过几次课
   'group_work': (gs) => ({ locked: gs.week < 3, hint: '第3周后解锁（先上几周课）' }),
-  'ai_class':   (gs) => ({ locked: gs.stats.iq < 35, hint: '智商≥35 后解锁' }),
+  'ai_class':   (gs) => ({ locked: gs.stats.iq < 33, hint: '智商≥33 后解锁' }),
 
   // ======= 中期解锁（第7-13周）=======
-  // 需要一定数值积累
-
-  // 娱乐 - 更多朋友
   'climb':      (gs) => ({ locked: gs.friends < 8 || gs.week < 5, hint: '朋友≥8 且 第5周后' }),
   'chat':       (gs) => ({ locked: gs.friends < 10, hint: '交到更多朋友（朋友≥10）' }),
-  'gaming':     (gs) => ({ locked: gs.friends < 14 || gs.stats.eq < 40, hint: '朋友≥14 且 情商≥40' }),
-
-  // 学习
-  'portfolio':  (gs) => ({ locked: gs.week < 6 || gs.stats.skill < 35, hint: '第6周后 且 工作技能≥35' }),
-
-  // 工作 - 中期才开始找工
-  'event_pt':   (gs) => ({ locked: gs.week < 4 || gs.stats.eq < 35, hint: '第4周后 且 情商≥35' }),
-  'ra':         (gs) => ({ locked: gs.week < 7 || gs.stats.iq < 50, hint: '第7周后 且 智商≥50' }),
-  'media':      (gs) => ({ locked: gs.week < 6 || gs.stats.eq < 45, hint: '第6周后 且 情商≥45' }),
+  'gaming':     (gs) => ({ locked: gs.friends < 14 || gs.stats.eq < 35, hint: '朋友≥14 且 情商≥35' }),
+  'portfolio':  (gs) => ({ locked: gs.week < 6 || gs.stats.skill < 28, hint: '第6周后 且 工作技能≥28' }),
+  'event_pt':   (gs) => ({ locked: gs.week < 4 || gs.stats.eq < 33, hint: '第4周后 且 情商≥33' }),
+  'ra':         (gs) => ({ locked: gs.week < 7 || gs.stats.iq < 38, hint: '第7周后 且 智商≥38' }),
+  'media':      (gs) => ({ locked: gs.week < 6 || gs.stats.eq < 36, hint: '第6周后 且 情商≥36' }),
 
   // ======= 后期解锁（第14-20周）=======
-  // 高门槛，需要长期积累
-
-  // 娱乐
   'hiking':     (gs) => ({ locked: gs.friends < 18 || gs.week < 10, hint: '朋友≥18 且 第10周后' }),
-
-  // 学习
   'thesis':     (gs) => ({ locked: gs.week < 14, hint: '第14周后解锁（最后冲刺）' }),
-
-  // 工作 - 高级岗位
-  'intern':     (gs) => ({ locked: gs.week < 10 || gs.stats.skill < 60 || gs.portfolio < 3, hint: '第10周后 且 技能≥60 且 改作品集≥3次' }),
-  'indie_game': (gs) => ({ locked: gs.week < 8 || (gs.stats.skill < 50 && gs.stats.iq < 50), hint: '第8周后 且（技能≥50 或 智商≥50）' }),
-  'nightclub':  (gs) => ({ locked: gs.week < 8 || gs.stats.eq < 50 || gs.stats.lang < 30, hint: '第8周后 且 情商≥50 且 语言≥30' }),
-  'startup':    (gs) => ({ locked: gs.week < 12 || gs.stats.skill < 70 || gs.stats.iq < 55, hint: '第12周后 且 技能≥70 且 智商≥55' }),
+  'intern':     (gs) => ({ locked: gs.week < 10 || gs.stats.skill < 40 || gs.portfolio < 3, hint: '第10周后 且 技能≥40 且 改作品集≥3次' }),
+  'indie_game': (gs) => ({ locked: gs.week < 8 || (gs.stats.skill < 35 && gs.stats.iq < 35), hint: '第8周后 且（技能≥35 或 智商≥35）' }),
+  'nightclub':  (gs) => ({ locked: gs.week < 8 || gs.stats.eq < 36 || gs.stats.lang < 20, hint: '第8周后 且 情商≥36 且 语言≥20' }),
+  'startup':    (gs) => ({ locked: gs.week < 12 || gs.stats.skill < 45 || gs.stats.iq < 38, hint: '第12周后 且 技能≥45 且 智商≥38' }),
 };
 
 function checkUnlock(activityId) {
@@ -2130,40 +2110,40 @@ const ACTIVITIES = {
     title: '🎮 娱乐',
     desc: '降低压力，花费金钱',
     items: [
-      { id: 'swim', emoji: '🏊', name: '游泳', effects: { stress: -8, money: -2 }, desc: '去维港旁的泳池游个痛快' },
-      { id: 'movie', emoji: '🎬', name: '看电影', effects: { stress: -8, money: -3, eq: 2 }, desc: '百老汇院线，爆米花是灵魂' },
-      { id: 'shopping', emoji: '🛍️', name: '逛街', effects: { stress: -7, money: -5, eq: 2 }, desc: '铜锣湾/旺角买买买减压大法' },
-      { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -7, money: -4, eq: 2 }, desc: '排队2小时，吃了15分钟' },
-      { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -7, money: -3, eq: 3 }, desc: '和朋友一起去攀岩馆挑战自我' },
-      { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -10, eq: 3 }, desc: '约三五好友吐槽生活' },
-      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -12, iq: 2 }, desc: '和队友一起开黑到凌晨' },
-      { id: 'hiking', emoji: '🥾', name: '徒步', effects: { stress: -9, money: -1, eq: 3 }, desc: '和朋友去龙脊/大东山暴走一天' }
+      { id: 'swim', emoji: '🏊', name: '游泳', effects: { stress: -4, money: -2 }, desc: '去维港旁的泳池游个痛快' },
+      { id: 'movie', emoji: '🎬', name: '看电影', effects: { stress: -4, money: -3, eq: 1 }, desc: '百老汇院线，爆米花是灵魂' },
+      { id: 'shopping', emoji: '🛍️', name: '逛街', effects: { stress: -3, money: -5, eq: 1 }, desc: '铜锣湾/旺角买买买减压大法' },
+      { id: 'sushi', emoji: '🍣', name: '吃寿司郎', effects: { stress: -3, money: -4, eq: 1 }, desc: '排队2小时，吃了15分钟' },
+      { id: 'climb', emoji: '🧗', name: '攀岩', effects: { stress: -3, money: -3, eq: 2 }, desc: '和朋友一起去攀岩馆挑战自我' },
+      { id: 'chat', emoji: '💬', name: '和朋友聊天', effects: { stress: -5, eq: 2 }, desc: '约三五好友吐槽生活' },
+      { id: 'gaming', emoji: '🎮', name: '联机打游戏', effects: { stress: -6, iq: 1 }, desc: '和队友一起开黑到凌晨' },
+      { id: 'hiking', emoji: '🥾', name: '徒步', effects: { stress: -4, money: -1, eq: 2 }, desc: '和朋友去龙脊/大东山暴走一天' }
     ]
   },
   study: {
     title: '📚 学习',
     desc: '增加能力，增加压力',
     items: [
-      { id: 'trad_class', emoji: '📖', name: '上传统技能课', effects: { iq: 4, skill: 3, stress: 5 }, desc: '枯燥但有用的传统课程' },
-      { id: 'ai_class', emoji: '🤖', name: '上AI技能课', effects: { iq: 5, skill: 5, stress: 4 }, desc: '学习最前沿的AI技术' },
-      { id: 'lang_class', emoji: '🗣️', name: '上语言课', effects: { lang: 7, eq: 2, stress: 3 }, desc: '粤语/英语精进计划' },
-      { id: 'group_work', emoji: '👥', name: '做小组作业', effects: { eq: 4, skill: 2, stress: 7, iq: 2 }, desc: '和free rider斗智斗勇' },
-      { id: 'portfolio', emoji: '🎨', name: '改作品集', effects: { skill: 5, iq: 2, stress: 4 }, desc: '精心打磨你的作品集，为求职做准备' },
-      { id: 'thesis', emoji: '📝', name: '做毕业项目', effects: { iq: 5, skill: 4, stress: 8 }, desc: '论文地狱模式启动' }
+      { id: 'trad_class', emoji: '📖', name: '上传统技能课', effects: { iq: 2, skill: 1, stress: 4 }, desc: '枯燥但有用的传统课程' },
+      { id: 'ai_class', emoji: '🤖', name: '上AI技能课', effects: { iq: 2, skill: 3, stress: 4 }, desc: '学习最前沿的AI技术' },
+      { id: 'lang_class', emoji: '🗣️', name: '上语言课', effects: { lang: 3, eq: 1, stress: 3 }, desc: '粤语/英语精进计划' },
+      { id: 'group_work', emoji: '👥', name: '做小组作业', effects: { eq: 2, skill: 1, stress: 5, iq: 1 }, desc: '和free rider斗智斗勇' },
+      { id: 'portfolio', emoji: '🎨', name: '改作品集', effects: { skill: 3, iq: 1, stress: 4 }, desc: '精心打磨你的作品集，为求职做准备' },
+      { id: 'thesis', emoji: '📝', name: '做毕业项目', effects: { iq: 3, skill: 2, stress: 6 }, desc: '论文地狱模式启动' }
     ]
   },
   work: {
     title: '💼 工作',
     desc: '增加技能和金钱',
     items: [
-      { id: 'intern', emoji: '👔', name: '实习', effects: { skill: 6, money: 8, stress: 5, eq: 2 }, desc: '大厂实习，从端茶倒水做起' },
-      { id: 'ra', emoji: '🔬', name: '做研究助理', effects: { iq: 5, skill: 4, money: 5, stress: 3 }, desc: '帮教授搬砖做数据' },
-      { id: 'event_pt', emoji: '🎪', name: '做活动兼职', effects: { eq: 4, money: 5, stress: 2, lang: 2 }, desc: '各种展会活动临时工' },
-      { id: 'mcdonalds', emoji: '🍔', name: '做麦当劳打工', effects: { money: 4, stress: -2, lang: 4 }, desc: '多国语言实战训练场' },
-      { id: 'indie_game', emoji: '🕹️', name: '做独立游戏', effects: { skill: 7, iq: 4, stress: 5, money: -2 }, desc: '梦想总是要有的' },
-      { id: 'media', emoji: '📱', name: '做自媒体', effects: { eq: 4, skill: 4, money: 3, stress: 4 }, desc: '成为下一个网红？' },
-      { id: 'nightclub', emoji: '🍸', name: '夜店兼职', effects: { eq: 5, money: 6, lang: 2, stress: -2 }, desc: '红磡夜总会，灯红酒绿的世界' },
-      { id: 'startup', emoji: '🚀', name: '搞创业', effects: { skill: 7, iq: 4, money: -3, stress: 6, eq: 2 }, desc: '车库创业，从0到1' }
+      { id: 'intern', emoji: '👔', name: '实习', effects: { skill: 3, money: 4, stress: 5, eq: 1 }, desc: '大厂实习，从端茶倒水做起' },
+      { id: 'ra', emoji: '🔬', name: '做研究助理', effects: { iq: 3, skill: 2, money: 3, stress: 3 }, desc: '帮教授搬砖做数据' },
+      { id: 'event_pt', emoji: '🎪', name: '做活动兼职', effects: { eq: 2, money: 3, stress: 2, lang: 1 }, desc: '各种展会活动临时工' },
+      { id: 'mcdonalds', emoji: '🍔', name: '做麦当劳打工', effects: { money: 2, stress: -1, lang: 2 }, desc: '多国语言实战训练场' },
+      { id: 'indie_game', emoji: '🕹️', name: '做独立游戏', effects: { skill: 4, iq: 2, stress: 5, money: -2 }, desc: '梦想总是要有的' },
+      { id: 'media', emoji: '📱', name: '做自媒体', effects: { eq: 2, skill: 2, money: 2, stress: 4 }, desc: '成为下一个网红？' },
+      { id: 'nightclub', emoji: '🍸', name: '夜店兼职', effects: { eq: 3, money: 3, lang: 1, stress: -1 }, desc: '红磡夜总会，灯红酒绿的世界' },
+      { id: 'startup', emoji: '🚀', name: '搞创业', effects: { skill: 4, iq: 2, money: -3, stress: 5, eq: 1 }, desc: '车库创业，从0到1' }
     ]
   }
 };
@@ -2546,26 +2526,26 @@ const SIGNAL_TREE = {
   'shopping':   { cat: 'fun', cost: 1, req: { friends: 2 }, emoji: '🛍️', name: { zh: '购物', en: 'Shopping' } },
   'sushi':      { cat: 'fun', cost: 1, req: { friends: 4 }, emoji: '🍣', name: { zh: '寿司', en: 'Sushi' } },
   'group_work': { cat: 'study', cost: 1, req: {}, emoji: '👥', name: { zh: '小组作业', en: 'Group Work' } },
-  'ai_class':   { cat: 'study', cost: 1, req: { iq: 35 }, emoji: '🤖', name: { zh: 'AI课', en: 'AI Class' } },
-  'event_pt':   { cat: 'work', cost: 1, req: { eq: 35 }, emoji: '📋', name: { zh: '活动兼职', en: 'Event PT' } },
+  'ai_class':   { cat: 'study', cost: 1, req: { iq: 33 }, emoji: '🤖', name: { zh: 'AI课', en: 'AI Class' } },
+  'event_pt':   { cat: 'work', cost: 1, req: { eq: 33 }, emoji: '📋', name: { zh: '活动兼职', en: 'Event PT' } },
 
   // 中期节点（2 Signal）
   'climb':      { cat: 'fun', cost: 2, req: { friends: 8 }, emoji: '🧗', name: { zh: '爬山', en: 'Climbing' } },
   'chat':       { cat: 'fun', cost: 2, req: { friends: 10 }, emoji: '💬', name: { zh: '聊天', en: 'Chat' } },
-  'portfolio':  { cat: 'study', cost: 2, req: { skill: 35 }, emoji: '📁', name: { zh: '改作品集', en: 'Portfolio' } },
-  'ra':         { cat: 'study', cost: 2, req: { iq: 50 }, emoji: '🔬', name: { zh: '做RA', en: 'RA Work' } },
-  'media':      { cat: 'work', cost: 2, req: { eq: 45 }, emoji: '📱', name: { zh: '自媒体', en: 'Media' } },
+  'portfolio':  { cat: 'study', cost: 2, req: { skill: 28 }, emoji: '📁', name: { zh: '改作品集', en: 'Portfolio' } },
+  'ra':         { cat: 'study', cost: 2, req: { iq: 38 }, emoji: '🔬', name: { zh: '做RA', en: 'RA Work' } },
+  'media':      { cat: 'work', cost: 2, req: { eq: 36 }, emoji: '📱', name: { zh: '自媒体', en: 'Media' } },
 
   // 后期节点（3 Signal）
-  'gaming':     { cat: 'fun', cost: 3, req: { friends: 14, eq: 40 }, emoji: '🎮', name: { zh: '打游戏', en: 'Gaming' } },
+  'gaming':     { cat: 'fun', cost: 3, req: { friends: 14, eq: 35 }, emoji: '🎮', name: { zh: '打游戏', en: 'Gaming' } },
   'hiking':     { cat: 'fun', cost: 3, req: { friends: 18 }, emoji: '🥾', name: { zh: '远足', en: 'Hiking' } },
   'thesis':     { cat: 'study', cost: 3, req: {}, emoji: '📝', name: { zh: '毕业项目', en: 'Thesis' } },
-  'intern':     { cat: 'work', cost: 3, req: { skill: 60 }, emoji: '👔', name: { zh: '实习', en: 'Intern' } },
-  'indie_game': { cat: 'work', cost: 3, req: { skill: 50 }, emoji: '🕹️', name: { zh: '独立游戏', en: 'Indie Game' } },
-  'nightclub':  { cat: 'work', cost: 3, req: { eq: 50, lang: 30 }, emoji: '🍸', name: { zh: '夜店PR', en: 'Nightclub' } },
+  'intern':     { cat: 'work', cost: 3, req: { skill: 40 }, emoji: '👔', name: { zh: '实习', en: 'Intern' } },
+  'indie_game': { cat: 'work', cost: 3, req: { skill: 35 }, emoji: '🕹️', name: { zh: '独立游戏', en: 'Indie Game' } },
+  'nightclub':  { cat: 'work', cost: 3, req: { eq: 36, lang: 20 }, emoji: '🍸', name: { zh: '夜店PR', en: 'Nightclub' } },
 
   // 终极节点（4 Signal）
-  'startup':    { cat: 'work', cost: 4, req: { skill: 70, iq: 55 }, emoji: '🚀', name: { zh: '创业', en: 'Startup' } }
+  'startup':    { cat: 'work', cost: 4, req: { skill: 45, iq: 38 }, emoji: '🚀', name: { zh: '创业', en: 'Startup' } }
 };
 
 // Track Signal-unlocked activities
@@ -3078,15 +3058,15 @@ function confirmWeek() {
       if (['trad_class','ai_class','lang_class','group_work','event_pt'].includes(slot.id)) {
         gameState.friends++;
       }
-      // GPA追踪：不同课程GPA贡献不同
-      // 传统课: GPA加得多(3.5)，AI课中等(3.0)，语言课(2.8)，小组作业(3.2)，毕业项目(3.3)，改作品集(2.5)
+      // GPA追踪：不同课程GPA贡献不同（降低，需要持续上课）
+      // 传统课: GPA加得最多(2.8)，AI课(2.5)，小组作业(2.6)，毕业项目(2.7)，语言课(2.2)，改作品集(2.0)
       const GPA_MAP = {
-        'trad_class': 3.5,
-        'ai_class': 3.0,
-        'lang_class': 2.8,
-        'group_work': 3.2,
-        'thesis': 3.3,
-        'portfolio': 2.5
+        'trad_class': 2.8,
+        'ai_class': 2.5,
+        'lang_class': 2.2,
+        'group_work': 2.6,
+        'thesis': 2.7,
+        'portfolio': 2.0
       };
       if (GPA_MAP[slot.id] !== undefined) {
         gameState.gpa += GPA_MAP[slot.id];
@@ -3352,7 +3332,7 @@ function advanceWeek() {
     ['trad_class','ai_class','lang_class','group_work','thesis','portfolio'].includes(id)
   ).length;
   if (studyThisWeek === 0 && gameState.gpaCredits > 0) {
-    gameState.gpa = Math.max(0, gameState.gpa - 0.5);
+    gameState.gpa = Math.max(0, gameState.gpa - 0.8);
     const isEn = currentLang === 'en';
     showToast(isEn ? '📉 GPA dropped! Take some classes!' : '📉 GPA下降了！记得上课！', 'warning');
   }
@@ -3700,9 +3680,9 @@ function calculateEnding() {
 
   // === 夜总会线 ===
   if (nightclubCount >= 12) {
-    if (s.eq >= 70 && s.money >= 60) {
+    if (s.eq >= 45 && s.money >= 40) {
       showEnding('nightclub_good');
-    } else if (s.eq >= 50 || s.money >= 50) {
+    } else if (s.eq >= 35 || s.money >= 35) {
       showEnding('nightclub_normal');
     } else {
       showEnding('nightclub_bad');
@@ -3712,9 +3692,9 @@ function calculateEnding() {
 
   // === 创业线 ===
   if (startupCount >= 10) {
-    if (s.skill >= 70 && s.iq >= 60 && s.money >= 30) {
+    if (s.skill >= 45 && s.iq >= 40 && s.money >= 20) {
       showEnding('startup_good');
-    } else if (s.skill >= 50 || s.iq >= 50) {
+    } else if (s.skill >= 35 || s.iq >= 35) {
       showEnding('startup_normal');
     } else {
       showEnding('startup_bad');
@@ -3724,9 +3704,9 @@ function calculateEnding() {
 
   // === 麦当劳线 ===
   if (mcdCount >= 15) {
-    if (s.skill >= 60 && s.iq >= 50 && s.money >= 40) {
+    if (s.skill >= 40 && s.iq >= 35 && s.money >= 30) {
       showEnding('mcd_good');
-    } else if (s.skill >= 40 || s.lang >= 50) {
+    } else if (s.skill >= 28 || s.lang >= 35) {
       showEnding('mcd_normal');
     } else {
       showEnding('mcd_bad');
@@ -3736,9 +3716,9 @@ function calculateEnding() {
 
   // === 网红线 ===
   if (f.becameInfluencer || mediaCount >= 16) {
-    if (f.becameInfluencer && (s.eq >= 60 || s.skill >= 60)) {
+    if (f.becameInfluencer && (s.eq >= 40 || s.skill >= 40)) {
       showEnding('influencer_good');
-    } else if (mediaCount >= 10 && s.skill >= 40) {
+    } else if (mediaCount >= 10 && s.skill >= 28) {
       showEnding('influencer_normal');
     } else {
       showEnding('influencer_bad');
@@ -3747,11 +3727,11 @@ function calculateEnding() {
   }
 
   // === 打工人线 ===
-  if (s.lang >= 60 && s.eq >= 50) {
+  if (s.lang >= 40 && s.eq >= 35) {
     showEnding('work_good2');
-  } else if (f.gotJobOffer || (s.skill >= 70 && s.iq >= 60)) {
+  } else if (f.gotJobOffer || (s.skill >= 45 && s.iq >= 40)) {
     showEnding('work_good');
-  } else if (s.skill >= 45 || s.iq >= 45) {
+  } else if (s.skill >= 30 || s.iq >= 30) {
     showEnding('work_normal');
   } else {
     showEnding('work_bad');
