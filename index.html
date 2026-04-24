@@ -189,6 +189,49 @@
     color: #000;
   }
 
+  /* === BGM Toggle === */
+  #bgm-toggle {
+    position: fixed;
+    top: 44px;
+    right: 12px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  #bgm-toggle:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+    box-shadow: 0 0 12px rgba(246,197,71,0.15);
+  }
+  #bgm-toggle.playing {
+    border-color: rgba(52,211,153,0.4);
+    color: var(--accent-green);
+  }
+  #bgm-toggle .bgm-icon {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 1;
+    transition: transform 0.3s ease;
+  }
+  #bgm-toggle.playing .bgm-icon {
+    animation: bgm-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes bgm-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.92); }
+  }
+
   .game-topbar {
     display: flex;
     justify-content: space-between;
@@ -1626,6 +1669,15 @@
   <button class="lang-btn active" data-lang="zh" onclick="switchLang('zh')">中文</button>
   <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
 </div>
+
+<!-- BGM Toggle -->
+<button id="bgm-toggle" title="Background Music">
+  <span class="bgm-icon">🔇</span>
+  <span class="bgm-label">BGM</span>
+</button>
+
+<!-- BGM Audio (loop, low volume) -->
+<audio id="bgm-audio" loop preload="auto" src="bgm.mp3"></audio>
 
 <div id="app">
   <!-- Title Screen -->
@@ -4451,6 +4503,72 @@ function toggleEndingCard(card) {
 function closeAllEndings() {
   document.getElementById('all-endings-modal').classList.remove('active');
 }
+
+// ====== BGM Controller ======
+const bgmAudio = document.getElementById('bgm-audio');
+const bgmToggle = document.getElementById('bgm-toggle');
+let bgmEnabled = false;
+let bgmStarted = false;
+const BGM_VOLUME = 0.35;
+
+function toggleBGM() {
+  if (!bgmStarted) {
+    // First interaction: start playing
+    bgmAudio.volume = BGM_VOLUME;
+    bgmAudio.play().then(() => {
+      bgmEnabled = true;
+      bgmStarted = true;
+      updateBgmUI();
+    }).catch(() => {
+      // Autoplay blocked, ignore
+    });
+  } else if (bgmEnabled) {
+    // Fade out then pause
+    fadeBGM(false);
+  } else {
+    // Fade in then play
+    bgmAudio.volume = 0;
+    bgmAudio.play().then(() => {
+      bgmEnabled = true;
+      fadeBGM(true);
+    }).catch(() => {});
+  }
+}
+
+function fadeBGM(toOn) {
+  const target = toOn ? BGM_VOLUME : 0;
+  const step = toOn ? 0.03 : -0.03;
+  const fade = () => {
+    bgmAudio.volume += step;
+    if ((toOn && bgmAudio.volume < target) || (!toOn && bgmAudio.volume > 0.01)) {
+      requestAnimationFrame(fade);
+    } else {
+      bgmAudio.volume = target;
+      if (!toOn) {
+        bgmAudio.pause();
+        bgmEnabled = false;
+      }
+      updateBgmUI();
+    }
+  };
+  requestAnimationFrame(fade);
+  if (!toOn) bgmEnabled = false;
+  updateBgmUI();
+}
+
+function updateBgmUI() {
+  if (bgmEnabled && bgmStarted) {
+    bgmToggle.classList.add('playing');
+    bgmToggle.querySelector('.bgm-icon').textContent = '🔊';
+    bgmToggle.querySelector('.bgm-label').textContent = 'BGM ON';
+  } else {
+    bgmToggle.classList.remove('playing');
+    bgmToggle.querySelector('.bgm-icon').textContent = '🔇';
+    bgmToggle.querySelector('.bgm-label').textContent = 'BGM OFF';
+  }
+}
+
+bgmToggle.addEventListener('click', toggleBGM);
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
