@@ -60,10 +60,12 @@
   #app {
     position: relative;
     z-index: 1;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 16px 20px;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* === Screen Transitions === */
@@ -257,9 +259,23 @@
     display: flex;
     gap: 8px;
     margin-bottom: 8px;
+    flex: 1;
+    min-height: 0;
   }
 
   /* === Left Side Stats === */
+  /* === Game Screen: fill viewport on desktop === */
+  #screen-game {
+    display: flex !important;
+    flex-direction: column;
+    height: calc(100vh - 32px);
+    min-height: 0;
+  }
+  #screen-game > .game-topbar { flex-shrink: 0; }
+  #screen-game > .stress-warning { flex-shrink: 0; }
+  #screen-game > .game-body { flex: 1; min-height: 0; }
+  #screen-game > .bottom-section { flex-shrink: 0; }
+
   .side-stats {
     width: 100px;
     flex-shrink: 0;
@@ -270,6 +286,7 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    justify-content: space-around;
   }
   .side-stat { display: flex; flex-direction: column; gap: 1px; }
   .side-stat-header { display: flex; justify-content: space-between; align-items: center; }
@@ -286,12 +303,15 @@
     grid-template-columns: 1fr 1fr 1fr;
     gap: 6px;
     align-content: start;
+    min-height: 0;
   }
   .act-column {
     background: var(--bg-secondary);
     border-radius: 10px;
     border: 1px solid var(--border-color);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   .act-col-header {
     padding: 5px 8px;
@@ -299,6 +319,7 @@
     font-weight: 700;
     text-align: center;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
   }
   .act-col-header.fun { background: rgba(52,211,153,0.08); color: var(--accent-green); }
   .act-col-header.study { background: rgba(96,165,250,0.08); color: var(--accent-blue); }
@@ -308,7 +329,8 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    max-height: 300px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
   }
   .act-col-body::-webkit-scrollbar { width: 2px; }
@@ -734,7 +756,9 @@
   }
 
   @media (max-width: 768px) {
-    #app { padding: 8px; max-width: 100%; }
+    #app { padding: 8px; max-width: 100%; height: auto; }
+    /* Mobile: don't force full viewport height */
+    #screen-game { display: block !important; height: auto; }
     .title-main { font-size: 28px; letter-spacing: 2px; }
     .title-sub { font-size: 14px; }
     .title-desc { font-size: 13px; }
@@ -775,7 +799,7 @@
     /* Activities: still 3 columns but tighter */
     .center-activities { gap: 4px; }
     .act-col-header { padding: 4px 6px; font-size: 10px; }
-    .act-col-body { padding: 3px; max-height: 220px; }
+    .act-col-body { padding: 3px; max-height: 200px; flex: none; }
     .act-item { padding: 4px 5px; gap: 4px; }
     .act-item-emoji { font-size: 14px; }
     .act-item-name { font-size: 9px; }
