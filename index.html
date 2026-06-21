@@ -265,16 +265,20 @@
 
   /* === Left Side Stats === */
   /* === Game Screen: fill viewport on desktop === */
-  #screen-game {
-    display: flex !important;
+  /* Use .active to scope this — without it the game screen would leak
+     under the title/path/offer/ending screens. */
+  #screen-game.active {
+    display: flex;
     flex-direction: column;
     height: calc(100vh - 32px);
     min-height: 0;
   }
   #screen-game > .game-topbar { flex-shrink: 0; }
+  #screen-game > .side-stats { flex-shrink: 0; }
   #screen-game > .stress-warning { flex-shrink: 0; }
   #screen-game > .game-body { flex: 1; min-height: 0; }
   #screen-game > .bottom-section { flex-shrink: 0; }
+  #screen-game > .mascot-wrap { flex-shrink: 0; }
 
   .side-stats {
     width: 100px;
@@ -758,7 +762,7 @@
   @media (max-width: 768px) {
     #app { padding: 8px; max-width: 100%; height: auto; }
     /* Mobile: don't force full viewport height */
-    #screen-game { display: block !important; height: auto; }
+    #screen-game.active { display: block; height: auto; }
     .title-main { font-size: 28px; letter-spacing: 2px; }
     .title-sub { font-size: 14px; }
     .title-desc { font-size: 13px; }
@@ -1684,18 +1688,476 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 40px rgba(246,197,71,0.5);
   }
+
+  /* ====================================================== */
+  /* === GAME SCREEN — Fixed 16:9 stage on harbor BG === */
+  /* ====================================================== */
+
+  body.in-game { background: #c7d8e6; overflow: hidden; }
+  body.in-game::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url('assets/bg-harbor.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    pointer-events: none;
+  }
+  body.in-game #app {
+    max-width: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  /* Game screen fills viewport when active */
+  body.in-game #screen-game.active {
+    display: flex !important;
+    flex-direction: row;
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* === Fixed-aspect stage (16:9) — scales with viewport === */
+  .game-stage {
+    width: min(100vw - 24px, calc((100vh - 24px) * 16 / 9), 1440px);
+    aspect-ratio: 16 / 9;
+    max-height: calc(100vh - 24px);
+    display: grid;
+    grid-template-columns: 22% 78%;
+    grid-template-rows: auto 1fr;
+    gap: 10px 0;
+    padding: 14px 18px;
+    position: relative;
+  }
+
+  /* === TOP ROW (spans both columns): week chip + stats pill === */
+  .stage-topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .week-chip {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    padding: 8px 18px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(20, 40, 70, 0.12);
+    color: #0f172a;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .week-chip .topbar-time { color: #0f172a; font-size: 14px; font-weight: 800; }
+  .week-chip .topbar-progress { color: #64748b; font-size: 11px; font-weight: 600; }
+  /* the side-stats inside the top row stretch to fill the rest */
+  .stage-topbar .side-stats { flex: 1; }
+
+  /* === LEFT COLUMN: just the mascot area === */
+  .stage-left {
+    position: relative;
+    padding: 0;
+    display: block;
+    overflow: visible;
+    min-height: 0;
+  }
+  .mascot-wrap {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 4;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  body.in-game .mascot-wrap { display: flex; }
+  /* Bubble sits ABOVE the mascot's head, anchored close to it */
+  .mascot-bubble {
+    position: relative;
+    margin-left: 16%;
+    margin-bottom: -6px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    padding: 8px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 14px rgba(20,40,70,0.14);
+    max-width: 80%;
+    white-space: nowrap;
+    z-index: 5;
+  }
+  .mascot-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 22px;
+    width: 12px; height: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    transform: rotate(45deg);
+  }
+  .mascot-img {
+    width: 92%;
+    max-width: 280px;
+    display: block;
+    filter: drop-shadow(0 8px 14px rgba(20, 40, 70, 0.3));
+    user-select: none;
+  }
+
+  /* === RIGHT COLUMN: single big white panel === */
+  .stage-right {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 8px 28px rgba(20, 40, 70, 0.16);
+    min-height: 0;
+    overflow: hidden;
+  }
+  .right-topbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    flex-shrink: 0;
+  }
+  /* GPA hint sits on the LEFT of the topbar, taking remaining space, same color family as other chips */
+  .gpa-hint {
+    flex: 1;
+    min-width: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    padding: 5px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 6px rgba(20, 40, 70, 0.06);
+  }
+  .gpa-hint strong { color: #0f172a; font-weight: 800; }
+  .gpa-hint.urgent { color: #b91c1c; border-color: rgba(248, 113, 113, 0.5); }
+  .gpa-hint.urgent strong { color: #991b1b; }
+  .topbar-badges { display: flex; flex-wrap: nowrap; gap: 4px; align-items: center; }
+  body.in-game .topbar-badge {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #1e293b;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(20, 40, 70, 0.08);
+    /* For long labels like "👔实习中" we just clip — switch to overflow:hidden so only emoji shows */
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+  body.in-game .topbar-badge.urgent { border-color: rgba(248, 113, 113, 0.6); box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.18); }
+  body.in-game .topbar-badge.signal { border-color: rgba(245, 158, 11, 0.45); }
+  body.in-game .topbar-badge.intern { border-color: rgba(234, 88, 12, 0.5); }
+
+  /* Icon chips for Signal Tree / Collection / BGM */
+  .icon-chip {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #1e293b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    padding: 0;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(20, 40, 70, 0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .icon-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(20, 40, 70, 0.14); }
+  .icon-chip .chip-badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    padding: 0 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #fff;
+  }
+  /* In-topbar lang toggle — compact pill */
+  .lang-toggle.inline {
+    position: static;
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    padding: 2px;
+    gap: 0;
+    box-shadow: 0 2px 6px rgba(20, 40, 70, 0.08);
+  }
+  .lang-toggle.inline .lang-btn {
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .lang-toggle.inline .lang-btn.active { background: #1d4ed8; color: #fff; }
+  /* Hide the global top-right toggles when in-game (they're inlined) */
+  body.in-game .lang-toggle.global-only,
+  body.in-game #bgm-toggle.global-only { display: none; }
+
+  /* Stats: pill row inside the right panel */
+  body.in-game .side-stats {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 14px;
+    color: #0f172a;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  body.in-game .side-stat { flex: 1; min-width: 0; gap: 2px; }
+  body.in-game .side-stat-label { color: #475569; font-size: 10px; gap: 3px; font-weight: 600; }
+  body.in-game .side-stat-label span { font-size: 12px; }
+  body.in-game .side-stat-val { color: #0f172a; font-size: 11px; font-weight: 800; }
+  body.in-game .side-stat-bar { background: rgba(15, 23, 42, 0.08); height: 4px; }
+
+  /* Game body holds the 3 activity columns */
+  body.in-game .game-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  body.in-game .center-activities {
+    flex: 1;
+    min-height: 0;
+    gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  body.in-game .act-column {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  body.in-game .act-col-header {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  body.in-game .act-col-header.fun   { background: rgba(34, 197, 94, 0.18);  color: #065f46; }
+  body.in-game .act-col-header.study { background: rgba(59, 130, 246, 0.18); color: #1e3a8a; }
+  body.in-game .act-col-header.work  { background: rgba(249, 115, 22, 0.22); color: #7c2d12; }
+  body.in-game .act-col-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px; gap: 2px; }
+  body.in-game .act-item {
+    color: #1e293b;
+    border-radius: 8px;
+    padding: 5px 6px;
+    background: transparent;
+  }
+  body.in-game .act-item-name { color: #0f172a; font-size: 11px; font-weight: 600; }
+  body.in-game .act-item-desc { color: #475569; font-size: 9px; }
+  body.in-game .act-item-emoji { font-size: 16px; }
+  body.in-game .act-item:hover {
+    background: rgba(29, 78, 216, 0.08);
+    border-color: rgba(29, 78, 216, 0.25);
+  }
+  body.in-game .act-item-lock { color: #b45309; }
+
+  /* Bottom section: week slots + buttons */
+  body.in-game .bottom-section {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 14px;
+    padding: 8px 10px;
+    flex-shrink: 0;
+  }
+  body.in-game .week-slots {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  body.in-game .week-slot {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1.5px dashed rgba(30, 64, 175, 0.28);
+    border-radius: 10px;
+    color: #0f172a;
+    min-height: 56px;
+  }
+  body.in-game .week-slot:hover { border-color: #1d4ed8; background: rgba(255, 255, 255, 0.92); }
+  body.in-game .week-slot.filled {
+    border-style: solid;
+    border-color: rgba(29, 78, 216, 0.45);
+    background: rgba(219, 234, 254, 0.85);
+  }
+  body.in-game .week-slot.filled.intern-locked {
+    border-color: rgba(234, 88, 12, 0.55);
+    background: rgba(255, 237, 213, 0.85);
+  }
+  body.in-game .week-slot-label { color: #334155; font-weight: 600; }
+  body.in-game .week-slot-name { color: #1e293b; }
+
+  body.in-game .bottom-actions { display: flex; gap: 8px; }
+  body.in-game .btn-repeat-last {
+    flex: 0 0 38%;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #1e293b;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  body.in-game .btn-repeat-last:hover:not(:disabled) { background: #fff; transform: translateY(-1px); }
+  body.in-game .btn-repeat-last:disabled { opacity: 0.45; cursor: not-allowed; }
+  body.in-game .btn-confirm {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(29, 78, 216, 0.3);
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+  body.in-game .btn-confirm:hover:not(:disabled) { box-shadow: 0 8px 22px rgba(29, 78, 216, 0.45); }
+  body.in-game .btn-confirm:disabled {
+    background: rgba(148, 163, 184, 0.7);
+    color: #f1f5f9;
+    box-shadow: none;
+  }
+
+  body.in-game .week-log {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 10px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+  }
+  body.in-game .week-log-title { color: #1e3a8a; font-size: 11px; }
+  body.in-game .log-entry {
+    background: rgba(255, 255, 255, 0.85);
+    color: #1e293b;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    font-size: 10px;
+  }
+
+  body.in-game .stress-warning {
+    background: rgba(254, 226, 226, 0.92);
+    border: 1px solid rgba(252, 165, 165, 0.8);
+    color: #991b1b;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* (lang/bgm toggles in-game are inlined in .right-topbar; the old fixed ones are hidden via .global-only) */
+
+  /* === Mobile: force landscape === */
+  #orientation-lock {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, #0f172a, #1e293b);
+    color: #f1f5f9;
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+  }
+  .orient-icon { font-size: 64px; margin-bottom: 16px; animation: rotateHint 2.4s ease-in-out infinite; }
+  @keyframes rotateHint {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+  }
+  .orient-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .orient-sub { font-size: 14px; color: #94a3b8; }
+
+  /* Show the lock only on touch + portrait orientation */
+  @media (orientation: portrait) and (max-width: 932px) {
+    body.in-game #orientation-lock { display: flex; }
+    body.in-game #app { visibility: hidden; }
+  }
+
+  /* Small landscape (phones in landscape) — shrink fonts slightly */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .game-stage { width: min(100vw, calc(100vh * 16 / 9)); }
+    body.in-game .side-stat-label { font-size: 9px; }
+    body.in-game .side-stat-val { font-size: 10px; }
+    body.in-game .act-item-name { font-size: 10px; }
+    body.in-game .act-item-desc { font-size: 8px; }
+    body.in-game .btn-confirm { font-size: 12px; padding: 9px; }
+    body.in-game .btn-repeat-last { font-size: 11px; padding: 8px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Language Toggle -->
-<div class="lang-toggle">
+<!-- Language Toggle (hidden in-game; replaced by inline chip in top bar) -->
+<div class="lang-toggle global-only">
   <button class="lang-btn active" data-lang="zh" onclick="switchLang('zh')">中文</button>
   <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
 </div>
 
-<!-- BGM Toggle -->
-<button id="bgm-toggle" title="Background Music">
+<!-- BGM Toggle (hidden in-game; replaced by inline chip in top bar) -->
+<button id="bgm-toggle" class="global-only" title="Background Music">
   <span class="bgm-icon">🔇</span>
   <span class="bgm-label">BGM</span>
 </button>
@@ -1721,45 +2183,83 @@
 
   <!-- Game Screen -->
   <div id="screen-game" class="screen">
-    <!-- Top Status Bar -->
-    <div class="game-topbar">
-      <div class="topbar-left">
-        <span class="topbar-time" id="current-time">第1月 第1周</span>
-        <span class="topbar-progress" id="total-progress">0/20周</span>
+    <!-- Fixed-aspect stage holds the whole game UI -->
+    <div class="game-stage" id="game-stage">
+
+      <!-- TOP ROW: stats pill spanning the full width, with side date chip -->
+      <div class="stage-topbar">
+        <div class="week-chip">
+          <span class="topbar-time" id="current-time">第1月，第1周</span>
+          <span class="topbar-progress" id="total-progress">0/20周</span>
+        </div>
+        <div class="side-stats" id="side-stats"></div>
       </div>
-      <div class="topbar-badges" id="topbar-badges"></div>
-    </div>
 
-    <!-- Warnings -->
-    <div class="stress-warning" id="stress-warning" style="display:none">
-      ⚠️ 压力值过高！请安排一些娱乐活动来放松一下！
-    </div>
-    <div class="stress-warning" id="gpa-warning" style="display:none;animation:none;background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fbbf24">
-    </div>
-
-    <!-- Main Layout: Left Stats + Center Activities -->
-    <div class="game-body">
-      <!-- Left: Stat Bars -->
-      <div class="side-stats" id="side-stats"></div>
-
-      <!-- Center: Activities (always visible, 3 columns) -->
-      <div class="center-activities" id="center-activities"></div>
-    </div>
-
-    <!-- Bottom: Week Schedule + Confirm -->
-    <div class="bottom-section">
-      <!-- Week Log -->
-      <div class="week-log" id="week-log" style="display:none">
-        <div class="week-log-title">📋 上周</div>
-        <div class="log-entries" id="log-entries"></div>
+      <!-- Left column: bubble + mascot -->
+      <div class="stage-left">
+        <div class="mascot-wrap" id="mascot-wrap">
+          <div class="mascot-bubble" id="mascot-bubble">港硕生活要开始了<br>先来安排日程吧！</div>
+          <img class="mascot-img" src="assets/mascot.png" alt="主角" draggable="false">
+        </div>
       </div>
-      <!-- Week Slots -->
-      <div class="week-slots" id="week-slots"></div>
-      <!-- Confirm -->
-      <button class="btn-confirm" id="btn-confirm" onclick="confirmWeek()" disabled>
-        ✅ 确认本周安排
-      </button>
+
+      <!-- Right column: one big white panel -->
+      <div class="stage-right">
+
+        <!-- Top: GPA hint + small icon badges + signal/collection/lang/bgm chips -->
+        <div class="right-topbar">
+          <div class="gpa-hint" id="gpa-warning" style="display:none"></div>
+          <div class="topbar-badges" id="topbar-badges"></div>
+          <button class="icon-chip" id="btn-signal-tree" onclick="showSignalTree()" title="Signal Tree" style="display:none">
+            📡<span class="chip-badge" id="signal-tree-badge" style="display:none">0</span>
+          </button>
+          <button class="icon-chip" id="btn-collection" onclick="showCollection()" title="结局收集" style="display:none">
+            🏆<span class="chip-badge" id="collection-count">0</span>
+          </button>
+          <div class="lang-toggle inline">
+            <button class="lang-btn active" data-lang="zh" onclick="switchLang('zh')">中</button>
+            <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
+          </div>
+          <button class="icon-chip bgm-chip" id="bgm-toggle-inline" onclick="toggleBgm()" title="BGM">
+            <span class="bgm-icon">🔊</span>
+          </button>
+        </div>
+
+        <!-- Stress warning (kept above the body) -->
+        <div class="stress-warning" id="stress-warning" style="display:none">
+          ⚠️ 压力值过高！请安排一些娱乐活动来放松一下！
+        </div>
+
+        <!-- Three activity columns -->
+        <div class="game-body">
+          <div class="center-activities" id="center-activities"></div>
+        </div>
+
+        <!-- Bottom: week slots + actions -->
+        <div class="bottom-section">
+          <div class="week-log" id="week-log" style="display:none">
+            <div class="week-log-title">📋 上周</div>
+            <div class="log-entries" id="log-entries"></div>
+          </div>
+          <div class="week-slots" id="week-slots"></div>
+          <div class="bottom-actions">
+            <button class="btn-repeat-last" id="btn-repeat-last" onclick="repeatLastWeek()" disabled title="把上周的活动安排再排一次">
+              ⟲ 复刻上周选择
+            </button>
+            <button class="btn-confirm" id="btn-confirm" onclick="confirmWeek()" disabled>
+              ✅ 开始这周活动
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Portrait lock overlay (mobile only) -->
+  <div id="orientation-lock">
+    <div class="orient-icon">📱↻</div>
+    <div class="orient-title">请横屏游玩</div>
+    <div class="orient-sub">Please rotate your phone</div>
   </div>
 
   <!-- Ending Screen -->
@@ -1798,17 +2298,7 @@
   <div class="modal-content" id="all-endings-content" style="max-width:640px;padding:30px"></div>
 </div>
 
-<!-- Collection Button (always visible during game) -->
-<button class="btn-collection" id="btn-collection" onclick="showCollection()" style="display:none" title="结局收集">
-  🏆
-  <span class="badge-count" id="collection-count">0</span>
-</button>
-
-<!-- Signal Tree Button (always visible during game) -->
-<button class="signal-tree-btn" id="btn-signal-tree" onclick="showSignalTree()" style="display:none" title="Signal Tree">
-  📡
-  <span class="badge" id="signal-tree-badge" style="display:none">0</span>
-</button>
+<!-- Collection / Signal Tree are now integrated as icon chips in the right-topbar (see #screen-game). -->
 
 <!-- Signal Tree Modal -->
 <div class="modal-overlay" id="signal-tree-modal">
@@ -2757,6 +3247,8 @@ function closeSignalTree() {
 function switchScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
+  // Toggle harbor-bg + liquid-glass theme only on the game screen
+  document.body.classList.toggle('in-game', screenId === 'screen-game');
 }
 
 function renderAll() {
@@ -2779,17 +3271,19 @@ function renderTopBar() {
 
   const s = gameState.stats;
   const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits).toFixed(1) : '0.0';
-  const internTag = gameState.interning ? `<span class="topbar-badge" style="border-color:var(--accent-orange);color:var(--accent-orange)">👔${T('实习中')}</span>` : '';
+  const internTag = gameState.interning ? `<span class="topbar-badge intern" title="${T('实习中')}">👔</span>` : '';
 
   const totalSignal = gameState.signal.fun + gameState.signal.study + gameState.signal.work;
 
-  // 只显示图标，不显示数字
+  // Icon-only badges: money / stress / GPA / friends / signal (+ intern tag if interning)
+  const stressUrgent = s.stress >= 80;
+  const gpaUrgent = parseFloat(gpaDisplay) < 2.0 && gameState.gpaCredits > 0;
   document.getElementById('topbar-badges').innerHTML = `
-    <span class="topbar-badge">💰</span>
-    <span class="topbar-badge" style="${s.stress >= 80 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">😰${s.stress >= 80 ? '⚠️' : ''}</span>
-    <span class="topbar-badge" style="${parseFloat(gpaDisplay) < 2.0 && gameState.gpaCredits > 0 ? 'color:var(--accent-red);border-color:var(--accent-red)' : ''}">📊</span>
-    <span class="topbar-badge">👫</span>
-    <span class="topbar-badge" style="color:#f59e0b;border-color:#f59e0b">📡${totalSignal > 0 ? totalSignal : ''}</span>
+    <span class="topbar-badge" title="${T('金钱')}">💰</span>
+    <span class="topbar-badge ${stressUrgent ? 'urgent' : ''}" title="${T('压力')}">😰</span>
+    <span class="topbar-badge ${gpaUrgent ? 'urgent' : ''}" title="GPA">📊</span>
+    <span class="topbar-badge" title="${T('朋友')}">👫</span>
+    <span class="topbar-badge signal" title="Signal">📡</span>
     ${internTag}
   `;
 }
@@ -3024,24 +3518,20 @@ function checkStressWarning() {
     const creditsNeeded = nextCP.minCredits - gameState.gpaCredits;
 
     if (!gpaOk || !creditsOk) {
-      // 不达标就一直显示，越近越紧急
-      gpaWarning.style.display = 'flex';
-      gpaWarning.style.animation = weeksLeft <= 2 ? 'pulse 1.5s ease infinite' : 'none';
-      gpaWarning.style.borderColor = weeksLeft <= 2 ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)';
-      gpaWarning.style.color = weeksLeft <= 2 ? 'var(--accent-red)' : '#fbbf24';
-      gpaWarning.style.background = weeksLeft <= 2 ? 'rgba(248,113,113,0.1)' : 'rgba(251,191,36,0.1)';
+      // Show the hint inline in the topbar. Style is controlled by CSS (.gpa-hint);
+      // we only flag "urgent" (≤2 weeks left) for a subtle accent.
+      gpaWarning.style.display = 'block';
+      gpaWarning.classList.toggle('urgent', weeksLeft <= 2);
 
       let msg;
       if (currentLang === 'en') {
-        msg = `📊 GPA Check: <strong>${weeksLeft}</strong> weeks left!`;
-        if (!creditsOk) msg += ` Need <strong>${creditsNeeded}</strong> more classes!`;
-        if (!gpaOk) msg += ` GPA needs ≥${nextCP.minGpa} (now ${currentGpa})`;
-        msg += ' — <strong>Take classes!</strong>';
+        msg = `📊 GPA: <strong>${weeksLeft}w</strong> left`;
+        if (!creditsOk) msg += ` · need <strong>${creditsNeeded}</strong> classes`;
+        if (!gpaOk) msg += ` · GPA≥${nextCP.minGpa} (${currentGpa})`;
       } else {
-        msg = `📊 GPA考核：还有 <strong>${weeksLeft}</strong> 周！`;
-        if (!creditsOk) msg += ` 还需上 <strong>${creditsNeeded}</strong> 门课！`;
-        if (!gpaOk) msg += ` GPA需≥${nextCP.minGpa}（当前 ${currentGpa}）`;
-        msg += ' — <strong>记得安排上课！</strong>';
+        msg = `📊 GPA考核：还剩 <strong>${weeksLeft}</strong> 周`;
+        if (!creditsOk) msg += ` · 还差 <strong>${creditsNeeded}</strong> 门课`;
+        if (!gpaOk) msg += ` · 需≥${nextCP.minGpa}（当前 ${currentGpa}）`;
       }
       gpaWarning.innerHTML = msg;
     } else {
@@ -3057,13 +3547,90 @@ function updateConfirmButton() {
   const btn = document.getElementById('btn-confirm');
   const count = gameState.weekSlots.length;
   btn.disabled = count === 0;
+  const startLabel = currentLang === 'zh' ? '开始这周活动' : 'Start this week';
   if (count === GAME_CONFIG.slotsPerWeek) {
-    btn.textContent = `✅ ${T('确认本周安排')} (${count}/${GAME_CONFIG.slotsPerWeek})`;
+    btn.textContent = `✅ ${startLabel} (${count}/${GAME_CONFIG.slotsPerWeek})`;
   } else if (count > 0) {
-    btn.textContent = `⏩ ${T('确认本周安排')} (${count}/${GAME_CONFIG.slotsPerWeek})`;
+    btn.textContent = `⏩ ${startLabel} (${count}/${GAME_CONFIG.slotsPerWeek})`;
   } else {
     btn.textContent = currentLang === 'zh' ? '请选择本周活动' : 'Pick activities';
   }
+  // Update repeat-last button + mascot bubble
+  updateRepeatLastButton();
+  updateMascotBubble();
+}
+
+function updateRepeatLastButton() {
+  const btn = document.getElementById('btn-repeat-last');
+  if (!btn) return;
+  const lastIds = gameState._lastSlotIds || [];
+  const hasLast = lastIds.length > 0;
+  const slotsFree = gameState.weekSlots.length === 0;
+  btn.disabled = !hasLast || !slotsFree;
+  const isEn = currentLang === 'en';
+  if (!hasLast) {
+    btn.textContent = isEn ? '⟲ No last week yet' : '⟲ 还没有上周记录';
+  } else if (!slotsFree) {
+    btn.textContent = isEn ? '⟲ Clear slots first' : '⟲ 先清空当前安排';
+  } else {
+    btn.textContent = isEn ? `⟲ Repeat last week (${lastIds.length})` : `⟲ 复刻上周选择 (${lastIds.length})`;
+  }
+}
+
+function repeatLastWeek() {
+  const lastIds = (gameState._lastSlotIds || []).slice();
+  if (lastIds.length === 0) {
+    showToast(currentLang === 'en' ? 'No last week to repeat yet' : '还没有上周记录可以复刻', 'warning');
+    return;
+  }
+  if (gameState.weekSlots.length > 0) {
+    showToast(currentLang === 'en' ? 'Clear current slots first' : '请先清空当前安排', 'warning');
+    return;
+  }
+  // Refill slots from last week. Respect interning lock for intern slots.
+  let added = 0, skipped = 0;
+  for (const id of lastIds) {
+    if (gameState.weekSlots.length >= GAME_CONFIG.slotsPerWeek) break;
+    const act = findActivity(id);
+    if (!act) { skipped++; continue; }
+    // Check unlock condition is still satisfied
+    const cond = UNLOCK_RULES[id];
+    if (cond) {
+      const r = cond(gameState);
+      if (r.locked) { skipped++; continue; }
+    }
+    const lockIntern = (id === 'intern' && gameState.interning);
+    gameState.weekSlots.push({ id: act.id, emoji: act.emoji, name: act.name, locked: lockIntern });
+    added++;
+  }
+  // If interning, ensure at least 4 intern days
+  if (gameState.interning) fillInternSlots();
+  const isEn = currentLang === 'en';
+  if (added > 0) {
+    showToast(isEn ? `⟲ Repeated ${added} activities${skipped?` · skipped ${skipped}`:''}` : `⟲ 已复刻 ${added} 个活动${skipped?` · 跳过 ${skipped} 个`:''}`, 'success');
+  } else {
+    showToast(isEn ? 'Could not repeat — activities locked' : '无法复刻 — 上周的活动当前已锁定', 'warning');
+  }
+  renderAll();
+}
+
+function updateMascotBubble() {
+  const bubble = document.getElementById('mascot-bubble');
+  if (!bubble) return;
+  const isEn = currentLang === 'en';
+  const count = gameState.weekSlots.length;
+  const full = GAME_CONFIG.slotsPerWeek;
+  let text;
+  if (count === 0) {
+    text = isEn ? "Let's plan<br>this week!" : '港硕生活要开始了<br>先来安排日程吧！';
+  } else if (count < full) {
+    text = isEn ? `${full - count} slots left<br>keep going!` : `还差 ${full - count} 格<br>加油排满吧！`;
+  } else if (gameState.stats.stress >= GAME_CONFIG.stressThreshold) {
+    text = isEn ? 'Stress is high<br>take a break?' : '压力有点高<br>要不要放松一下？';
+  } else {
+    text = isEn ? "Week is full!<br>Let's go!" : '满格啦！<br>开始这一周吧！';
+  }
+  bubble.innerHTML = text;
 }
 
 function findActivity(id) {
@@ -4581,18 +5148,20 @@ function fadeBGM(toOn) {
 }
 
 function updateBgmUI() {
-  if (bgmEnabled && bgmStarted) {
-    bgmToggle.classList.add('playing');
-    bgmToggle.querySelector('.bgm-icon').textContent = '🔊';
-    bgmToggle.querySelector('.bgm-label').textContent = 'BGM ON';
-  } else {
-    bgmToggle.classList.remove('playing');
-    bgmToggle.querySelector('.bgm-icon').textContent = '🔇';
-    bgmToggle.querySelector('.bgm-label').textContent = 'BGM OFF';
-  }
+  const playing = bgmEnabled && bgmStarted;
+  const icon = playing ? '🔊' : '🔇';
+  const label = playing ? 'BGM ON' : 'BGM OFF';
+  document.querySelectorAll('#bgm-toggle, #bgm-toggle-inline').forEach(btn => {
+    btn.classList.toggle('playing', playing);
+    const i = btn.querySelector('.bgm-icon'); if (i) i.textContent = icon;
+    const l = btn.querySelector('.bgm-label'); if (l) l.textContent = label;
+  });
 }
 
-bgmToggle.addEventListener('click', toggleBGM);
+// Global "toggleBgm" alias used by the inline chip's onclick attribute
+function toggleBgm() { toggleBGM(); }
+
+if (bgmToggle) bgmToggle.addEventListener('click', toggleBGM);
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
