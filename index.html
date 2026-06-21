@@ -1738,35 +1738,36 @@
     position: relative;
   }
 
-  /* === TOP ROW (spans both columns): week chip + stats pill === */
+  /* === TOP ROW: week chip on left + long stats pill stretching right === */
   .stage-topbar {
     grid-column: 1 / -1;
     display: flex;
-    align-items: stretch;
-    gap: 10px;
-    min-width: 0;          /* allow the row to shrink past its content width */
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    height: 38px;          /* fixed compact height so everything aligns */
   }
   .week-chip {
     background: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.95);
     border-radius: 999px;
-    padding: 8px 16px;
+    padding: 0 14px;
+    height: 100%;
     display: inline-flex;
-    align-items: baseline;
-    gap: 8px;
+    align-items: center;
+    gap: 6px;
     box-shadow: 0 4px 14px rgba(20, 40, 70, 0.12);
     color: #0f172a;
     font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
-    align-self: center;
   }
-  .week-chip .topbar-time { color: #0f172a; font-size: 14px; font-weight: 800; }
+  .week-chip .topbar-time { color: #0f172a; font-size: 13px; font-weight: 800; }
   .week-chip .topbar-progress { color: #64748b; font-size: 11px; font-weight: 600; }
-  /* the side-stats inside the top row take exactly the remaining width — never overflow */
   .stage-topbar .side-stats {
     flex: 1 1 auto;
-    min-width: 0;          /* critical: lets flex items shrink to fit */
+    min-width: 0;
+    height: 100%;
     box-sizing: border-box;
   }
 
@@ -1845,10 +1846,11 @@
     justify-content: flex-end;
     align-items: center;
     gap: 6px;
-    min-height: 28px;
     flex-shrink: 0;
+    /* No min-height — if there's no GPA hint and no intern badge, this row collapses
+       to ~28px (the chip height), letting the activities area get more room. */
   }
-  /* GPA hint sits on the LEFT of the topbar, taking remaining space, same color family as other chips */
+  /* GPA hint sits on the LEFT, takes any remaining width, same color family as chips */
   .gpa-hint {
     flex: 1;
     min-width: 0;
@@ -1864,6 +1866,8 @@
     text-overflow: ellipsis;
     box-shadow: 0 2px 6px rgba(20, 40, 70, 0.06);
   }
+  /* When GPA hint is hidden, push the chip row to the right anyway */
+  .right-topbar > .gpa-hint[style*="display:none"] ~ * { /* no-op, flexbox already handles */ }
   .gpa-hint strong { color: #0f172a; font-weight: 800; }
   .gpa-hint.urgent { color: #b91c1c; border-color: rgba(248, 113, 113, 0.5); }
   .gpa-hint.urgent strong { color: #991b1b; }
@@ -1952,30 +1956,32 @@
   body.in-game .lang-toggle.global-only,
   body.in-game #bgm-toggle.global-only { display: none; }
 
-  /* Stats: pill row across the top */
+  /* Stats: long horizontal pill across the top — compact, all 8 visible */
   body.in-game .side-stats {
     width: 100%;
     flex-direction: row;
     flex-wrap: nowrap;
-    gap: 4px;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.75);
+    gap: 0;
+    padding: 4px 14px;
+    background: rgba(255, 255, 255, 0.78);
     border: 1px solid rgba(255, 255, 255, 0.95);
     border-radius: 999px;
     box-shadow: 0 4px 14px rgba(20, 40, 70, 0.12);
     color: #0f172a;
     justify-content: space-between;
+    align-items: center;
     flex-shrink: 0;
-    overflow: hidden;       /* clip safety net if container is tighter than content */
+    overflow: hidden;
     box-sizing: border-box;
   }
   body.in-game .side-stat {
     flex: 1 1 0;
     min-width: 0;
-    gap: 2px;
+    gap: 1px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    padding: 0 6px;
   }
   body.in-game .side-stat-label {
     color: #475569;
@@ -1985,10 +1991,15 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.1;
   }
-  body.in-game .side-stat-label span { font-size: 12px; }
-  body.in-game .side-stat-val { color: #0f172a; font-size: 11px; font-weight: 800; }
-  body.in-game .side-stat-bar { background: rgba(15, 23, 42, 0.10); height: 4px; border-radius: 2px; }
+  body.in-game .side-stat-label span { font-size: 11px; }
+  body.in-game .side-stat-bar {
+    background: rgba(15, 23, 42, 0.10);
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 2px;
+  }
 
   /* Game body holds the 3 activity columns */
   body.in-game .game-body {
@@ -2210,7 +2221,7 @@
     <!-- Fixed-aspect stage holds the whole game UI -->
     <div class="game-stage" id="game-stage">
 
-      <!-- TOP ROW: stats pill spanning the full width, with side date chip -->
+      <!-- TOP ROW: small date chip on left + long stats pill spanning the rest -->
       <div class="stage-topbar">
         <div class="week-chip">
           <span class="topbar-time" id="current-time">第1月，第1周</span>
@@ -2230,10 +2241,9 @@
       <!-- Right column: one big white panel -->
       <div class="stage-right">
 
-        <!-- Top: GPA hint + small icon badges + signal/collection/lang/bgm chips -->
+        <!-- Top: GPA hint + interactive chips only (collection / lang / BGM) -->
         <div class="right-topbar">
           <div class="gpa-hint" id="gpa-warning" style="display:none"></div>
-          <div class="topbar-badges" id="topbar-badges"></div>
           <button class="icon-chip" id="btn-collection" onclick="showCollection()" title="结局收集" style="display:none">
             🏆<span class="chip-badge" id="collection-count">0</span>
           </button>
@@ -2244,6 +2254,8 @@
           <button class="icon-chip bgm-chip" id="bgm-toggle-inline" onclick="toggleBgm()" title="BGM">
             <span class="bgm-icon">🔊</span>
           </button>
+          <!-- Intern badge stays on top because it's a state, not noise -->
+          <div class="topbar-badges" id="topbar-badges"></div>
         </div>
 
         <!-- Stress warning (kept above the body) -->
@@ -3122,20 +3134,10 @@ function renderTopBar() {
   document.getElementById('current-time').textContent = currentLang === 'zh' ? `第${month}月 第${weekInMonth}周` : `M${month} W${weekInMonth}`;
   document.getElementById('total-progress').textContent = `${gameState.week - 1}/${GAME_CONFIG.totalWeeks}${T('周')}`;
 
-  const s = gameState.stats;
-  const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits).toFixed(1) : '0.0';
+  // Only the intern state badge is shown in the topbar — the rest is redundant
+  // with the full stats bar above it.
   const internTag = gameState.interning ? `<span class="topbar-badge intern" title="${T('实习中')}">👔</span>` : '';
-
-  // Icon-only state badges in the right-panel topbar
-  const stressUrgent = s.stress >= 80;
-  const gpaUrgent = parseFloat(gpaDisplay) < 2.0 && gameState.gpaCredits > 0;
-  document.getElementById('topbar-badges').innerHTML = `
-    <span class="topbar-badge" title="${T('金钱')}">💰</span>
-    <span class="topbar-badge ${stressUrgent ? 'urgent' : ''}" title="${T('压力')}">😰</span>
-    <span class="topbar-badge ${gpaUrgent ? 'urgent' : ''}" title="GPA">📊</span>
-    <span class="topbar-badge" title="${T('朋友')}">👫</span>
-    ${internTag}
-  `;
+  document.getElementById('topbar-badges').innerHTML = internTag;
 }
 
 function renderSideStats() {
