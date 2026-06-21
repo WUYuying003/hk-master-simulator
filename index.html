@@ -1742,14 +1742,15 @@
   .stage-topbar {
     grid-column: 1 / -1;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 10px;
+    min-width: 0;          /* allow the row to shrink past its content width */
   }
   .week-chip {
     background: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.95);
     border-radius: 999px;
-    padding: 8px 18px;
+    padding: 8px 16px;
     display: inline-flex;
     align-items: baseline;
     gap: 8px;
@@ -1758,11 +1759,16 @@
     font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
+    align-self: center;
   }
   .week-chip .topbar-time { color: #0f172a; font-size: 14px; font-weight: 800; }
   .week-chip .topbar-progress { color: #64748b; font-size: 11px; font-weight: 600; }
-  /* the side-stats inside the top row stretch to fill the rest */
-  .stage-topbar .side-stats { flex: 1; }
+  /* the side-stats inside the top row take exactly the remaining width — never overflow */
+  .stage-topbar .side-stats {
+    flex: 1 1 auto;
+    min-width: 0;          /* critical: lets flex items shrink to fit */
+    box-sizing: border-box;
+  }
 
   /* === LEFT COLUMN: just the mascot area === */
   .stage-left {
@@ -1946,25 +1952,43 @@
   body.in-game .lang-toggle.global-only,
   body.in-game #bgm-toggle.global-only { display: none; }
 
-  /* Stats: pill row inside the right panel */
+  /* Stats: pill row across the top */
   body.in-game .side-stats {
     width: 100%;
     flex-direction: row;
     flex-wrap: nowrap;
-    gap: 6px;
-    padding: 8px 10px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    border-radius: 14px;
+    gap: 4px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(20, 40, 70, 0.12);
     color: #0f172a;
     justify-content: space-between;
     flex-shrink: 0;
+    overflow: hidden;       /* clip safety net if container is tighter than content */
+    box-sizing: border-box;
   }
-  body.in-game .side-stat { flex: 1; min-width: 0; gap: 2px; }
-  body.in-game .side-stat-label { color: #475569; font-size: 10px; gap: 3px; font-weight: 600; }
+  body.in-game .side-stat {
+    flex: 1 1 0;
+    min-width: 0;
+    gap: 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  body.in-game .side-stat-label {
+    color: #475569;
+    font-size: 10px;
+    gap: 3px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   body.in-game .side-stat-label span { font-size: 12px; }
   body.in-game .side-stat-val { color: #0f172a; font-size: 11px; font-weight: 800; }
-  body.in-game .side-stat-bar { background: rgba(15, 23, 42, 0.08); height: 4px; }
+  body.in-game .side-stat-bar { background: rgba(15, 23, 42, 0.10); height: 4px; border-radius: 2px; }
 
   /* Game body holds the 3 activity columns */
   body.in-game .game-body {
@@ -2210,9 +2234,6 @@
         <div class="right-topbar">
           <div class="gpa-hint" id="gpa-warning" style="display:none"></div>
           <div class="topbar-badges" id="topbar-badges"></div>
-          <button class="icon-chip" id="btn-signal-tree" onclick="showSignalTree()" title="Signal Tree" style="display:none">
-            📡<span class="chip-badge" id="signal-tree-badge" style="display:none">0</span>
-          </button>
           <button class="icon-chip" id="btn-collection" onclick="showCollection()" title="结局收集" style="display:none">
             🏆<span class="chip-badge" id="collection-count">0</span>
           </button>
@@ -2301,9 +2322,11 @@
 <!-- Collection / Signal Tree are now integrated as icon chips in the right-topbar (see #screen-game). -->
 
 <!-- Signal Tree Modal -->
-<div class="modal-overlay" id="signal-tree-modal">
-  <div class="modal-content" id="signal-tree-content" style="max-width:550px"></div>
-</div>
+<!-- Signal Tree modal removed -->
+<div id="signal-tree-modal" style="display:none"></div>
+<div id="signal-tree-content" style="display:none"></div>
+<button id="btn-signal-tree" style="display:none"></button>
+<span id="signal-tree-badge" style="display:none"></span>
 
 <!-- Offer Confirm Dialog -->
 <div class="offer-confirm-overlay" id="offer-confirm-overlay">
@@ -2655,17 +2678,7 @@ const UNLOCK_RULES = {
 };
 
 function checkUnlock(activityId) {
-  // If activity is in Signal Tree, use Signal Tree logic
-  if (SIGNAL_TREE[activityId]) {
-    if (signalUnlocked.has(activityId)) {
-      return { locked: false, hint: '' };
-    }
-    const node = SIGNAL_TREE[activityId];
-    const isEn = currentLang === 'en';
-    const catLabel = { fun: isEn ? 'Fun' : '娱乐', study: isEn ? 'Study' : '学习', work: isEn ? 'Work' : '工作' }[node.cat];
-    return { locked: true, hint: `📡 ${catLabel} Signal ×${node.cost}` };
-  }
-  // Otherwise use original unlock rules
+  // Unified unlock system based on UNLOCK_RULES (stats / week / friends / portfolio)
   const rule = UNLOCK_RULES[activityId];
   if (!rule) return { locked: false, hint: '' };
   return rule(gameState);
@@ -2958,8 +2971,6 @@ function initGame() {
     interning: false,     // 是否已接受实习offer
     _activeSlot: null,    // 当前正在选择的slot索引
     _lastSlotIds: [],     // 上周活动ID（GPA衰减用）
-    signal: { fun: 0, study: 0, work: 0 }, // Signal系统
-    signalMilestones: {}, // 已触发的里程碑
     eventProgress: {},    // 随机事件阶段进度
     unlockedIds: new Set(), // 已通知解锁的活动ID
     chosenPath: null       // 开局路线选择
@@ -2975,9 +2986,7 @@ function startGame() {
 function showGameScreen() {
   switchScreen('screen-game');
   document.getElementById('btn-collection').style.display = 'flex';
-  document.getElementById('btn-signal-tree').style.display = 'flex';
   updateCollectionBadge();
-  updateSignalTreeBadge();
   renderAll();
   // Show path choice on first week, then tutorial
   if (gameState.week === 1 && !gameState.chosenPath) {
@@ -2993,29 +3002,25 @@ const LIFE_PATHS = {
     emoji: '🏢',
     name: { zh: '人上人', en: 'Top Player' },
     desc: { zh: '冲大厂、进金融，成为行业精英。初始技能+10，但压力也+10。', en: 'Big corp or finance — become an industry elite. Skill +10, but Stress +10.' },
-    bonuses: { skill: 10, stress: 10 },
-    signalBonus: 'work'
+    bonuses: { skill: 10, stress: 10 }
   },
   happy: {
     emoji: '😄',
     name: { zh: '开心就好', en: 'Just Be Happy' },
     desc: { zh: '低压生活，快乐至上。情商+10，压力-10。', en: 'Low stress, happiness first. EQ +10, Stress -10.' },
-    bonuses: { eq: 10, stress: -10 },
-    signalBonus: 'fun'
+    bonuses: { eq: 10, stress: -10 }
   },
   chosen: {
     emoji: '✨',
     name: { zh: '被选中的孩子', en: 'The Chosen One' },
     desc: { zh: '学术大牛或创业新星。智商+10，但口袋空空（金钱-10）。', en: 'Academic star or startup founder. IQ +10, but less cash (Money -10).' },
-    bonuses: { iq: 10, money: -10 },
-    signalBonus: 'study'
+    bonuses: { iq: 10, money: -10 }
   },
   wild: {
     emoji: '🌊',
     name: { zh: '旷野人生', en: 'Wild Life' },
     desc: { zh: '什么都想尝试，均衡发展。四项数值各+5。', en: 'Try everything, balanced growth. Four stats +5 each.' },
-    bonuses: { iq: 5, eq: 5, skill: 5, lang: 5 },
-    signalBonus: null
+    bonuses: { iq: 5, eq: 5, skill: 5, lang: 5 }
   }
 };
 
@@ -3027,7 +3032,7 @@ function showPathChoice() {
   content.innerHTML = `
     <div class="modal-emoji" style="font-size:48px">🎯</div>
     <div class="modal-title" style="font-size:22px;margin-bottom:4px">${isEn ? 'Choose Your Path' : '选择你的人生目标'}</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${isEn ? 'This will shape your starting stats and Signal direction.' : '这将决定你的初始数值加成和Signal方向。'}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${isEn ? 'This will shape your starting stats.' : '这将决定你的初始数值加成。'}</div>
     <div style="display:flex;flex-direction:column;gap:10px">
       ${Object.entries(LIFE_PATHS).map(([key, path]) => {
         const name = isEn ? path.name.en : path.name.zh;
@@ -3036,7 +3041,6 @@ function showPathChoice() {
           const names = isEn ? { iq:'IQ', eq:'EQ', skill:'Skill', money:'Money', stress:'Stress', lang:'Lang' } : { iq:'智商', eq:'情商', skill:'技能', money:'金钱', stress:'压力', lang:'语言' };
           return `${names[k]||k} ${v>0?'+':''}${v}`;
         }).join('  ');
-        const signalTag = path.signalBonus ? `📡 ${path.signalBonus.toUpperCase()} Signal` : (isEn ? '📡 Balanced' : '📡 均衡');
         return `
           <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:16px;cursor:pointer;transition:all 0.25s;text-align:left"
                onmouseover="this.style.borderColor='var(--accent-gold)';this.style.background='rgba(246,197,71,0.06)';this.style.transform='translateY(-2px)'"
@@ -3046,7 +3050,6 @@ function showPathChoice() {
               <span style="font-size:28px">${path.emoji}</span>
               <div>
                 <div style="font-size:16px;font-weight:700;color:var(--text-primary)">${name}</div>
-                <div style="font-size:11px;color:var(--accent-gold)">${signalTag}</div>
               </div>
             </div>
             <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:6px">${desc}</div>
@@ -3087,162 +3090,12 @@ function choosePath(pathKey) {
   setTimeout(() => showTutorial(), 600);
 }
 
-// ===================== P1-2: SIGNAL TREE =====================
-const SIGNAL_TREE = {
-  // 前期节点（1 Signal）
-  'shopping':   { cat: 'fun', cost: 1, req: { friends: 2 }, emoji: '🛍️', name: { zh: '购物', en: 'Shopping' } },
-  'sushi':      { cat: 'fun', cost: 1, req: { friends: 4 }, emoji: '🍣', name: { zh: '寿司', en: 'Sushi' } },
-  'group_work': { cat: 'study', cost: 1, req: {}, emoji: '👥', name: { zh: '小组作业', en: 'Group Work' } },
-  'ai_class':   { cat: 'study', cost: 1, req: { iq: 33 }, emoji: '🤖', name: { zh: 'AI课', en: 'AI Class' } },
-  'event_pt':   { cat: 'work', cost: 1, req: { eq: 33 }, emoji: '📋', name: { zh: '活动兼职', en: 'Event PT' } },
-
-  // 中期节点（2 Signal）
-  'climb':      { cat: 'fun', cost: 2, req: { friends: 8 }, emoji: '🧗', name: { zh: '爬山', en: 'Climbing' } },
-  'chat':       { cat: 'fun', cost: 2, req: { friends: 10 }, emoji: '💬', name: { zh: '聊天', en: 'Chat' } },
-  'portfolio':  { cat: 'study', cost: 2, req: { skill: 28 }, emoji: '📁', name: { zh: '改作品集', en: 'Portfolio' } },
-  'ra':         { cat: 'study', cost: 2, req: { iq: 38 }, emoji: '🔬', name: { zh: '做RA', en: 'RA Work' } },
-  'media':      { cat: 'work', cost: 2, req: { eq: 36 }, emoji: '📱', name: { zh: '自媒体', en: 'Media' } },
-
-  // 后期节点（3 Signal）
-  'gaming':     { cat: 'fun', cost: 3, req: { friends: 14, eq: 35 }, emoji: '🎮', name: { zh: '打游戏', en: 'Gaming' } },
-  'hiking':     { cat: 'fun', cost: 3, req: { friends: 18 }, emoji: '🥾', name: { zh: '远足', en: 'Hiking' } },
-  'thesis':     { cat: 'study', cost: 3, req: {}, emoji: '📝', name: { zh: '毕业项目', en: 'Thesis' } },
-  'intern':     { cat: 'work', cost: 3, req: { skill: 40 }, emoji: '👔', name: { zh: '实习', en: 'Intern' } },
-  'indie_game': { cat: 'work', cost: 3, req: { skill: 35 }, emoji: '🕹️', name: { zh: '独立游戏', en: 'Indie Game' } },
-  'nightclub':  { cat: 'work', cost: 3, req: { eq: 36, lang: 20 }, emoji: '🍸', name: { zh: '夜店PR', en: 'Nightclub' } },
-
-  // 终极节点（4 Signal）
-  'startup':    { cat: 'work', cost: 4, req: { skill: 45, iq: 38 }, emoji: '🚀', name: { zh: '创业', en: 'Startup' } }
-};
-
-// Track Signal-unlocked activities
-let signalUnlocked = new Set();
-
-function getSignalNodeState(nodeId) {
-  const node = SIGNAL_TREE[nodeId];
-  if (!node) return 'none';
-
-  // Already unlocked via signal tree
-  if (signalUnlocked.has(nodeId)) return 'unlocked';
-
-  // Check if can unlock: enough signal + meets stat requirements
-  const signal = gameState.signal[node.cat] || 0;
-  if (signal < node.cost) return 'locked';
-
-  const s = gameState.stats;
-  const reqMap = { iq: s.iq, eq: s.eq, skill: s.skill, money: s.money, lang: s.lang, friends: gameState.friends };
-  for (const [stat, min] of Object.entries(node.req)) {
-    if ((reqMap[stat] || 0) < min) return 'locked';
-  }
-
-  return 'can_unlock';
-}
-
-function unlockSignalNode(nodeId) {
-  const node = SIGNAL_TREE[nodeId];
-  if (!node) return;
-  if (signalUnlocked.has(nodeId)) return;
-  if (getSignalNodeState(nodeId) !== 'can_unlock') return;
-
-  // Spend signal
-  gameState.signal[node.cat] -= node.cost;
-  signalUnlocked.add(nodeId);
-
-  // Trigger unlock notification
-  const activity = findActivity(nodeId);
-  if (activity && !gameState.unlockedIds.has(nodeId)) {
-    gameState.unlockedIds.add(nodeId);
-  }
-
-  const isEn = currentLang === 'en';
-  const name = isEn ? (node.name.en || nodeId) : (node.name.zh || nodeId);
-  showToast(`${node.emoji} ${isEn ? 'Unlocked:' : '解锁了：'} ${name}`, 'info');
-
-  // Refresh displays
-  renderAll();
-  updateSignalTreeBadge();
-  // Only re-render full tree if it's already open (not from popup)
-  if (document.getElementById('signal-tree-modal').classList.contains('active')) {
-    // Will be re-rendered by caller if needed
-  }
-}
-
-function updateSignalTreeBadge() {
-  let canUnlock = 0;
-  for (const nodeId of Object.keys(SIGNAL_TREE)) {
-    if (getSignalNodeState(nodeId) === 'can_unlock') canUnlock++;
-  }
-  const badge = document.getElementById('signal-tree-badge');
-  if (canUnlock > 0) {
-    badge.textContent = canUnlock;
-    badge.style.display = 'flex';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-function showSignalTree() {
-  const modal = document.getElementById('signal-tree-modal');
-  const content = document.getElementById('signal-tree-content');
-  const isEn = currentLang === 'en';
-
-  const totalSignal = gameState.signal.fun + gameState.signal.study + gameState.signal.work;
-  const sn = isEn ? { iq:'IQ', eq:'EQ', skill:'Skill', money:'Money', lang:'Lang', friends:'Friends' } : { iq:'智商', eq:'情商', skill:'技能', money:'金钱', lang:'语言', friends:'朋友' };
-
-  // Group by category
-  const cats = ['fun', 'study', 'work'];
-  const catLabels = isEn ? { fun: '🎮 Fun', study: '📚 Study', work: '💼 Work' } : { fun: '🎮 娱乐', study: '📚 学习', work: '💼 工作' };
-
-  let gridHtml = '';
-  // Build column by column
-  const columns = cats.map(cat => {
-    const nodes = Object.entries(SIGNAL_TREE).filter(([,n]) => n.cat === cat).sort((a,b) => a[1].cost - b[1].cost);
-    let col = `<div>`;
-    col += `<div class="st-header ${cat}">${catLabels[cat]}<br><span style="font-size:10px;font-weight:400">📡 ${gameState.signal[cat]}</span></div>`;
-    nodes.forEach(([id, node]) => {
-      const state = getSignalNodeState(id);
-      const stClass = state === 'unlocked' ? 'unlocked' : state === 'can_unlock' ? 'can-unlock' : 'locked';
-      const name = isEn ? (node.name.en || id) : (node.name.zh || id);
-      const reqText = Object.entries(node.req).map(([k,v]) => `${sn[k]||k}≥${v}`).join(' ');
-      const clickAction = state === 'can_unlock' ? `unlockSignalNode('${id}')` : '';
-      col += `
-        <div class="st-node ${stClass}" onclick="${clickAction}">
-          ${state === 'unlocked' ? '<div class="st-check">✅</div>' : ''}
-          <div class="st-emoji">${node.emoji}</div>
-          <div class="st-name">${name}</div>
-          <div class="st-cost">📡 ×${node.cost}</div>
-          ${reqText ? `<div class="st-req">${reqText}</div>` : ''}
-        </div>
-      `;
-    });
-    col += `</div>`;
-    return col;
-  });
-
-  content.innerHTML = `
-    <div class="modal-emoji" style="font-size:36px">📡</div>
-    <div class="modal-title" style="font-size:20px;margin-bottom:2px">Signal Tree</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">
-      ${isEn ? 'Spend Signal to unlock activities' : '花费 Signal 解锁新活动'}
-    </div>
-    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:12px;flex-wrap:wrap">
-      <span style="font-size:12px;color:var(--accent-pink)">🎮 Fun: ${gameState.signal.fun}</span>
-      <span style="font-size:12px;color:var(--accent-blue)">📚 Study: ${gameState.signal.study}</span>
-      <span style="font-size:12px;color:var(--accent-purple)">💼 Work: ${gameState.signal.work}</span>
-      <span style="font-size:12px;color:var(--accent-gold)">📡 Total: ${totalSignal}</span>
-    </div>
-    <div class="signal-tree-grid">
-      ${columns.join('')}
-    </div>
-    <button class="btn-modal" onclick="closeSignalTree()" style="margin-top:12px">${isEn ? 'Close' : '关闭'}</button>
-  `;
-
-  modal.classList.add('active');
-}
-
-function closeSignalTree() {
-  document.getElementById('signal-tree-modal').classList.remove('active');
-}
+// ===================== (Signal Tree removed) =====================
+// Activities are now all gated by UNLOCK_RULES (stat / week / friends / portfolio).
+// No-op stubs kept so any legacy callers don't blow up.
+function updateSignalTreeBadge() {}
+function showSignalTree() {}
+function closeSignalTree() {}
 
 function switchScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -3273,9 +3126,7 @@ function renderTopBar() {
   const gpaDisplay = gameState.gpaCredits > 0 ? Math.min(4.0, gameState.gpa / gameState.gpaCredits).toFixed(1) : '0.0';
   const internTag = gameState.interning ? `<span class="topbar-badge intern" title="${T('实习中')}">👔</span>` : '';
 
-  const totalSignal = gameState.signal.fun + gameState.signal.study + gameState.signal.work;
-
-  // Icon-only badges: money / stress / GPA / friends / signal (+ intern tag if interning)
+  // Icon-only state badges in the right-panel topbar
   const stressUrgent = s.stress >= 80;
   const gpaUrgent = parseFloat(gpaDisplay) < 2.0 && gameState.gpaCredits > 0;
   document.getElementById('topbar-badges').innerHTML = `
@@ -3283,7 +3134,6 @@ function renderTopBar() {
     <span class="topbar-badge ${stressUrgent ? 'urgent' : ''}" title="${T('压力')}">😰</span>
     <span class="topbar-badge ${gpaUrgent ? 'urgent' : ''}" title="GPA">📊</span>
     <span class="topbar-badge" title="${T('朋友')}">👫</span>
-    <span class="topbar-badge signal" title="Signal">📡</span>
     ${internTag}
   `;
 }
@@ -3299,8 +3149,7 @@ function renderSideStats() {
     { icon:'😰', name:'压力', val:s.stress, max:100, color:'var(--accent-red)' },
     { icon:'🗣️', name:'语言', val:s.lang, max:200, color:'var(--accent-green)' },
     { icon:'👫', name:'朋友', val:gameState.friends, max:20, color:'#818cf8' },
-    { icon:'📊', name:'GPA', val:gpaDisplay, max:4.0, color:'#fbbf24', isGpa:true },
-    { icon:'📡', name:'Signal', val: gameState.signal.fun + gameState.signal.study + gameState.signal.work, max:30, color:'#f59e0b' }
+    { icon:'📊', name:'GPA', val:gpaDisplay, max:4.0, color:'#fbbf24', isGpa:true }
   ];
 
   document.getElementById('side-stats').innerHTML = stats.map(st => {
@@ -3672,7 +3521,6 @@ function confirmWeek() {
     portfolio: gameState.portfolio,
     aiClassCount: gameState.aiClassCount,
     interning: gameState.interning,
-    signal: gameState.signal,
     eventProgress: gameState.eventProgress,
     weekSlots: [],
     history: gameState.history.slice() // copy
@@ -3734,37 +3582,6 @@ function confirmWeek() {
 
   // Save for summary
   const summaryData = { weekActivities, changes, funCount, studyCount, workCount, slotIds };
-
-  // === Signal 计算 ===
-  if (funCount >= 5) gameState.signal.fun += 2;
-  else if (funCount >= 3) gameState.signal.fun += 1;
-  if (studyCount >= 5) gameState.signal.study += 2;
-  else if (studyCount >= 3) gameState.signal.study += 1;
-  if (workCount >= 5) gameState.signal.work += 2;
-  else if (workCount >= 3) gameState.signal.work += 1;
-
-  // Signal 里程碑：某活动累计≥10次或≥20次
-  const actCounts = {};
-  gameState.history.forEach(h => { actCounts[h.name] = (actCounts[h.name]||0) + 1; });
-  for (const [name, count] of Object.entries(actCounts)) {
-    if (count >= 20 && !gameState.signalMilestones[name+'_20']) {
-      const cat = funItems.has(findActivityByName(name)) ? 'fun' : studyItems.has(findActivityByName(name)) ? 'study' : 'work';
-      gameState.signal[cat] += 3;
-      gameState.signalMilestones[name+'_20'] = true;
-    } else if (count >= 10 && !gameState.signalMilestones[name+'_10']) {
-      const cat = funItems.has(findActivityByName(name)) ? 'fun' : studyItems.has(findActivityByName(name)) ? 'study' : 'work';
-      gameState.signal[cat] += 2;
-      gameState.signalMilestones[name+'_10'] = true;
-    }
-  }
-
-  // Path bonus: chosen path gives +1 Signal to its category each week
-  if (gameState.chosenPath) {
-    const pathSignal = LIFE_PATHS[gameState.chosenPath]?.signalBonus;
-    if (pathSignal && gameState.signal[pathSignal] !== undefined) {
-      gameState.signal[pathSignal] += 1;
-    }
-  }
 
   // Save slotIds for GPA decay check
   gameState._lastSlotIds = slotIds.slice();
@@ -4104,9 +3921,18 @@ function getEventCategory(eventId) {
 function getEventSuccessRate(event, choice) {
   if (!choice || choice.flagChance <= 0) return 0;
   let rate = 0.03; // base 3%
-  // Signal bonus: each point of relevant signal = +1%
+  // Category bonus: how much the player has invested in the relevant category
+  // (counted from history) — replaces the old Signal system with a simpler proxy.
   const cat = getEventCategory(event.id);
-  rate += (gameState.signal[cat] || 0) * 0.01;
+  const funItems = new Set(ACTIVITIES.fun.items.map(i => i.id));
+  const studyItems = new Set(ACTIVITIES.study.items.map(i => i.id));
+  const workItems = new Set(ACTIVITIES.work.items.map(i => i.id));
+  const catSet = cat === 'fun' ? funItems : cat === 'study' ? studyItems : workItems;
+  const catCount = gameState.history.filter(h => {
+    const act = findActivityByName(h.name);
+    return act && catSet.has(act);
+  }).length;
+  rate += Math.min(0.10, catCount * 0.005); // up to +10%
   // Stat bonus (halved)
   const s = gameState.stats;
   const bonuses = {
@@ -4452,9 +4278,7 @@ function showEnding(endingId) {
 
 function restartGame() {
   initGame();
-  signalUnlocked = new Set();
   document.getElementById('btn-collection').style.display = 'none';
-  document.getElementById('btn-signal-tree').style.display = 'none';
   switchScreen('screen-title');
 }
 
@@ -4474,7 +4298,6 @@ function goBackOneWeek() {
   gameState.portfolio = snap.portfolio;
   gameState.aiClassCount = snap.aiClassCount;
   gameState.interning = snap.interning;
-  if (snap.signal) gameState.signal = { ...snap.signal };
   if (snap.eventProgress) gameState.eventProgress = { ...snap.eventProgress };
   gameState.weekSlots = [];
   gameState.history = snap.history.slice();
@@ -4482,7 +4305,6 @@ function goBackOneWeek() {
 
   // Back to game screen
   document.getElementById('btn-collection').style.display = 'flex';
-  document.getElementById('btn-signal-tree').style.display = 'flex';
   switchScreen('screen-game');
   renderAll();
   showToast(currentLang === 'en' ? '⏪ Back to last week! Make better choices!' : '⏪ 回到上一周！重新选择吧！', 'info');
@@ -4648,9 +4470,7 @@ function closeIntroAndNext() {
 let pendingUnlocks = []; // Queue of newly unlocked activities
 
 function checkNewUnlocks() {
-  // Check activities with unlock rules (skip Signal Tree activities)
   for (const [actId, rule] of Object.entries(UNLOCK_RULES)) {
-    if (SIGNAL_TREE[actId]) continue; // Signal Tree activities are manually unlocked
     const result = rule(gameState);
     if (!result.locked && !gameState.unlockedIds.has(actId)) {
       // Newly unlocked!
@@ -4663,158 +4483,10 @@ function checkNewUnlocks() {
     }
   }
 
-  // Also update Signal Tree badge
-  updateSignalTreeBadge();
-
   // Show first pending unlock if no other modal is open
   if (pendingUnlocks.length > 0 && !isAnyModalOpen()) {
     setTimeout(() => showNextUnlock(), 300);
   }
-  // After normal unlocks are done, check Signal Tree for proactive popup
-  else if (pendingUnlocks.length === 0 && !isAnyModalOpen()) {
-    const canUnlockNodes = getCanUnlockSignalNodes();
-    if (canUnlockNodes.length > 0 && !gameState._signalPopupShownThisWeek) {
-      gameState._signalPopupShownThisWeek = true;
-      setTimeout(() => showSignalUnlockPopup(canUnlockNodes), 400);
-    }
-  }
-}
-
-// Get all Signal Tree nodes that can be unlocked right now
-function getCanUnlockSignalNodes() {
-  const result = [];
-  for (const [nodeId, node] of Object.entries(SIGNAL_TREE)) {
-    if (getSignalNodeState(nodeId) === 'can_unlock') {
-      result.push({ id: nodeId, ...node });
-    }
-  }
-  return result;
-}
-
-// Proactive Signal Tree unlock popup — shows up in player's face
-function showSignalUnlockPopup(nodes) {
-  if (nodes.length === 0) return;
-  const modal = document.getElementById('signal-tree-modal');
-  const content = document.getElementById('signal-tree-content');
-  const isEn = currentLang === 'en';
-  const sn = isEn ? { iq:'IQ', eq:'EQ', skill:'Skill', money:'Money', lang:'Lang', friends:'Friends' } : { iq:'智商', eq:'情商', skill:'技能', money:'金钱', lang:'语言', friends:'朋友' };
-  const catLabels = isEn ? { fun: '🎮 Fun', study: '📚 Study', work: '💼 Work' } : { fun: '🎮 娱乐', study: '📚 学习', work: '💼 工作' };
-  const catColors = { fun: 'var(--accent-pink)', study: 'var(--accent-blue)', work: 'var(--accent-purple)' };
-
-  // Calculate how many the player can actually afford per category
-  // (greedy: count affordable nodes sorted by cost ascending)
-  const signalCopy = { fun: gameState.signal.fun, study: gameState.signal.study, work: gameState.signal.work };
-  const sortedNodes = [...nodes].sort((a, b) => a.cost - b.cost);
-  let affordableCount = 0;
-  const tempSignal = { ...signalCopy };
-  for (const node of sortedNodes) {
-    if (tempSignal[node.cat] >= node.cost) {
-      tempSignal[node.cat] -= node.cost;
-      affordableCount++;
-    }
-  }
-
-  // Build signal status display with clear budget info
-  const signalStatus = ['fun', 'study', 'work'].map(cat => {
-    const available = gameState.signal[cat];
-    const catNodes = nodes.filter(n => n.cat === cat);
-    const catCount = catNodes.length;
-    if (catCount === 0) return '';
-    const cheapest = Math.min(...catNodes.map(n => n.cost));
-    const canBuy = available >= cheapest;
-    return `
-      <div style="background:${canBuy ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.03)'};border:1px solid ${canBuy ? 'rgba(245,158,11,0.3)' : 'var(--border-color)'};border-radius:10px;padding:8px 12px;flex:1;min-width:100px;text-align:center">
-        <div style="font-size:11px;color:var(--text-muted)">${catLabels[cat]}</div>
-        <div style="font-size:20px;font-weight:900;color:${catColors[cat]}">${available}</div>
-        <div style="font-size:10px;color:${canBuy ? 'var(--accent-gold)' : 'var(--text-muted)'}">${catCount} ${isEn ? 'available' : '个可选'}</div>
-      </div>
-    `;
-  }).filter(Boolean).join('');
-
-  content.innerHTML = `
-    <div class="modal-emoji" style="font-size:40px">🔓📡</div>
-    <div class="modal-title" style="font-size:20px;margin-bottom:4px">${isEn ? 'Signal Unlock!' : 'Signal 解锁！'}</div>
-    <div style="font-size:14px;color:var(--text-primary);margin-bottom:4px;font-weight:600">
-      ${isEn
-        ? `You can afford to unlock <span style="color:var(--accent-gold);font-size:18px">${affordableCount}</span> activit${affordableCount > 1 ? 'ies' : 'y'}`
-        : `你的 Signal 够解锁 <span style="color:var(--accent-gold);font-size:18px">${affordableCount}</span> 个活动`
-      }
-    </div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
-      ${isEn
-        ? `${nodes.length} available below — pick 1 to unlock now!`
-        : `下面有 ${nodes.length} 个可解锁 —— 选 1 个解锁吧！`
-      }
-    </div>
-
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;justify-content:center">
-      ${signalStatus}
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:10px;max-height:45vh;overflow-y:auto;padding:4px">
-      ${nodes.map(node => {
-        const name = isEn ? (node.name.en || node.id) : (node.name.zh || node.id);
-        const activity = findActivity(node.id);
-        const effectsHtml = activity ? Object.entries(activity.effects).map(([k, v]) => {
-          const cls = v > 0 ? (k === 'stress' ? 'negative' : 'positive') : (k === 'stress' ? 'positive' : 'negative');
-          const snObj = getSN();
-          return `<span class="effect-tag ${cls}" style="font-size:10px">${snObj[k]||k} ${v > 0 ? '+' : ''}${v}</span>`;
-        }).join(' ') : '';
-        const descText = activity ? T(activity.desc) : '';
-        const costDisplay = `📡 ×${node.cost}`;
-        const afterUnlock = gameState.signal[node.cat] - node.cost;
-        return `
-          <div style="background:var(--bg-card);border:2px solid rgba(245,158,11,0.4);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.25s;text-align:left"
-               onmouseover="this.style.borderColor='var(--accent-gold)';this.style.background='rgba(245,158,11,0.08)';this.style.transform='translateY(-2px)'"
-               onmouseout="this.style.borderColor='rgba(245,158,11,0.4)';this.style.background='var(--bg-card)';this.style.transform='translateY(0)'"
-               onclick="unlockFromPopup('${node.id}')">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-              <span style="font-size:28px">${node.emoji}</span>
-              <div style="flex:1">
-                <div style="font-size:15px;font-weight:700;color:var(--text-primary)">${name}</div>
-                <div style="font-size:11px;color:${catColors[node.cat]}">
-                  ${catLabels[node.cat]} ${costDisplay}
-                  <span style="color:var(--text-muted);font-size:10px">（${isEn ? 'after' : '解锁后'}: ${afterUnlock}）</span>
-                </div>
-              </div>
-              <div style="background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange));color:#000;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap">
-                ${isEn ? 'Pick!' : '选这个！'}
-              </div>
-            </div>
-            ${descText ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">${descText}</div>` : ''}
-            ${effectsHtml ? `<div style="display:flex;flex-wrap:wrap;gap:3px">${effectsHtml}</div>` : ''}
-          </div>
-        `;
-      }).join('')}
-    </div>
-    <div style="margin-top:14px;text-align:center">
-      <button class="btn-modal" onclick="closeSignalPopup()" style="background:linear-gradient(135deg,#4b5563,#6b7280);font-size:13px;padding:10px 30px">
-        ${isEn ? 'Skip for Now' : '先不解锁'}
-      </button>
-    </div>
-  `;
-
-  modal.classList.add('active');
-}
-
-function unlockFromPopup(nodeId) {
-  unlockSignalNode(nodeId);
-  // After unlocking, check if more can still be unlocked
-  const remaining = getCanUnlockSignalNodes();
-  if (remaining.length > 0) {
-    // Recalculate — can player still afford any?
-    const signalCopy = { fun: gameState.signal.fun, study: gameState.signal.study, work: gameState.signal.work };
-    const canAffordAny = remaining.some(n => signalCopy[n.cat] >= n.cost);
-    if (canAffordAny) {
-      showSignalUnlockPopup(remaining);
-      return;
-    }
-  }
-  closeSignalPopup();
-}
-
-function closeSignalPopup() {
-  document.getElementById('signal-tree-modal').classList.remove('active');
 }
 
 function isAnyModalOpen() {
@@ -4822,8 +4494,7 @@ function isAnyModalOpen() {
          document.getElementById('event-modal').classList.contains('active') ||
          document.getElementById('summary-modal').classList.contains('active') ||
          document.getElementById('unlock-modal').classList.contains('active') ||
-         document.getElementById('collection-modal').classList.contains('active') ||
-         document.getElementById('signal-tree-modal').classList.contains('active');
+         document.getElementById('collection-modal').classList.contains('active');
 }
 
 function showNextUnlock() {
