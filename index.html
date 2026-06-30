@@ -8,8 +8,17 @@
 <meta name="apple-mobile-web-app-title" content="水硕模拟器">
 <meta name="theme-color" content="#c7d8e6">
 <title>🎓 水硕模拟器 — Watered-Down Master: HK</title>
+
+<!-- Perf: preconnect to font CDN, load font non-blocking, preload harbor bg -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="assets/bg-harbor.webp" type="image/webp">
+<link rel="preload" as="image" href="assets/mascot.webp" type="image/webp">
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap"></noscript>
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
 
   :root {
     --bg-primary: #0a0e1a;
@@ -33,7 +42,7 @@
   * { margin:0; padding:0; box-sizing:border-box; }
 
   body {
-    font-family: 'Noto Sans SC', sans-serif;
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
@@ -49,7 +58,10 @@
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
+    /* WebP first (≈103KB), JPG fallback for old browsers */
     background-image: url('assets/bg-harbor.jpg');
+    background-image: -webkit-image-set(url('assets/bg-harbor.webp') type('image/webp'), url('assets/bg-harbor.jpg') type('image/jpeg'));
+    background-image: image-set(url('assets/bg-harbor.webp') type('image/webp'), url('assets/bg-harbor.jpg') type('image/jpeg'));
     background-size: cover;
     background-position: center;
     background-color: #c7d8e6;
@@ -1703,15 +1715,7 @@
   /* ====================================================== */
 
   body.in-game { background: #c7d8e6; overflow: hidden; }
-  body.in-game::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url('assets/bg-harbor.jpg');
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
-    pointer-events: none;
-  }
+  /* harbor bg is provided by the global body::before (WebP) — no override needed */
   body.in-game #app {
     max-width: none;
     width: 100vw;
@@ -2401,7 +2405,7 @@
 </button>
 
 <!-- BGM Audio (loop, low volume) -->
-<audio id="bgm-audio" loop preload="auto" src="bgm.mp3"></audio>
+<audio id="bgm-audio" loop preload="none" src="bgm.mp3"></audio>
 
 <div id="app">
   <!-- Title Screen -->
@@ -2437,7 +2441,10 @@
       <div class="stage-left">
         <div class="mascot-wrap" id="mascot-wrap">
           <div class="mascot-bubble" id="mascot-bubble">港硕生活要开始了<br>先来安排日程吧！</div>
-          <img class="mascot-img" src="assets/mascot.png" alt="主角" draggable="false">
+          <picture>
+            <source srcset="assets/mascot.webp" type="image/webp">
+            <img class="mascot-img" src="assets/mascot.png" alt="主角" draggable="false" decoding="async" loading="eager">
+          </picture>
         </div>
       </div>
 
