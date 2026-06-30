@@ -44,15 +44,24 @@
     user-select: none;
   }
 
-  /* === Background Animation === */
+  /* === Global harbor background (ALL screens) === */
   body::before {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background:
-      radial-gradient(ellipse at 20% 50%, rgba(96,165,250,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(167,139,250,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, rgba(244,114,182,0.06) 0%, transparent 50%);
+    background-image: url('assets/bg-harbor.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: #c7d8e6;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* Soft white wash on non-game screens so text stays legible over the photo */
+  body:not(.in-game)::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.12) 40%, rgba(255,255,255,0.34) 100%);
     pointer-events: none;
     z-index: 0;
   }
@@ -2221,32 +2230,10 @@
     --accent-orange: #ea580c;
   }
 
-  /* Harbor background is now ALWAYS on (not just in-game) */
+  /* Body base color (harbor bg lives in the canonical body::before above) */
   body {
     background: #c7d8e6;
     color: var(--text-primary);
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url('assets/bg-harbor.jpg');
-    background-size: cover;
-    background-position: center;
-    /* Replace the old dark radial gradients entirely */
-    background-color: #c7d8e6;
-    pointer-events: none;
-    z-index: 0;
-  }
-  /* A faint white wash to keep text legible over the busy photo on the
-     non-game screens (the game screen has its own opaque panels). */
-  body:not(.in-game)::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.10) 40%, rgba(255,255,255,0.30) 100%);
-    pointer-events: none;
-    z-index: 0;
   }
 
   /* === Title screen on the new theme === */
