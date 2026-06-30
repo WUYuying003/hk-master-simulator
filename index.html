@@ -2237,17 +2237,56 @@
   }
 
   /* === Title screen on the new theme === */
-  .title-sub { color: var(--text-secondary); }
+  .title-sub {
+    color: #334155;
+    text-shadow: 0 1px 8px rgba(255,255,255,0.7);
+  }
   .title-desc {
-    color: #475569;
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    color: #334155;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.95);
     border-radius: 16px;
-    padding: 16px 20px;
-    box-shadow: 0 6px 22px rgba(20, 40, 70, 0.12);
+    padding: 18px 24px;
+    box-shadow: 0 6px 22px rgba(20, 40, 70, 0.16);
   }
   /* keep the gradient title text, but give it a soft white halo for contrast */
-  .title-main { filter: drop-shadow(0 2px 6px rgba(255,255,255,0.6)); }
+  .title-main { filter: drop-shadow(0 2px 8px rgba(255,255,255,0.85)); }
+
+  /* === Intro screen: wrap the narrative in a frosted white card === */
+  .intro-text {
+    color: #334155;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 18px;
+    padding: 24px 28px;
+    box-shadow: 0 8px 28px rgba(20, 40, 70, 0.16);
+  }
+  .intro-text em { color: var(--accent-orange); }
+
+  /* === Offer screen: put the taglines/subtitles on a white card === */
+  .offer-intro-card {
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 18px;
+    padding: 20px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 28px rgba(20, 40, 70, 0.16);
+    max-width: 560px;
+    width: 100%;
+  }
+  .offer-intro-card .offer-subtitle { margin: 18px 0 6px; }
+  .offer-tagline { color: #334155; }
+  .offer-subtitle { color: #0f172a; }
+  .offer-money-hint { color: #475569; margin-bottom: 0; }
+  .offer-card {
+    background: rgba(255, 255, 255, 0.82) !important;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+  }
+  .offer-card-name { color: #0f172a; }
+  .offer-card.hk-special {
+    background: rgba(255, 247, 237, 0.9) !important;
+    border-color: rgba(234, 88, 12, 0.45);
+  }
 
   /* === Modals: frosted white card on a lighter scrim === */
   .modal-overlay {
@@ -2322,6 +2361,26 @@
   }
   #bgm-toggle:hover { border-color: #1d4ed8; color: #1d4ed8; box-shadow: 0 6px 18px rgba(29,78,216,0.2); }
   #bgm-toggle.playing { border-color: rgba(34,197,94,0.5); color: #15803d; }
+
+  /* === Unify ALL primary buttons to the orange brand color === */
+  /* btn-modal was blue→purple; btn-confirm (in-game) was blue. Make both orange. */
+  .btn-modal {
+    background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.32);
+  }
+  .btn-modal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(234, 88, 12, 0.45) !important;
+  }
+  body.in-game .btn-confirm {
+    background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+    box-shadow: 0 6px 18px rgba(234, 88, 12, 0.32);
+  }
+  body.in-game .btn-confirm:hover:not(:disabled) {
+    box-shadow: 0 8px 22px rgba(234, 88, 12, 0.45) !important;
+  }
+  /* btn-start (title/intro) is already orange — keep. btn-restart stays gold outline. */
 
   /* Make sure non-game screens sit above the background layers */
   body:not(.in-game) #app { position: relative; z-index: 1; }
@@ -2673,7 +2732,7 @@ function renderOfferScreen() {
   const container = document.getElementById('offer-content');
 
   container.innerHTML = `
-    <div style="margin-bottom:20px">
+    <div class="offer-intro-card">
       <div class="offer-tagline">
         ${isEn
           ? 'In this life, the most important stage is<br><em>getting a water master\'s degree</em>'
@@ -2686,17 +2745,15 @@ function renderOfferScreen() {
           : '<span class="highlight">好好把握你的水硕人生！</span>'
         }
       </div>
-    </div>
-
-    <div class="offer-subtitle">
-      ${isEn ? '🎓 Choose Your Offer' : '🎓 接下来，来选 offer 吧'}
-    </div>
-
-    <div class="offer-money-hint">
-      ${isEn
-        ? 'Your budget: <strong>¥35W</strong>'
-        : '你的启动资金只有 <strong>35W</strong>'
-      }
+      <div class="offer-subtitle">
+        ${isEn ? '🎓 Choose Your Offer' : '🎓 接下来，来选 offer 吧'}
+      </div>
+      <div class="offer-money-hint">
+        ${isEn
+          ? 'Your budget: <strong>¥35W</strong>'
+          : '你的启动资金只有 <strong>35W</strong>'
+        }
+      </div>
     </div>
 
     <div class="offer-grid">
@@ -4005,7 +4062,7 @@ function showGpaWarning(checkpoint, currentGpa) {
       <button class="btn-modal" onclick="document.getElementById('event-modal').classList.remove('active');showEnding('expelled')" style="background:linear-gradient(135deg,var(--accent-red),var(--accent-orange))">
         😢 ${isEn ? 'Accept Fate' : '接受现实'}
       </button>
-      <button class="btn-modal" onclick="document.getElementById('event-modal').classList.remove('active');goBackOneWeek()" style="background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple))">
+      <button class="btn-modal" onclick="document.getElementById('event-modal').classList.remove('active');goBackOneWeek()" style="background:linear-gradient(135deg,#6b7280,#4b5563)">
         ⏪ ${isEn ? 'Redo Last Week' : '回到上一周'}
       </button>
     </div>
@@ -4254,7 +4311,7 @@ function showSpecialEndingChoice(ending) {
       <button class="btn-modal" onclick="acceptSpecialEnding('${ending.id}')" style="background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange))">
         ${ending.emoji} ${isEn ? 'Accept Ending' : '接受结局'}
       </button>
-      <button class="btn-modal" onclick="skipSpecialEnding()" style="background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple))">
+      <button class="btn-modal" onclick="skipSpecialEnding()" style="background:linear-gradient(135deg,#6b7280,#4b5563)">
         💪 ${isEn ? 'Keep Playing' : '继续游戏'}
       </button>
     </div>
