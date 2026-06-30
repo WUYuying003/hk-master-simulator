@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="水硕模拟器">
-<meta name="theme-color" content="#0a0e1a">
+<meta name="theme-color" content="#c7d8e6">
 <title>🎓 水硕模拟器 — Watered-Down Master: HK</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
@@ -2189,6 +2189,155 @@
     body.in-game .btn-confirm { font-size: 12px; padding: 9px; }
     body.in-game .btn-repeat-last { font-size: 11px; padding: 8px; }
   }
+
+  /* ====================================================================== */
+  /* === GLOBAL UNIFIED THEME — harbor background + frosted-white on ALL === */
+  /* === screens (title / offer / intro / ending / modals). Applied via   === */
+  /* === light overrides of the original dark CSS variables so every       === */
+  /* === var(--bg-*) / var(--text-*) surface re-skins automatically.       === */
+  /* ====================================================================== */
+
+  :root {
+    /* Flip the dark palette to a light frosted-white palette globally.
+       Surfaces that used these vars now become translucent white cards. */
+    --bg-primary:   #c7d8e6;
+    --bg-secondary: rgba(255, 255, 255, 0.72);
+    --bg-card:      rgba(255, 255, 255, 0.62);
+    --bg-hover:     rgba(255, 255, 255, 0.85);
+    --text-primary:   #0f172a;
+    --text-secondary: #334155;
+    --text-muted:     #64748b;
+    --border-color:   rgba(255, 255, 255, 0.85);
+    --shadow-glow: 0 8px 28px rgba(20, 40, 70, 0.16);
+    /* Darken the accent palette a touch so accent *text* stays legible on
+       white frosted cards (the light originals washed out). Gradients that
+       blend these still look fine. */
+    --accent-gold:   #d97706;
+    --accent-blue:   #2563eb;
+    --accent-purple: #7c3aed;
+    --accent-pink:   #db2777;
+    --accent-green:  #059669;
+    --accent-red:    #dc2626;
+    --accent-orange: #ea580c;
+  }
+
+  /* Harbor background is now ALWAYS on (not just in-game) */
+  body {
+    background: #c7d8e6;
+    color: var(--text-primary);
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('assets/bg-harbor.jpg');
+    background-size: cover;
+    background-position: center;
+    /* Replace the old dark radial gradients entirely */
+    background-color: #c7d8e6;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* A faint white wash to keep text legible over the busy photo on the
+     non-game screens (the game screen has its own opaque panels). */
+  body:not(.in-game)::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.10) 40%, rgba(255,255,255,0.30) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* === Title screen on the new theme === */
+  .title-sub { color: var(--text-secondary); }
+  .title-desc {
+    color: #475569;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 6px 22px rgba(20, 40, 70, 0.12);
+  }
+  /* keep the gradient title text, but give it a soft white halo for contrast */
+  .title-main { filter: drop-shadow(0 2px 6px rgba(255,255,255,0.6)); }
+
+  /* === Modals: frosted white card on a lighter scrim === */
+  .modal-overlay {
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .modal-content {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 20px 60px rgba(20, 40, 70, 0.28);
+    color: var(--text-primary);
+  }
+  .modal-desc { color: var(--text-secondary); }
+
+  /* === Ending screen === */
+  .ending-desc { color: var(--text-secondary); }
+  .ending-stat {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 14px rgba(20, 40, 70, 0.10);
+  }
+
+  /* === Generic cards used across offer/intro/collection/summary === */
+  .modal-content .summary-item,
+  .summary-modal-content,
+  .summary-header,
+  .summary-activity-tag,
+  .summary-comment,
+  .unlock-card,
+  .collection-card,
+  .ending-full-card {
+    color: var(--text-primary);
+  }
+  .summary-activity-tag {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+  }
+  .unlock-card,
+  .collection-card.unlocked {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+  }
+  .collection-card.locked {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px dashed rgba(15, 23, 42, 0.15);
+  }
+
+  /* === Toasts: lighter glass === */
+  .toast {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .toast.info    { background: rgba(219,234,254,0.92); color:#1e3a8a; border:1px solid rgba(147,197,253,0.7); }
+  .toast.success { background: rgba(209,250,229,0.92); color:#065f46; border:1px solid rgba(110,231,183,0.7); }
+  .toast.warning { background: rgba(255,237,213,0.92); color:#9a3412; border:1px solid rgba(253,186,116,0.7); }
+  .toast.danger  { background: rgba(254,226,226,0.92); color:#991b1b; border:1px solid rgba(252,165,165,0.7); }
+
+  /* === Global lang/BGM toggle pills (shown on non-game screens) === */
+  .lang-toggle {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 14px rgba(20, 40, 70, 0.12);
+  }
+  .lang-btn { color: #64748b; }
+  .lang-btn.active { background: #1d4ed8; color: #fff; }
+  #bgm-toggle {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    color: #475569;
+    box-shadow: 0 4px 14px rgba(20, 40, 70, 0.12);
+  }
+  #bgm-toggle:hover { border-color: #1d4ed8; color: #1d4ed8; box-shadow: 0 6px 18px rgba(29,78,216,0.2); }
+  #bgm-toggle.playing { border-color: rgba(34,197,94,0.5); color: #15803d; }
+
+  /* Make sure non-game screens sit above the background layers */
+  body:not(.in-game) #app { position: relative; z-index: 1; }
 </style>
 </head>
 <body>
